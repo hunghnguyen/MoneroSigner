@@ -22,8 +22,8 @@ class GUIConstants:
     WARNING_COLOR = "#FFD60A"
     DIRE_WARNING_COLOR = "red"
     SUCCESS_COLOR = "#00dd00"
-    BITCOIN_ORANGE = "#ff9416"
-    ACCENT_COLOR = "orange"
+    # MONERO_ORANGE = "#ED5F00"  # TODO: seems not needed, delete 2024-05-30
+    ACCENT_COLOR = "#ED5F00"
     TESTNET_COLOR = "#00f100"
     REGTEST_COLOR = "#00caf1"
 
@@ -116,11 +116,11 @@ class SeedSignerCustomIconConstants:
     CIRCLE_X = "\ue909"
     FINGERPRINT = "\ue90a"
     PATH = "\ue90b"
-    BITCOIN_LOGO_STRAIGHT = "\ue90c"
-    BITCOIN_LOGO_TILTED = "\ue90d"
+    MONERO_LOGO_STRAIGHT = "\ue90c"
+    MONERO_LOGO_TILTED = "\ue90d"
 
     MIN_VALUE = LARGE_CHEVRON_LEFT
-    MAX_VALUE = BITCOIN_LOGO_TILTED
+    MAX_VALUE = MONERO_LOGO_TILTED
 
 
 
@@ -421,7 +421,7 @@ class TextArea(BaseComponent):
 class Icon(BaseComponent):
     screen_x: int = 0
     screen_y: int = 0
-    icon_name: str = SeedSignerCustomIconConstants.BITCOIN_LOGO_TILTED
+    icon_name: str = SeedSignerCustomIconConstants.MONERO_LOGO_TILTED
     icon_size: int = GUIConstants.ICON_FONT_SIZE
     icon_color: str = GUIConstants.BODY_FONT_COLOR
 
@@ -572,7 +572,7 @@ class IconTextLine(BaseComponent):
 @dataclass
 class FormattedAddress(BaseComponent):
     """
-        Display a Bitcoin address in a "{first 7} {middle} {last 7}" formatted view with
+        Display a Monero address in a "{first 7} {middle} {last 7}" formatted view with
         a possible/likely line break in the middle and using a fixed-width font:
 
         bc1q567 abcdefg1234567abcdefg
@@ -742,15 +742,15 @@ class FormattedAddress(BaseComponent):
 
 
 @dataclass
-class BtcAmount(BaseComponent):
+class XmrAmount(BaseComponent):
     """
-        Display btc value based on the SETTING__BTC_DENOMINATION Setting:
-        * btc: "B" icon + 8-decimal amount + "btc" (can truncate zero decimals to .0 or .09)
-        * sats: "B" icon + comma-separated amount + "sats"
-        * threshold: btc display at or above 0.01 btc; otherwise sats
-        * btcsatshybrd: "B" icon + 2-decimal amount + "|" + up to 6-digit, comma-separated sats + "sats"
+        Display xmr value based on the SETTING__XMR_DENOMINATION Setting:
+        * xmr: "B" icon + 8-decimal amount + "xmr" (can truncate zero decimals to .0 or .09)
+        * atomic_units: "B" icon + comma-separated amount + "atomic_units"
+        * threshold: xmr display at or above 0.01 xmr; otherwise atomic_units
+        * xmratomic_unitshybrd: "B" icon + 2-decimal amount + "|" + up to 6-digit, comma-separated atomic_units + "atomic_units"
     """
-    total_sats: int = None
+    total_atomic_units: int = None
     icon_size: int = 34
     font_size: int = 24
     screen_x: int = 0
@@ -762,21 +762,19 @@ class BtcAmount(BaseComponent):
         self.sub_components: List[BaseComponent] = []
         self.paste_image: Image.Image = None
         self.paste_coords = None
-        denomination = Settings.get_instance().get_value(SettingsConstants.SETTING__BTC_DENOMINATION)
+        denomination = Settings.get_instance().get_value(SettingsConstants.SETTING__XMR_DENOMINATION)
         network = Settings.get_instance().get_value(SettingsConstants.SETTING__NETWORK)
 
-        btc_unit = "tBtc"
-        sats_unit = "tSats"
+        xmr_unit = "XMR"
+        atomic_units_unit = "pXMR"
         if network == SettingsConstants.MAINNET:
-            btc_unit = "btc"
-            sats_unit = "sats"
-            btc_color = GUIConstants.ACCENT_COLOR
+            xmr_color = GUIConstants.ACCENT_COLOR
 
         elif network == SettingsConstants.TESTNET:
-            btc_color = GUIConstants.TESTNET_COLOR
+            xmr_color = GUIConstants.TESTNET_COLOR
         
         elif network == SettingsConstants.REGTEST:
-            btc_color = GUIConstants.REGTEST_COLOR
+            xmr_color = GUIConstants.REGTEST_COLOR
         
         digit_font = Fonts.get_font(font_name=GUIConstants.BODY_FONT_NAME, size=self.font_size)
         smaller_digit_font = Fonts.get_font(font_name=GUIConstants.BODY_FONT_NAME, size=self.font_size - 2)
@@ -786,44 +784,44 @@ class BtcAmount(BaseComponent):
         self.paste_image = Image.new(mode="RGB", size=(self.canvas_width, self.icon_size), color=GUIConstants.BACKGROUND_COLOR)
         draw = ImageDraw.Draw(self.paste_image)
 
-        # Render the circular Bitcoin icon
-        btc_icon = Icon(
+        # Render the circular Monero icon  # TODO:change to Monero icon
+        xmr_icon = Icon(
             image_draw=draw,
             canvas=self.paste_image,
-            icon_name=SeedSignerCustomIconConstants.BITCOIN_LOGO_TILTED,
-            icon_color=btc_color,
+            icon_name=SeedSignerCustomIconConstants.MONERO_LOGO_TILTED,
+            icon_color=xmr_color,
             icon_size=self.icon_size,
             screen_x=0,
             screen_y=0,
         )
-        btc_icon.render()
-        cur_x = btc_icon.width + int(GUIConstants.COMPONENT_PADDING/4)
+        xmr_icon.render()
+        cur_x = xmr_icon.width + int(GUIConstants.COMPONENT_PADDING/4)
 
-        if denomination == SettingsConstants.BTC_DENOMINATION__BTC or \
-            (denomination == SettingsConstants.BTC_DENOMINATION__THRESHOLD and self.total_sats >= 1e6) or \
-                (denomination == SettingsConstants.BTC_DENOMINATION__BTCSATSHYBRID and self.total_sats >= 1e6 and str(self.total_sats)[-6:] == "0" * 6) or \
-                    self.total_sats > 1e10:
-            decimal_btc = Decimal(self.total_sats / 1e8).quantize(Decimal("0.12345678"))
-            if str(self.total_sats)[-8:] == "0" * 8:
-                # Only whole btc units being displayed; truncate to a single decimal place
-                decimal_btc = decimal_btc.quantize(Decimal("0.1"))
+        if denomination == SettingsConstants.XMR_DENOMINATION__XMR or \
+            (denomination == SettingsConstants.XMR_DENOMINATION__THRESHOLD and self.total_atomic_units >= 1e10) or \
+                (denomination == SettingsConstants.XMR_DENOMINATION__XMRATOMICUNITHYBRID and self.total_atomic_units >= 1e6 and str(self.total_atomic_units)[-6:] == "0" * 6) or \
+                    self.total_atomic_units > 1e10:
+            decimal_xmr = Decimal(self.total_atomic_units / 1e12).quantize(Decimal("0.123456789012"))
+            if str(self.total_atomic_units)[-12:] == "0" * 12:
+                # Only whole xmr units being displayed; truncate to a single decimal place
+                decimal_xmr = decimal_xmr.quantize(Decimal("0.1"))
 
-            elif str(self.total_sats)[-6:] == "0" * 6:
+            elif str(self.total_atomic_units)[-10:] == "0" * 10:
                 # Bottom six digits are all zeroes; trucate to two decimal places
-                decimal_btc = decimal_btc.quantize(Decimal("0.12"))
+                decimal_xmr = decimal_xmr.quantize(Decimal("0.12"))
             
-            btc_text = f"{decimal_btc:,}"
+            xmr_text = f"{decimal_xmr:,}"
 
-            if len(btc_text) >= 12:
-                # This is a large btc value that won't fit; omit sats
-                btc_text = btc_text.split(".")[0] + "." + btc_text.split(".")[-1][:2] + "..."
+            if len(xmr_text) >= 12:
+                # This is a large xmr value that won't fit; omit atomic_units
+                xmr_text = xmr_text.split(".")[0] + "." + xmr_text.split(".")[-1][:2] + "..."
 
-            # Draw the btc side
+            # Draw the xmr side
             font = digit_font
-            # if self.total_sats > 1e9:
+            # if self.total_atomic_units > 1e9:
             #     font = smaller_digit_font
 
-            (left, top, text_width, bottom) = font.getbbox(btc_text, anchor="ls")
+            (left, top, text_width, bottom) = font.getbbox(xmr_text, anchor="ls")
             text_height = -1 * top
             text_y = self.paste_image.height - int((self.paste_image.height - text_height)/2)
 
@@ -833,24 +831,24 @@ class BtcAmount(BaseComponent):
                     text_y
                 ),
                 font=font,
-                text=btc_text,
+                text=xmr_text,
                 fill=GUIConstants.BODY_FONT_COLOR,
                 anchor="ls",
             )
             cur_x += text_width
 
-            unit_text = btc_unit
+            unit_text = xmr_unit
         
-        elif denomination == SettingsConstants.BTC_DENOMINATION__SATS or \
-            (denomination == SettingsConstants.BTC_DENOMINATION__THRESHOLD and self.total_sats < 1e6) or \
-                (denomination == SettingsConstants.BTC_DENOMINATION__BTCSATSHYBRID and self.total_sats < 1e6):
-            # Draw the sats side
-            sats_text = f"{self.total_sats:,}"
+        elif denomination == SettingsConstants.XMR_DENOMINATION__ATOMICUNIT or \
+            (denomination == SettingsConstants.XMR_DENOMINATION__THRESHOLD and self.total_atomic_units < 1e6) or \
+                (denomination == SettingsConstants.XMR_DENOMINATION__XMRATOMICUNITHYBRID and self.total_atomic_units < 1e6):
+            # Draw the atomic_units side
+            atomic_units_text = f"{self.total_atomic_units:,}"
 
             font = digit_font
-            if self.total_sats > 1e9:
+            if self.total_atomic_units > 1e9:
                 font = smaller_digit_font
-            (left, top, text_width, bottom) = font.getbbox(sats_text, anchor="ls")
+            (left, top, text_width, bottom) = font.getbbox(atomic_units_text, anchor="ls")
             text_height = -1 * top
             text_y = self.paste_image.height - int((self.paste_image.height - text_height)/2)
             draw.text(
@@ -859,35 +857,35 @@ class BtcAmount(BaseComponent):
                     text_y
                 ),
                 font=font,
-                text=sats_text,
+                text=atomic_units_text,
                 fill=GUIConstants.BODY_FONT_COLOR,
                 anchor="ls",
             )
             cur_x += text_width
 
-            unit_text = sats_unit
+            unit_text = atomic_units_unit
         
-        elif denomination == SettingsConstants.BTC_DENOMINATION__BTCSATSHYBRID:
-            decimal_btc = Decimal(self.total_sats / 1e8).quantize(Decimal("0.12345678"))
-            decimal_btc = Decimal(str(decimal_btc)[:-6])
-            btc_text = f"{decimal_btc:,}"
-            sats_text = f"{self.total_sats:,}"[-7:]
-            while sats_text[0] == "0":
-                sats_text = sats_text[1:]
+        elif denomination == SettingsConstants.XMR_DENOMINATION__XMRATOMICUNITHYBRID:
+            decimal_xmr = Decimal(self.total_atomic_units / 1e8).quantize(Decimal("0.12345678"))
+            decimal_xmr = Decimal(str(decimal_xmr)[:-6])
+            xmr_text = f"{decimal_xmr:,}"
+            atomic_units_text = f"{self.total_atomic_units:,}"[-7:]
+            while atomic_units_text[0] == "0":
+                atomic_units_text = atomic_units_text[1:]
 
-            btc_icon = Icon(
+            xmr_icon = Icon(
                 image_draw=draw,
                 canvas=self.paste_image,
-                icon_name=SeedSignerCustomIconConstants.BITCOIN_LOGO_TILTED,
-                icon_color=btc_color,
+                icon_name=SeedSignerCustomIconConstants.MONERO_LOGO_TILTED,
+                icon_color=xmr_color,
                 icon_size=self.icon_size,
                 screen_x=0,
                 screen_y=0,
             )
-            btc_icon.render()
-            cur_x = btc_icon.width + int(GUIConstants.COMPONENT_PADDING/4)
+            xmr_icon.render()
+            cur_x = xmr_icon.width + int(GUIConstants.COMPONENT_PADDING/4)
 
-            (left, top, text_width, bottom) = smaller_digit_font.getbbox(btc_text, anchor="ls")
+            (left, top, text_width, bottom) = smaller_digit_font.getbbox(xmr_text, anchor="ls")
             text_height = -1 * top
             text_y = self.paste_image.height - int((self.paste_image.height - text_height)/2)
             
@@ -897,7 +895,7 @@ class BtcAmount(BaseComponent):
                     text_y
                 ),
                 font=smaller_digit_font,
-                text=btc_text,
+                text=xmr_text,
                 fill=GUIConstants.BODY_FONT_COLOR,
                 anchor="ls",
             )
@@ -913,26 +911,26 @@ class BtcAmount(BaseComponent):
                 ),
                 font=pipe_font,
                 text="|",
-                fill=btc_color,
+                fill=xmr_color,
                 anchor="ls",
             )
             cur_x += text_width - int(GUIConstants.COMPONENT_PADDING/2)
 
-            # Draw the sats side
-            (left, top, text_width, bottom) = smaller_digit_font.getbbox(sats_text, anchor="ls")
+            # Draw the atomic_units side
+            (left, top, text_width, bottom) = smaller_digit_font.getbbox(atomic_units_text, anchor="ls")
             draw.text(
                 xy=(
                     cur_x,
                     text_y
                 ),
                 font=smaller_digit_font,
-                text=sats_text,
+                text=atomic_units_text,
                 fill=GUIConstants.BODY_FONT_COLOR,
                 anchor="ls",
             )
             cur_x += text_width
 
-            unit_text = sats_unit
+            unit_text = atomic_units_unit
 
         # Draw the unit
         unit_font = Fonts.get_font(font_name=GUIConstants.BODY_FONT_NAME, size=unit_font_size)

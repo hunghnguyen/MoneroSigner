@@ -21,7 +21,7 @@ from seedsigner.models.seed import InvalidSeedException, Seed
 from seedsigner.models.settings import SettingsConstants
 from seedsigner.models.settings_definition import SettingsDefinition
 from seedsigner.models.threads import BaseThread, ThreadsafeCounter
-from seedsigner.views.psbt_views import PSBTChangeDetailsView
+from seedsigner.views.psbt_views import PSXMRhangeDetailsView
 from seedsigner.views.scan_views import ScanView
 
 from .view import NotYetImplementedView, View, Destination, BackStackView, MainMenuView
@@ -1674,7 +1674,7 @@ class MultisigWalletDescriptorView(View):
         elif button_data[selected_menu_num] == RETURN:
             # Jump straight back to PSBT change verification
             self.controller.resume_main_flow = None
-            return Destination(PSBTChangeDetailsView, view_args=dict(change_address_num=0))
+            return Destination(PSXMRhangeDetailsView, view_args=dict(change_address_num=0))
 
         elif button_data[selected_menu_num] == VERIFY:
             self.controller.resume_main_flow = None

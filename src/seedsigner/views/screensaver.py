@@ -37,7 +37,7 @@ class OpeningSplashScreen(LogoScreen):
         from seedsigner.controller import Controller
         controller = Controller.get_instance()
 
-        show_partner_logos = Settings.get_instance().get_value(SettingsConstants.SETTING__PARTNER_LOGOS) == SettingsConstants.OPTION__ENABLED
+        show_partner_logos = Settings.get_instance().get_value(SettingsConstants.SETTING__PARTNER_LOGOS) == SettingsConstants.OPTION__DISABLED
 
         if show_partner_logos:
             logo_offset_y = -56

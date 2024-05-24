@@ -226,7 +226,7 @@ class PSBTMathView(View):
             return Destination(PSBTAddressDetailsView, view_args={"address_num": 0})
         else:
             # This is a self-transfer
-            return Destination(PSBTChangeDetailsView, view_args={"change_address_num": 0})
+            return Destination(PSXMRhangeDetailsView, view_args={"change_address_num": 0})
 
 
 
@@ -270,7 +270,7 @@ class PSBTAddressDetailsView(View):
 
             elif psbt_parser.change_amount > 0:
                 # Move on to display change
-                return Destination(PSBTChangeDetailsView, view_args={"change_address_num": 0})
+                return Destination(PSXMRhangeDetailsView, view_args={"change_address_num": 0})
 
             else:
                 # There's no change output to verify. Move on to sign the PSBT.
@@ -281,7 +281,7 @@ class PSBTAddressDetailsView(View):
 
 
 
-class PSBTChangeDetailsView(View):
+class PSXMRhangeDetailsView(View):
     """
     """
     def __init__(self, change_address_num):
@@ -393,7 +393,7 @@ class PSBTChangeDetailsView(View):
         if is_change_addr_verified == False and (not psbt_parser.is_multisig or self.controller.multisig_wallet_descriptor is not None):
             return Destination(PSBTAddressVerificationFailedView, view_args=dict(is_change=is_change_derivation_path, is_multisig=psbt_parser.is_multisig), clear_history=True)
 
-        selected_menu_num = psbt_screens.PSBTChangeDetailsScreen(
+        selected_menu_num = psbt_screens.PSXMRhangeDetailsScreen(
             title=title,
             button_data=button_data,
             address=change_data.get("address"),
@@ -411,7 +411,7 @@ class PSBTChangeDetailsView(View):
 
         elif button_data[selected_menu_num] == NEXT:
             if self.change_address_num < psbt_parser.num_change_outputs - 1:
-                return Destination(PSBTChangeDetailsView, view_args={"change_address_num": self.change_address_num + 1})
+                return Destination(PSXMRhangeDetailsView, view_args={"change_address_num": self.change_address_num + 1})
             else:
                 # There's no more change to verify. Move on to sign the PSBT.
                 return Destination(PSBTFinalizeView)

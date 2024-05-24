@@ -81,7 +81,7 @@ class DecodeQR:
             elif self.qr_type == QRType.SETTINGS:
                 self.decoder = SettingsQrDecoder()  # Settings config
 
-            elif self.qr_type == QRType.BITCOIN_ADDRESS:
+            elif self.qr_type == QRType.MONERO_ADDRESS:
                 self.decoder = BitcoinAddressQrDecoder() # Single Segment bitcoin address
 
             elif self.qr_type == QRType.WALLET__SPECTER:
@@ -270,7 +270,7 @@ class DecodeQR:
 
     @property
     def is_address(self):
-        return self.qr_type == QRType.BITCOIN_ADDRESS
+        return self.qr_type == QRType.MONERO_ADDRESS
         
 
     @property
@@ -361,7 +361,7 @@ class DecodeQR:
 
             # Bitcoin Address
             elif DecodeQR.is_bitcoin_address(s):
-                return QRType.BITCOIN_ADDRESS
+                return QRType.MONERO_ADDRESS
 
             # config data
             if "type=settings" in s:
@@ -939,7 +939,7 @@ class BitcoinAddressQrDecoder(BaseSingleFrameQrDecoder):
         self.address_type = None
 
 
-    def add(self, segment, qr_type=QRType.BITCOIN_ADDRESS):
+    def add(self, segment, qr_type=QRType.MONERO_ADDRESS):
         r = re.search(r'((bc1q|tb1q|bcrt1q|bc1p|tb1p|bcrt1p|[123]|[mn])[a-zA-HJ-NP-Z0-9]{25,64})', segment)
         if r != None:
             self.address = r.group(1)

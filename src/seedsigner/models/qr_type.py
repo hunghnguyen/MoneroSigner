@@ -19,7 +19,7 @@ class QRType:
     XPUB__SPECTER = "xpub__specter"
     XPUB__UR = "xpub__ur"
 
-    BITCOIN_ADDRESS = "bitcoin_address"
+    MONERO_ADDRESS = "monero_address"
 
     WALLET__SPECTER = "wallet__specter"
     WALLET__UR = "wallet__ur"

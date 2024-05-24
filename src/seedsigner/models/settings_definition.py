@@ -45,15 +45,15 @@ class SettingsConstants:
         (LANGUAGE__ENGLISH, "English"),
     ]
 
-    BTC_DENOMINATION__BTC = "btc"
-    BTC_DENOMINATION__SATS = "sats"
-    BTC_DENOMINATION__THRESHOLD = "thr"
-    BTC_DENOMINATION__BTCSATSHYBRID = "hyb"
-    ALL_BTC_DENOMINATIONS = [
-        (BTC_DENOMINATION__BTC, "Btc-only"),
-        (BTC_DENOMINATION__SATS, "Sats-only"),
-        (BTC_DENOMINATION__THRESHOLD, "Threshold at 0.01"),
-        (BTC_DENOMINATION__BTCSATSHYBRID, "Btc | Sats hybrid"),
+    XMR_DENOMINATION__XMR = "xmr"
+    XMR_DENOMINATION__ATOMICUNITS = "atomicunits"
+    XMR_DENOMINATION__THRESHOLD = "thr"
+    XMR_DENOMINATION__XMRATOMICUNITSHYBRID = "hyb"
+    ALL_XMR_DENOMINATIONS = [
+        (XMR_DENOMINATION__XMR, "Xmr-only"),
+        (XMR_DENOMINATION__ATOMICUNITS, "AtomicUnits-only"),
+        (XMR_DENOMINATION__THRESHOLD, "Threshold at 0.01"),
+        (XMR_DENOMINATION__XMRATOMICUNITSHYBRID, "Xmr | AtomicUnits hybrid"),
     ]
 
     CAMERA_ROTATION__0 = 0
@@ -141,7 +141,7 @@ class SettingsConstants:
     SETTING__WORDLIST_LANGUAGE = "wordlist_language"
     SETTING__PERSISTENT_SETTINGS = "persistent_settings"
     SETTING__COORDINATORS = "coordinators"
-    SETTING__BTC_DENOMINATION = "denomination"
+    SETTING__XMR_DENOMINATION = "denomination"
 
     SETTING__NETWORK = "network"
     SETTING__QR_DENSITY = "qr_density"
@@ -362,17 +362,17 @@ class SettingsDefinition:
                       default_value=SettingsConstants.ALL_COORDINATORS),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
-                      attr_name=SettingsConstants.SETTING__BTC_DENOMINATION,
+                      attr_name=SettingsConstants.SETTING__XMR_DENOMINATION,
                       display_name="Denomination display",
                       type=SettingsConstants.TYPE__SELECT_1,
-                      selection_options=SettingsConstants.ALL_BTC_DENOMINATIONS,
-                      default_value=SettingsConstants.BTC_DENOMINATION__THRESHOLD),
+                      selection_options=SettingsConstants.ALL_XMR_DENOMINATIONS,
+                      default_value=SettingsConstants.XMR_DENOMINATION__THRESHOLD),
      
 
         # Advanced options
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
                       attr_name=SettingsConstants.SETTING__NETWORK,
-                      display_name="Bitcoin network",
+                      display_name="Monero network",
                       type=SettingsConstants.TYPE__SELECT_1,
                       visibility=SettingsConstants.VISIBILITY__ADVANCED,
                       selection_options=SettingsConstants.ALL_NETWORKS,
@@ -452,7 +452,7 @@ class SettingsDefinition:
                       attr_name=SettingsConstants.SETTING__PARTNER_LOGOS,
                       display_name="Show partner logos",
                       visibility=SettingsConstants.VISIBILITY__ADVANCED,
-                      default_value=SettingsConstants.OPTION__ENABLED),
+                      default_value=SettingsConstants.OPTION__DISABLED),
 
         # Developer options
         # TODO: No real Developer options needed yet. Disable for now.

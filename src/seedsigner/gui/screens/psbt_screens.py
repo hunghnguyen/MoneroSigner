@@ -7,7 +7,7 @@ from seedsigner.gui.renderer import Renderer
 from seedsigner.models.threads import BaseThread
 
 from .screen import ButtonListScreen, WarningScreen
-from ..components import (BtcAmount, Button, Icon, FontAwesomeIconConstants, IconTextLine, FormattedAddress, GUIConstants, Fonts, SeedSignerCustomIconConstants, TextArea,
+from ..components import (XmrAmount, Button, Icon, FontAwesomeIconConstants, IconTextLine, FormattedAddress, GUIConstants, Fonts, SeedSignerCustomIconConstants, TextArea,
     calc_bezier_curve, linear_interp)
 
 
@@ -44,7 +44,7 @@ class PSBTOverviewScreen(ButtonListScreen):
         else:
             spend_amount = self.spend_amount
 
-        self.components.append(BtcAmount(
+        self.components.append(XmrAmount(
             total_sats=spend_amount,
             screen_y=icon_text_lines_y,
         ))
@@ -461,20 +461,20 @@ class PSBTMathScreen(ButtonListScreen):
 
         super().__post_init__()
 
-        if self.input_amount > 1e6:
-            denomination = "btc"
-            self.input_amount /= 1e8
-            self.spend_amount /= 1e8
-            self.change_amount /= 1e8
-            self.input_amount = f"{self.input_amount:,.8f}"
-            self.spend_amount = f"{self.spend_amount:,.8f}"
-            self.change_amount = f"{self.change_amount:,.8f}"
+        if self.input_amount > 1e10:
+            denomination = "xmr"
+            self.input_amount /= 1e12
+            self.spend_amount /= 1e12
+            self.change_amount /= 1e12
+            self.input_amount = f"{self.input_amount:,.12f}"
+            self.spend_amount = f"{self.spend_amount:,.12f}"
+            self.change_amount = f"{self.change_amount:,.12f}"
 
-            # Note: We keep the fee denominated in sats; just left pad it so it still
+            # Note: We keep the fee denominated in atomic units; just left pad it so it still
             # lines up properly.
             self.fee_amount = f"{self.fee_amount:10}"
         else:
-            denomination = "sats"
+            denomination = "atomicunits"
             self.input_amount = f"{self.input_amount:,}"
             self.spend_amount = f"{self.spend_amount:,}"
             self.fee_amount = f"{self.fee_amount:,}"
@@ -515,7 +515,7 @@ class PSBTMathScreen(ButtonListScreen):
             # secondary_digit_color = GUIConstants.BODY_FONT_COLOR
             # tertiary_digit_color = GUIConstants.BODY_FONT_COLOR
             # digit_group_spacing = 0
-            if denomination == 'btc':
+            if denomination == 'xmr':
                 display_str = amount_str
                 main_zone = display_str[:-6]
                 mid_zone = display_str[-6:-3]
@@ -589,7 +589,7 @@ class PSBTAddressDetailsScreen(ButtonListScreen):
         center_img = Image.new("RGB", (self.canvas_width, center_img_height), GUIConstants.BACKGROUND_COLOR)
         draw = ImageDraw.Draw(center_img)
 
-        btc_amount = BtcAmount(
+        xmr_amount = XmrAmount(
             image_draw=draw,
             canvas=center_img,
             total_sats=self.amount,
@@ -601,13 +601,13 @@ class PSBTAddressDetailsScreen(ButtonListScreen):
             canvas=center_img,
             width=self.canvas_width - 2*GUIConstants.EDGE_PADDING,
             screen_x=GUIConstants.EDGE_PADDING,
-            screen_y=btc_amount.height + GUIConstants.COMPONENT_PADDING,
+            screen_y=xmr_amount.height + GUIConstants.COMPONENT_PADDING,
             font_size=24,
             address=self.address,
         )
 
         # Render each to the temp img we passed in
-        btc_amount.render()
+        xmr_amount.render()
         formatted_address.render()
 
         self.body_img = center_img.crop((
@@ -623,7 +623,7 @@ class PSBTAddressDetailsScreen(ButtonListScreen):
 
 
 @dataclass
-class PSBTChangeDetailsScreen(ButtonListScreen):
+class PSXMRhangeDetailsScreen(ButtonListScreen):
     title: str = "Your Change"
     amount: int = 0
     address: str = None
@@ -639,7 +639,7 @@ class PSBTChangeDetailsScreen(ButtonListScreen):
         self.is_bottom_list = True
         super().__post_init__()
 
-        self.components.append(BtcAmount(
+        self.components.append(XmrAmount(
             total_sats=self.amount,
             screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING,
         ))
