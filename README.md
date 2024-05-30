@@ -5,6 +5,12 @@
 ---------------
 
 * [Project Summary](#project-summary)
+* [Features](#features)
+* [Related Repositories](#related-repositories)
+* [Todo](Todo.md)
+* [Monero CCS Proposal](https://repo.getmonero.org/monero-project/ccs-proposals/-/merge_requests/465)
+* [Milestones](#milestones)
+* [Timeline](#timeline)
 * [Shopping List](#shopping-list)
 * [Software Installation](#software-installation)
   * [Verifying Your Software](#verifying-your-software)
@@ -25,39 +31,92 @@ You can follow [@SeedSigner](https://twitter.com/SeedSigner) on Twitter for the 
 
 If you have specific questions about the project, our [Telegram Group](https://t.me/joinchat/GHNuc_nhNQjLPWsS) is a great place to ask them.
 
-### Feature Highlights:
-* Calculate word 12/24 of a BIP39 seed phrase
-* Create a 24-word BIP39 seed phrase with 99 dice rolls
-* Create a 24-word BIP39 seed phrase by taking a digital photo 
+### Features
+
+* Calculate word 13/25 of monero seed phrase
+* Create a 25-word monero seed phrase with 99 dice rolls
+* Create a 16 word polyseed phrase with 99(?) dice rolls
+* __Unclear: Create a 25-word monero seed phrase by taking a digital photo__
+* __Unclear: Create a 16-word polyseed phrase by taking a digital photo__
 * Temporarily store up to 3 seed phrases while device is powered
-* Guided interface to manually create a SeedQR for instant input [(demo video here)](https://youtu.be/c1-PqTNx1vc)
-* BIP39 passphrase / word 25 support
+* __Unclear: Guided interface to manually create a SeedQR for instant input [(demo video here)](https://youtu.be/c1-PqTNx1vc)__
+* Monero passphrase support
+* Polyseed passphrase support
 * Native Segwit Multisig XPUB generation w/ QR display
-* Scan and parse transaction data from animated QR codes
-* Sign transactions & transfer XPUB data using animated QR codes [(demo video here)](https://youtu.be/LPqvdQ2gSzs)
+* __Unclear: Multisig support__
+* Scan and parse transaction data from animated QR codes using [UR](https://www.blockchaincommons.com/specifications/Blockchain-Commons-URs-Support-Airgapped-PSBTs/)
+* Sign transactions & (__check: transfer Xmultisig datai__) using animated QR codes ~~[(demo video here)](https://youtu.be/LPqvdQ2gSzs)~~
 * Live preview during photo-to-seed and QR scanning UX
 * Optimized seed word entry interface
 * Support for Bitcoin Mainnet & Testnet
-* Support for custom user-defined derivation paths
+* (__check: Support for custom user-defined derivation paths__)
 * On-demand receive address verification
-* User-configurable QR code display density
-* Responsive, event-driven user interface
+* User-configurable QR code display density (__check: UR documentation about viability__)
 
 ### Considerations:
-* Built for compatibility with Specter Desktop, Sparrow, and BlueWallet Vaults
+* Built for compatibility using  [UR](https://www.blockchaincommons.com/specifications/Blockchain-Commons-URs-Support-Airgapped-PSBTs/) with Feather Waller, etc (__check__), and adapt oficial [Monero GUI](https://www.getmonero.org/downloads/#gui).
 * Device takes up to 60 seconds to boot before menu appears (be patient!)
 * Always test your setup before transfering larger amounts of bitcoin (try testnet first!)
-* Taproot not quite yet supported
 * Slightly rotating the screen clockwise or counter-clockwise should resolve lighting/glare issues
-* If you think SeedSigner adds value to the Bitcoin ecosystem, please help us spread the word! (tweets, pics, videos, etc.)
+* If you think MoneroSigner adds value to the Monero ecosystem, please help us spread the word! (tweets, pics, videos, etc.)
 
-### Planned Upcoming Improvements / Functionality:
-* Single-sig and multi-sig change address verification
-* Re-imagined, graphically-focused user interface
-* Multi-language support
-* Customized Linux live-boot OS to allow MicroSD card removal
-* Other optimizations based on user feedback!
+### Related Repositories
+* [This one(MoneroSigner](https://github.com/DiosDelRayo/MoneroSigner)
+* [Emulator](https://github.com/DiosDelRayo/monerosigner-emulator) forked from [SeedSigner Emulator](https://github.com/enteropositivo/seedsigner-emulator), simple to use and no modifications of the source necessary thanks to overlay mount
+* [Polyseed](https://github.com/DiosDelRayo/polyseed-python) transpiled and pythonized from [original Polyseed C-implementation](https://github.com/tevador/polyseed)
+* Companion Application [#Todo](Todo.md)
 
+---------------
+# Milestones
+1. Monero Signer basics on emulator (10 days from now)
+    - [x] Emulator easy start
+    - [x] Polyseed python implementation
+    - [ ] Wallet generation
+    - [ ] Wallet generation on dice rolls
+    - [ ] Wallet export Seed/hex/QR code
+    - [ ] Build script to generate executable (for linux, win32, macOS(?)
+
+
+2. Monero Signer working with companion Application (25 days from now)
+    - [ ] Monero signer companion Application finished
+    - [ ] All missing Monero signer functionality
+    - [ ] PortableMoneroQR stable
+    - [ ] UR's implemented
+
+
+3. Cleanup and production ready (45 days from now)
+    - [ ] Tools
+    - [ ] Scripts
+    - [ ] Documentation final version
+    - [ ] Final cleanup Monero Signer
+    - [ ] Final cleanup companion Application
+    - [ ] Final cleanup PortableMoneroQR
+
+
+4. Monero-GUI integration (60 days from now from, until PR)
+    - [ ] Fork
+    - [ ] Modify
+    - [ ] PR
+---------------
+# Timeline
+```
+ /------------------------------------------------------------ 2024-05-25 Proposal and project start
+ |
+ |   /-------------------------------------------------------- 2024-05-29 Ordered missing hardware (Display hat + pi cam)
+ |   |
+ |   |    /--------------------------------------------------- 2024-06-04 Milestone 1, estimated arrival of hardware
+ |   |    |
+ |   |    |              /------------------------------------ 2024-06-19 Milestone 2
+ |   |    |              |
+ |   |    |              |                   /---------------- 2024-07-09 Milestone 3
+ |   |    |              |                   |
+ |   |    |              |                   |              /- 2024-07-24 Milestone 4
+ |   |    |              |                   |              |
+(S)==|===(1)============(2)=================(3)============(4)=====>
+      A
+      |
+      \------ Today: 2024-05-30
+```
 ---------------
 
 # Shopping List
