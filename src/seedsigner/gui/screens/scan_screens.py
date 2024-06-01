@@ -121,7 +121,7 @@ class ScanScreen(BaseScreen):
                     self.camera.stop_video_stream_mode()
                     break
                 
-                # TODO: KEY_UP gives control to NavBar; use its back arrow to cancel
+                # TODO:SEEDSIGNER: KEY_UP gives control to NavBar; use its back arrow to cancel
                 if self.hw_inputs.check_for_low(HardwareButtonsConstants.KEY_RIGHT) or self.hw_inputs.check_for_low(HardwareButtonsConstants.KEY_LEFT):
                     self.camera.stop_video_stream_mode()
                     break

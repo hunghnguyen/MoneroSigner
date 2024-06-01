@@ -80,20 +80,20 @@ class SettingsConstants:
     # Seed-related constants
     MAINNET = "M"
     TESTNET = "T"
-    REGTEST = "R"
+    STAGENET = "S"
     ALL_NETWORKS = [
         (MAINNET, "Mainnet"),
         (TESTNET, "Testnet"),
-        (REGTEST, "Regtest")
+        (STAGENET, "Stagenet")
     ]
 
     @classmethod
-    def map_network_to_embit(cls, network) -> str:
+    def map_network_to_embit(cls, network) -> str: # TODO: remove comment after 2024-06-10, do we need that for monero, what relays on it?
         if network == SettingsConstants.MAINNET:
             return "main"
         elif network == SettingsConstants.TESTNET:
             return "test"
-        if network == SettingsConstants.REGTEST:
+        if network == SettingsConstants.STAGENET:
             return "regtest"
     
 
@@ -104,19 +104,19 @@ class SettingsConstants:
         (MULTISIG, "Multisig"),
     ]
 
-    LEGACY_P2PKH = "leg"  # Intentionally excluded from ALL_SCRIPT_TYPES
-    NATIVE_SEGWIT = "nat"
-    NESTED_SEGWIT = "nes"
-    TAPROOT = "tr"
-    CUSTOM_DERIVATION = "cus"
-    ALL_SCRIPT_TYPES = [
+    LEGACY_P2PKH = "leg"  # Intentionally excluded from ALL_SCRIPT_TYPES  # TODO: remove
+    NATIVE_SEGWIT = "nat"  # TODO: remove
+    NESTED_SEGWIT = "nes"  # TODO: remove
+    TAPROOT = "tr"  # TODO: remove
+    CUSTOM_DERIVATION = "cus"  # TODO: remove
+    ALL_SCRIPT_TYPES = [  # TODO: check before 2024-04-03 as far I am aware there is only one valid way in Monero, check and remove if I'm right
         (NATIVE_SEGWIT, "Native Segwit"),
         (NESTED_SEGWIT, "Nested Segwit (legacy)"),
         (TAPROOT, "Taproot"),
         (CUSTOM_DERIVATION, "Custom Derivation"),
     ]
 
-    WORDLIST_LANGUAGE__ENGLISH = "en"
+    WORDLIST_LANGUAGE__ENGLISH = "en"  # TODO: remove comment before 2024-06-10 handle differences in wordlist languages in monero seed and polyseed, think should be handled in the wordlist implementations instead
     WORDLIST_LANGUAGE__CHINESE_SIMPLIFIED = "zh_Hans_CN"
     WORDLIST_LANGUAGE__CHINESE_TRADITIONAL = "zh_Hant_TW"
     WORDLIST_LANGUAGE__FRENCH = "fr"
@@ -124,6 +124,26 @@ class SettingsConstants:
     WORDLIST_LANGUAGE__JAPANESE = "jp"
     WORDLIST_LANGUAGE__KOREAN = "kr"
     WORDLIST_LANGUAGE__PORTUGUESE = "pt"
+    WORDLIST_LANGUAGE__DUTCH = "nl"
+    WORDLIST_LANGUAGE__GERMAN = "de"
+    WORDLIST_LANGUAGE__RUSSIAN = "ru"
+    WORDLIST_LANGUAGE__SPANISH = "es"
+    WORDLIST_LANGUAGE__LOJBAN = "lojban"
+    WORDLIST_LANGUAGE__ESPERANTO = "esperanto"
+    ALL_WORDLIST_LANGUAGE_ENGLISH__NAMES = {
+        WORDLIST_LANGUAGE__ENGLISH: 'English',
+        WORDLIST_LANGUAGE__CHINESE_SIMPLIFIED: "Chinese (simplified)",
+        WORDLIST_LANGUAGE__FRENCH: "French",
+        WORDLIST_LANGUAGE__ITALIAN: "Italian",
+        WORDLIST_LANGUAGE__JAPANESE: "Japanese",
+        WORDLIST_LANGUAGE__PORTUGUESE: "Portuguese",
+        WORDLIST_LANGUAGE__DUTCH: "Dutch",
+        WORDLIST_LANGUAGE__GERMAN: "German",
+        WORDLIST_LANGUAGE__RUSSIAN: "Russian",
+        WORDLIST_LANGUAGE__SPANISH: "Spanish",
+        WORDLIST_LANGUAGE__LOJBAN: "Lojban",
+        WORDLIST_LANGUAGE__ESPERANTO: "Esperanto"
+    }
     ALL_WORDLIST_LANGUAGES = [
         (WORDLIST_LANGUAGE__ENGLISH, "English"),
         # (WORDLIST_LANGUAGE__CHINESE_SIMPLIFIED, "简体中文"),
@@ -138,18 +158,17 @@ class SettingsConstants:
     
     # Individual SettingsEntry attr_names
     SETTING__LANGUAGE = "language"
-    SETTING__WORDLIST_LANGUAGE = "wordlist_language"
+    SETTING__WORDLIST_LANGUAGE = "wordlist_language"  # TODO: remove after 2024-04-10, maybe there should be SETTING__WORDLIST_LANGUAGE_MONERO and SETTING__WORDLIST_LANGUAGE_POLYSEED? Makes this even sense, should it not be more dynamic letting the responsibility to the monero, polyseed implementation to have it more future proof?
     SETTING__PERSISTENT_SETTINGS = "persistent_settings"
-    SETTING__COORDINATORS = "coordinators"
+    SETTING__COORDINATORS = "coordinators"  # TODO: remove before 2024-06-04, WTF are coordinators, does that make any sense for monero? Check, educate yourself and remove if not needed
     SETTING__XMR_DENOMINATION = "denomination"
 
     SETTING__NETWORK = "network"
     SETTING__QR_DENSITY = "qr_density"
-    SETTING__XPUB_EXPORT = "xpub_export"
     SETTING__SIG_TYPES = "sig_types"
     SETTING__SCRIPT_TYPES = "script_types"
-    SETTING__XPUB_DETAILS = "xpub_details"
-    SETTING__PASSPHRASE = "passphrase"
+    SETTING__MONERO_SEED_PASSPHRASE = "monero_seed_passphrase"
+    SETTING__POLYSEED_PASSPHRASE = "polyseed_passphrase"
     SETTING__CAMERA_ROTATION = "camera_rotation"
     SETTING__COMPACT_SEEDQR = "compact_seedqr"
     SETTING__PRIVACY_WARNINGS = "privacy_warnings"
@@ -174,7 +193,7 @@ class SettingsConstants:
     VISIBILITY__DEVELOPER = "developer"
     VISIBILITY__HIDDEN = "hidden"   # For data-only (e.g. custom_derivation), not configurable by the user
 
-    # TODO: Is there really a difference between ENABLED and PROMPT?
+    # TODO:SEEDSIGNER: Is there really a difference between ENABLED and PROMPT?
     TYPE__ENABLED_DISABLED = "enabled_disabled"
     TYPE__ENABLED_DISABLED_PROMPT = "enabled_disabled_prompt"
     TYPE__ENABLED_DISABLED_PROMPT_REQUIRED = "enabled_disabled_prompt_required"
@@ -202,7 +221,7 @@ class SettingsEntry:
             The tuple form is to provide a human-readable display_name. Probably all
             entries should shift to using the tuple form.
     """
-    # TODO: Handle multi-language `display_name` and `help_text`
+    # TODO:SEEDSIGNER: Handle multi-language `display_name` and `help_text`
     category: str
     attr_name: str
     display_name: str
@@ -330,7 +349,7 @@ class SettingsDefinition:
     settings_entries: List[SettingsEntry] = [
         # General options
 
-        # TODO: Full babel multilanguage support! Until then, type == HIDDEN
+        # TODO:SEEDSIGNER: Full babel multilanguage support! Until then, type == HIDDEN
         SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
                       attr_name=SettingsConstants.SETTING__LANGUAGE,
                       display_name="Language",
@@ -339,7 +358,7 @@ class SettingsDefinition:
                       selection_options=SettingsConstants.ALL_LANGUAGES,
                       default_value=SettingsConstants.LANGUAGE__ENGLISH),
 
-        # TODO: Support other bip-39 wordlist languages! Until then, type == HIDDEN
+        # TODO:SEEDSIGNER: Support other bip-39 wordlist languages! Until then, type == HIDDEN
         SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
                       attr_name=SettingsConstants.SETTING__WORDLIST_LANGUAGE,
                       display_name="Mnemonic language",
@@ -354,12 +373,12 @@ class SettingsDefinition:
                       help_text="Store Settings on SD card.",
                       default_value=SettingsConstants.OPTION__DISABLED),
 
-        SettingsEntry(category=SettingsConstants.CATEGORY__WALLET,
-                      attr_name=SettingsConstants.SETTING__COORDINATORS,
-                      display_name="Coordinator software",
-                      type=SettingsConstants.TYPE__MULTISELECT,
-                      selection_options=SettingsConstants.ALL_COORDINATORS,
-                      default_value=SettingsConstants.ALL_COORDINATORS),
+        # SettingsEntry(category=SettingsConstants.CATEGORY__WALLET,  TODO: remove before 2024-06-10 Coordinators needed for out purpose?
+        #              attr_name=SettingsConstants.SETTING__COORDINATORS,
+        #              display_name="Coordinator software",
+        #              type=SettingsConstants.TYPE__MULTISELECT,
+        #              selection_options=SettingsConstants.ALL_COORDINATORS,
+        #              default_value=SettingsConstants.ALL_COORDINATORS),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
                       attr_name=SettingsConstants.SETTING__XMR_DENOMINATION,
@@ -387,12 +406,6 @@ class SettingsDefinition:
                       default_value=SettingsConstants.DENSITY__MEDIUM),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
-                      attr_name=SettingsConstants.SETTING__XPUB_EXPORT,
-                      display_name="Xpub export",
-                      visibility=SettingsConstants.VISIBILITY__ADVANCED,
-                      default_value=SettingsConstants.OPTION__ENABLED),
-
-        SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
                       attr_name=SettingsConstants.SETTING__SIG_TYPES,
                       display_name="Sig types",
                       type=SettingsConstants.TYPE__MULTISELECT,
@@ -400,7 +413,7 @@ class SettingsDefinition:
                       selection_options=SettingsConstants.ALL_SIG_TYPES,
                       default_value=SettingsConstants.ALL_SIG_TYPES),
 
-        SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
+        SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,  # TODO: expire 2024-06-10, seems not relevant to Monero, double check before removing
                       attr_name=SettingsConstants.SETTING__SCRIPT_TYPES,
                       display_name="Script types",
                       type=SettingsConstants.TYPE__MULTISELECT,
@@ -409,14 +422,16 @@ class SettingsDefinition:
                       default_value=[SettingsConstants.NATIVE_SEGWIT, SettingsConstants.NESTED_SEGWIT]),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
-                      attr_name=SettingsConstants.SETTING__XPUB_DETAILS,
-                      display_name="Show xpub details",
-                      visibility=SettingsConstants.VISIBILITY__ADVANCED,
-                      default_value=SettingsConstants.OPTION__ENABLED),
+                      attr_name=SettingsConstants.SETTING__MONERO_SEED_PASSPHRASE,
+                      display_name="Monero seed passphrase",
+                      type=SettingsConstants.TYPE__SELECT_1,
+                      visibility=SettingsConstants.VISIBILITY__HIDDEN,  # TODO: change to VISIBILITY__ADVANCED after implementing passwords for monero seeds, is hidden because this feature is posponed because of insane password derivation method in monero (CryptoNight, need to transpile to python, very propably other #rabbit-hole, be aware before starting!)
+                      selection_options=SettingsConstants.OPTIONS__ENABLED_DISABLED_REQUIRED,
+                      default_value=SettingsConstants.OPTION__DISABLED),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
-                      attr_name=SettingsConstants.SETTING__PASSPHRASE,
-                      display_name="BIP-39 passphrase",
+                      attr_name=SettingsConstants.SETTING__POLYSEED_PASSPHRASE,
+                      display_name="Polyseed passphrase",
                       type=SettingsConstants.TYPE__SELECT_1,
                       visibility=SettingsConstants.VISIBILITY__ADVANCED,
                       selection_options=SettingsConstants.OPTIONS__ENABLED_DISABLED_REQUIRED,
@@ -454,8 +469,8 @@ class SettingsDefinition:
                       visibility=SettingsConstants.VISIBILITY__ADVANCED,
                       default_value=SettingsConstants.OPTION__DISABLED),
 
-        # Developer options
-        # TODO: No real Developer options needed yet. Disable for now.
+        # Developer options TODO: well, would prefer to not include developer options into the code base for security reasons, but rather modify the code on the fly on making an image WITH HUGE WARNINGS EVERYWHERE: not for production purposes, so I think how it was anyway not used, remove this entirely before 2024-04-10
+        # TODO:SEEDSIGNER: No real Developer options needed yet. Disable for now.
         # SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
         #               attr_name=SettingsConstants.SETTING__DEBUG,
         #               display_name="Debug",
@@ -486,11 +501,6 @@ class SettingsDefinition:
         for entry in cls.settings_entries:
             if entry.attr_name == attr_name:
                 return entry
-
-
-    @classmethod
-    def parse_abbreviated_ini(cls, abbreviated_ini: str) -> dict:
-        raise Exception("Not implemented, maybe not needed")
 
 
     @classmethod

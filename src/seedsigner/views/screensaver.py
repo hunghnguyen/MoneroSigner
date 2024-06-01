@@ -18,7 +18,7 @@ class LogoScreen(BaseScreen):
         self.logo = load_image("logo_black_240.png")
 
         self.partners = [
-            "hrf",
+            "monero_ccs",
         ]
 
         self.partner_logos: dict = {}

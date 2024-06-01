@@ -7,6 +7,7 @@ from embit import bip39  # TODO: remove before 2024-06-04
 from embit.descriptor import Descriptor  # TODO: remove before 2024-06-04
 from embit.networks import NETWORKS  # TODO: remove before 2024-06-04
 from typing import List
+from math import ceil
 
 from seedsigner.controller import Controller
 from seedsigner.gui.components import FontAwesomeIconConstants, SeedSignerCustomIconConstants
@@ -151,8 +152,10 @@ class SeedMnemonicEntryView(View):  # TODO: check the reasoning behind and if it
         if self.is_calc_final_word and self.cur_word_index == self.controller.storage.pending_mnemonic_length - 2:  # TODO: 2024-06-02, what is the idea and reasoning behind, really as checksum? monero can and will handle checksum itself, polyseed can NOT be done like that because polyseed encodes data into the seed and the checksum itself, pick your on seeds with polyseed will most probably fuck up the polyseed (invalid!)
             # Time to calculate the last word. User must decide how they want to specify
             # the last bits of entropy for the final word.
-            from seedsigner.views.tools_views import ToolsCalcFinalWordFinalizePromptView
-            return Destination(ToolsCalcFinalWordFinalizePromptView)
+            from seedsigner.views.tools_views import ToolsCalcFinalWordShowFinalWordView
+            # from seedsigner.views.tools_views import ToolsCalcFinalWordFinalizePromptView
+            # return Destination(ToolsCalcFinalWordFinalizePromptView)  # TODO: expire 2024-06-04, remove how it makes no sense for us
+            return Destination(ToolsCalcFinalWordShowFinalWordView, view_args=dict(coin_flips="0" * 7))
 
         if self.is_calc_final_word and self.cur_word_index == self.controller.storage.pending_mnemonic_length - 1:
             # Time to calculate the last word. User must either select a final word to
@@ -221,7 +224,7 @@ class SeedFinalizeView(View):
 
         button_data.append(FINALIZE)
 
-        if self.settings.get_value(SettingsConstants.SETTING__PASSPHRASE) != SettingsConstants.OPTION__DISABLED:
+        if self.settings.get_value(SettingsConstants.SETTING__MONERO_SEED_PASSPHRASE) != SettingsConstants.OPTION__DISABLED:
             button_data.append(PASSPHRASE)
 
         selected_menu_num = seed_screens.SeedFinalizeScreen(
@@ -484,7 +487,7 @@ class SeedWordsView(View):  # TODO: expire 2024-06-10, handle differences betwee
         else:
             self.seed = self.controller.get_seed(self.seed_num)
         self.page_index = page_index
-        self.num_pages=int(len(self.seed.mnemonic_list)/4)
+        self.num_pages=int(ceil(len(self.seed.mnemonic_list)/4))
 
 
     def run(self):
@@ -575,19 +578,12 @@ class SeedWordsBackupTestView(View):
             self.cur_index = int(random.random() * len(self.mnemonic_list))
             while self.cur_index in self.confirmed_list:
                 self.cur_index = int(random.random() * len(self.mnemonic_list))
-        # TODO: expire 2024-06-02, remove bip39, get random word from the provided wordlist (monero.seed/polyseed) instead of using bip39 and 2047, self.seed.get_wordlist(self.seed.wordlist_language_code) should give the correct wordlist. So we can do: `random.choice(self.seed.get_wordlist(self.seed.wordlist_language_code)` DOUBLE check
-        # TODO: expire 2024-06-04, we should make sure that each word is unique in the list, how should a user handle if a word is more then once to pick, even worse, once the real_word and once a fake_word
         real_word = self.mnemonic_list[self.cur_index]
-        four_words_to_pick = [real_word]
-        while len(four_words_to_pick) < 4:
+        button_data = [real_word]
+        while len(button_data) < 4:
             new_word = random.choice(self.seed.get_wordlist(self.seed.wordlist_language_code))
-            if new_word not in four_words_to_pick:
-                four_words_to_pick.append(new_word)
-        fake_word1 = bip39.WORDLIST[int(random.random() * 2047)]
-        fake_word2 = bip39.WORDLIST[int(random.random() * 2047)]
-        fake_word3 = bip39.WORDLIST[int(random.random() * 2047)]
-
-        button_data = [real_word, fake_word1, fake_word2, fake_word3]
+            if new_word not in button_data:
+                button_data.append(new_word)
         random.shuffle(button_data)
 
         selected_menu_num = ButtonListScreen(
@@ -674,7 +670,7 @@ class SeedWordsBackupTestSuccessView(View):
 """****************************************************************************
     Export as SeedQR
 ****************************************************************************"""
-class SeedTranscribeSeedQRFormatView(View):
+class SeedTranscribeSeedQRFormatView(View): # TODO: expire 2024-06-04: adapt to polyseed, monero seed and view keys - we don't supportMyMonero keys for export. Wait, need to check again, seems that is meant to draw your QR codes on paper, so it would not really make sense for view keys, not? Would it? Think again about before taking decision!
     def __init__(self, seed_num: int):
         super().__init__()
         self.seed_num = seed_num
@@ -757,7 +753,7 @@ class SeedTranscribeSeedQRWarningView(View):
             return destination
 
         selected_menu_num = DireWarningScreen(
-            status_headline="SeedQR is your private key!",
+                status_headline="SeedQR is your private key!",  # TODO: expire 2024-06-04, not true for view keys, but should stil be a warning that with view keys you can fuck up your privacy
             text="""Never photograph it or scan it into an online device.""",
         ).display()
 
@@ -822,9 +818,9 @@ class SeedTranscribeSeedQRZoomedInView(View):
         )
         data = e.next_part()
 
-        if len(self.seed.mnemonic_list) == 24:
+        if len(self.seed.mnemonic_list) == 24: # TODO: expire 2024-06-04, can only be 25 (monero seed) or 16 (polyseed)
             if self.seedqr_format == QRType.SEED__COMPACTSEEDQR:
-                num_modules = 25
+                num_modules = 25  # TODO: expire 2024-06-31, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this???
             else:
                 num_modules = 29
         else:
@@ -928,7 +924,7 @@ class SeedTranscribeSeedQRConfirmScanView(View):
 """****************************************************************************
     Address verification
 ****************************************************************************"""
-class AddressVerificationStartView(View):
+class AddressVerificationStartView(View):  # TODO: expire 2024-06-04, remove BTC related stuff, make it work for monero
     def __init__(self, address: str, script_type: str, network: str):
         super().__init__()
         self.controller.unverified_address = dict(
@@ -978,7 +974,7 @@ class AddressVerificationStartView(View):
 
 
 
-class AddressVerificationSigTypeView(View):
+class AddressVerificationSigTypeView(View):  # TODO: expire 2024-06-04, remove BTC stuff, make monero work
     def run(self):
         sig_type_settings_entry = SettingsDefinition.get_settings_entry(SettingsConstants.SETTING__SIG_TYPES)
         SINGLE_SIG = sig_type_settings_entry.get_selection_option_display_name_by_value(SettingsConstants.SINGLE_SIG)
@@ -1025,8 +1021,8 @@ class SeedSingleSigAddressVerificationSelectSeedView(View):
         seeds = self.controller.storage.seeds
 
         SCAN_SEED = ("Scan a seed", FontAwesomeIconConstants.QRCODE)
-        TYPE_13WORD = ("Enter 12-word seed", FontAwesomeIconConstants.KEYBOARD)
-        TYPE_25WORD = ("Enter 24-word seed", FontAwesomeIconConstants.KEYBOARD)
+        TYPE_13WORD = ("Enter 13-word seed", FontAwesomeIconConstants.KEYBOARD)
+        TYPE_25WORD = ("Enter 25-word seed", FontAwesomeIconConstants.KEYBOARD)
         button_data = []
 
         text = "Load the seed to verify"
@@ -1080,7 +1076,7 @@ class SeedSingleSigAddressVerificationSelectSeedView(View):
 
 
 
-class SeedAddressVerificationView(View):
+class SeedAddressVerificationView(View):  # TODO: expire 2024-06-10, what is that about??? Remove BTC stuff and make it for monero working. If not needed for monero, remove it
     """
         Creates a worker thread to brute-force calculate addresses. Writes its
         iteration status to a shared `ThreadsafeCounter`.
@@ -1200,7 +1196,7 @@ class SeedAddressVerificationView(View):
 
 
 
-    class BruteForceAddressVerificationThread(BaseThread):
+    class BruteForceAddressVerificationThread(BaseThread): # TODO: expire 2024-04-10, guess not needed for monero, so remove if not needed
         def __init__(self, address: str, seed: Seed, descriptor: Descriptor, script_type: str, network: str, derivation_path: str, threadsafe_counter: ThreadsafeCounter, verified_index: ThreadsafeCounter, verified_index_is_change: ThreadsafeCounter):
             """
                 Either seed or descriptor will be None
@@ -1290,7 +1286,7 @@ class SeedAddressVerificationView(View):
 
 
 
-class AddressVerificationSuccessView(View):
+class AddressVerificationSuccessView(View):  # TODO: expire 2024-06-10, check if needed for monero, delete or modify
     def __init__(self, seed_num: int):
         super().__init__()
         self.seed_num = seed_num
@@ -1318,7 +1314,7 @@ class AddressVerificationSuccessView(View):
 
 
 
-class LoadMultisigWalletDescriptorView(View):
+class LoadMultisigWalletDescriptorView(View):  # TODO: expire 2024-06-10, adapt to monero
     def run(self):
         SCAN = ("Scan Descriptor", FontAwesomeIconConstants.QRCODE)
         CANCEL = "Cancel"
@@ -1339,7 +1335,7 @@ class LoadMultisigWalletDescriptorView(View):
 
 
 
-class MultisigWalletDescriptorView(View):
+class MultisigWalletDescriptorView(View):  # TODO: expire 2024-06-10, adapt to monero
     def run(self):
         descriptor = self.controller.multisig_wallet_descriptor
 

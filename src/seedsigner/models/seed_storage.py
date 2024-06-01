@@ -37,7 +37,7 @@ class SeedStorage:
 
     def validate_mnemonic(self, mnemonic: List[str]) -> bool:
         try:
-            Seed(mnemonic=mnemonic)
+            Seed(mnemonic=' '.join(mnemonic))
         except InvalidSeedException as e:
             return False
         
@@ -59,7 +59,7 @@ class SeedStorage:
         return len(self._pending_mnemonic)
 
 
-    def init_pending_mnemonic(self, num_words:int = 12):
+    def init_pending_mnemonic(self, num_words:int = 13):
         self._pending_mnemonic = [None] * num_words
 
 

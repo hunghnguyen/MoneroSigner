@@ -196,7 +196,7 @@ class PSBTParser():
             network_path = "0'"
         elif network == SettingsConstants.TESTNET:
             network_path = "1'"
-        elif network == SettingsConstants.REGTEST:
+        elif network == SettingsConstants.STAGENET:
             # TODO: Is this right?
             network_path = "1'"
         else:

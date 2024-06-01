@@ -81,7 +81,7 @@ class Renderer(ConfigurableSingleton):
             self.disp.ShowImage(crop, 0, 0)
 
 
-    # TODO: Remove all references
+    # TODO:SEEDSIGNER: Remove all references
     def show_image_with_text(self, image, text, font=None, text_color="GREY", text_background=None):
         image_copy = image.copy().convert("RGBA")
 
@@ -139,13 +139,13 @@ class Renderer(ConfigurableSingleton):
         return
 
 
-    # TODO: Should probably move this to templates.py
+    # TODO:SEEDSIGNER: Should probably move this to templates.py
     def draw_prompt_yes_no(self, lines = [], title = "", bottom = "") -> None:
         self.draw_prompt_custom("", "Yes ", "No ", lines, title, bottom)
         return
 
 
-    # TODO: Should probably move this to templates.py
+    # TODO:SEEDSIGNER: Should probably move this to templates.py
     def draw_prompt_custom(self, a_txt, b_txt, c_txt, lines = [], title = "", bottom = "") -> None:
         self.draw.rectangle((0, 0, self.canvas_width, self.canvas_height), outline=0, fill=0)
 

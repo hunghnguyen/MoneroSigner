@@ -13,6 +13,7 @@ from seedsigner.helpers import mnemonic_generation
 from seedsigner.models.seed import Seed
 from seedsigner.models.settings_definition import SettingsConstants
 from seedsigner.views.seed_views import SeedDiscardView, SeedFinalizeView, SeedMnemonicEntryView, SeedWordsWarningView
+from monero.seed import Seed as MoneroSeed
 
 from .view import View, Destination, BackStackView
 
@@ -22,7 +23,7 @@ class ToolsMenuView(View):
     def run(self):
         IMAGE = (" New seed", FontAwesomeIconConstants.CAMERA)
         DICE = ("New seed", FontAwesomeIconConstants.DICE)
-        KEYBOARD = ("Calc 12th/24th word", FontAwesomeIconConstants.KEYBOARD)
+        KEYBOARD = ("Pick own words", FontAwesomeIconConstants.KEYBOARD)  # TODO: expire 2024-06-21, I think there should be a warning that this way most probale will lead to low entropy, should only be used if user is really knowing what he is doing... Maybe an alternative would be to use it as input entropy with pseudo entropy to generate a new "now magically random" (of course not, but at least with less probability of user picking the most prefered words out of the list and shootig himself in the foot.
         button_data = [IMAGE, DICE, KEYBOARD]
         screen = ButtonListScreen(
             title="Tools",
@@ -98,9 +99,9 @@ class ToolsImageEntropyFinalImageView(View):
 
 class ToolsImageEntropyMnemonicLengthView(View):
     def run(self):
-        TWELVE_WORDS = "12 words"
-        TWENTYFOUR_WORDS = "24 words"
-        button_data = [TWELVE_WORDS, TWENTYFOUR_WORDS]
+        THIRTEEN_WORDS = "13 words"
+        TWENTYFOUR_WORDS = "25 words"
+        button_data = [THIRTEEN_WORDS, TWENTYFOUR_WORDS]
 
         selected_menu_num = ButtonListScreen(
             title="Mnemonic Length?",
@@ -110,10 +111,10 @@ class ToolsImageEntropyMnemonicLengthView(View):
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
         
-        if button_data[selected_menu_num] == TWELVE_WORDS:
-            mnemonic_length = 12
+        if button_data[selected_menu_num] == THIRTEEN_WORDS:
+            mnemonic_length = 13
         else:
-            mnemonic_length = 24
+            mnemonic_length = 25
 
         preview_images = self.controller.image_entropy_preview_frames
         seed_entropy_image = self.controller.image_entropy_final_image
@@ -141,13 +142,14 @@ class ToolsImageEntropyMnemonicLengthView(View):
         # Finally build in our headline entropy via the new full-res image
         final_hash = hashlib.sha256(hash_bytes + seed_entropy_image.tobytes()).digest()
 
-        if mnemonic_length == 12:
+        if mnemonic_length == 13:
             # 12-word mnemonic only uses the first 128 bits / 16 bytes of entropy
             final_hash = final_hash[:16]
 
         # Generate the mnemonic
         mnemonic = mnemonic_generation.generate_mnemonic_from_bytes(final_hash)
 
+        # TODO: expire 2024-07-31, don't know python memory managment, but `del seed_entropy_image` etc seems for me the better way, well, need to investigate, when not mistaken, python uses GC, is there a way to clean up inmedately?
         # Image should never get saved nor stick around in memory
         seed_entropy_image = None
         preview_images = None
@@ -157,7 +159,7 @@ class ToolsImageEntropyMnemonicLengthView(View):
         self.controller.image_entropy_final_image = None
 
         # Add the mnemonic as an in-memory Seed
-        seed = Seed(mnemonic, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE))
+        seed = Seed(mnemonic, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE))  # TODO: expire 2024-07-01, see #todo in seedsigner.helpers.mnemonic_generation, and fix language together...
         self.controller.storage.set_pending_seed(seed)
         
         # Cannot return BACK to this View
@@ -168,12 +170,12 @@ class ToolsImageEntropyMnemonicLengthView(View):
 """****************************************************************************
     Dice rolls Views
 ****************************************************************************"""
-class ToolsDiceEntropyMnemonicLengthView(View):
+class ToolsDiceEntropyMnemonicLengthView(View): # TODO: expire 2024-06-30, offer only 25 words if not low security is set in settings
     def run(self):
-        TWELVE = "12 words (50 rolls)"
-        TWENTY_FOUR = "24 words (99 rolls)"
+        THIRTEEN = "13 words (50 rolls)"
+        TWENTY_FIVE = "25 words (99 rolls)"
         
-        button_data = [TWELVE, TWENTY_FOUR]
+        button_data = [THIRTEEN, TWENTY_FIVE]
         selected_menu_num = ButtonListScreen(
             title="Mnemonic Length",
             is_bottom_list=True,
@@ -184,10 +186,10 @@ class ToolsDiceEntropyMnemonicLengthView(View):
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
 
-        elif button_data[selected_menu_num] == TWELVE:
+        elif button_data[selected_menu_num] == THIRTEEN:
             return Destination(ToolsDiceEntropyEntryView, view_args=dict(total_rolls=50))
 
-        elif button_data[selected_menu_num] == TWENTY_FOUR:
+        elif button_data[selected_menu_num] == TWENTY_FIVE:
             return Destination(ToolsDiceEntropyEntryView, view_args=dict(total_rolls=99))
 
 
@@ -222,12 +224,12 @@ class ToolsDiceEntropyEntryView(View):
 """****************************************************************************
     Calc final word Views
 ****************************************************************************"""
-class ToolsCalcFinalWordNumWordsView(View):
+class ToolsCalcFinalWordNumWordsView(View): # TODO: expire 2024-06-30, offer only 25 words if not low security is set in settings
     def run(self):
-        TWELVE = "12 words"
-        TWENTY_FOUR = "24 words"
+        THIRTEEN = "13 words"
+        TWENTY_FIVE = "25 words"
         
-        button_data = [TWELVE, TWENTY_FOUR]
+        button_data = [THIRTEEN, TWENTY_FIVE]
         selected_menu_num = ButtonListScreen(
             title="Mnemonic Length",
             is_bottom_list=True,
@@ -238,25 +240,25 @@ class ToolsCalcFinalWordNumWordsView(View):
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
 
-        elif button_data[selected_menu_num] == TWELVE:
-            self.controller.storage.init_pending_mnemonic(12)
+        elif button_data[selected_menu_num] == THIRTEEN:
+            self.controller.storage.init_pending_mnemonic(13)
 
             # return Destination(SeedMnemonicEntryView, view_args=dict(is_calc_final_word=True))
             return Destination(SeedMnemonicEntryView, view_args=dict(is_calc_final_word=True))
 
-        elif button_data[selected_menu_num] == TWENTY_FOUR:
-            self.controller.storage.init_pending_mnemonic(24)
+        elif button_data[selected_menu_num] == TWENTY_FIVE:
+            self.controller.storage.init_pending_mnemonic(25)
 
             # return Destination(SeedMnemonicEntryView, view_args=dict(is_calc_final_word=True))
             return Destination(SeedMnemonicEntryView, view_args=dict(is_calc_final_word=True))
 
 
 
-class ToolsCalcFinalWordFinalizePromptView(View):
+class ToolsCalcFinalWordFinalizePromptView(View): # TODO: expire 2024-07-01, double check and remove, makes no sense for us
     def run(self):
         mnemonic = self.controller.storage.pending_mnemonic
         mnemonic_length = len(mnemonic)
-        if mnemonic_length == 12:
+        if mnemonic_length == 13:
             num_entropy_bits = 7
         else:
             num_entropy_bits = 3
@@ -292,12 +294,12 @@ class ToolsCalcFinalWordFinalizePromptView(View):
 
 
 
-class ToolsCalcFinalWordCoinFlipsView(View):
+class ToolsCalcFinalWordCoinFlipsView(View): # TODO: expire 2024-06-30, offer only 25 words if not low security is set in settings
     def run(self):
         mnemonic = self.controller.storage.pending_mnemonic
         mnemonic_length = len(mnemonic)
 
-        if mnemonic_length == 12:
+        if mnemonic_length == 13:
             total_flips = 7
         else:
             total_flips = 3
@@ -314,7 +316,8 @@ class ToolsCalcFinalWordCoinFlipsView(View):
             binary_string = ret_val + "0" * (11 - total_flips)
             wordlist_index = int(binary_string, 2)
             wordlist = Seed.get_wordlist(self.controller.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE))
-            word = wordlist[wordlist_index]
+            print(f'index: {wordlist_index}, words in word_list: {len(wordlist)}')
+            word = wordlist[wordlist_index % len(wordlist)]
             self.controller.storage.update_pending_mnemonic(word, mnemonic_length - 1)
 
             return Destination(ToolsCalcFinalWordShowFinalWordView, view_args=dict(coin_flips=ret_val))
@@ -330,8 +333,8 @@ class ToolsCalcFinalWordShowFinalWordView(View):
     def run(self):
         # Construct the actual final word. The user's selected_final_word
         # contributes:
-        #   * 3 bits to a 24-word seed (plus 8-bit checksum)
-        #   * 7 bits to a 12-word seed (plus 4-bit checksum)
+        #   * 3 bits to a 25-word seed (plus 8-bit checksum)
+        #   * 7 bits to a 13-word seed (plus 4-bit checksum)
         from seedsigner.helpers import mnemonic_generation
 
         mnemonic = self.controller.storage.pending_mnemonic
@@ -339,10 +342,11 @@ class ToolsCalcFinalWordShowFinalWordView(View):
         wordlist_language_code = self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE)
         wordlist = Seed.get_wordlist(wordlist_language_code)
 
-        final_mnemonic = mnemonic_generation.calculate_checksum(
-            mnemonic=self.controller.storage.pending_mnemonic,
-            wordlist_language_code=wordlist_language_code,
-        )
+        #final_mnemonic = mnemonic_generation.calculate_checksum(
+        #    mnemonic=self.controller.storage.pending_mnemonic,
+        #    wordlist_language_code=wordlist_language_code,
+        #)
+        final_mnemonic = MoneroSeed(' '.join(self.controller.storage.pending_mnemonic)).phrase.split(' ')  # TODO: hot fix, make it right
         self.controller.storage.update_pending_mnemonic(final_mnemonic[-1], mnemonic_length - 1)
 
         # Prep the user's selected word (if there was one) and the actual final word for
@@ -357,7 +361,7 @@ class ToolsCalcFinalWordShowFinalWordView(View):
 
         # And grab the actual final word's checksum bits
         actual_final_word = self.controller.storage.pending_mnemonic[-1]
-        if mnemonic_length == 12:
+        if mnemonic_length == 13:
             checksum_bits = format(wordlist.index(actual_final_word), '011b')[-4:]
         else:
             checksum_bits = format(wordlist.index(actual_final_word), '011b')[-8:]

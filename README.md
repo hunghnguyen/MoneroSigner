@@ -40,7 +40,7 @@ If you have specific questions about the project, our [Telegram Group](https://t
 * __Unclear: Create a 16-word polyseed phrase by taking a digital photo__
 * Temporarily store up to 3 seed phrases while device is powered
 * __Unclear: Guided interface to manually create a SeedQR for instant input [(demo video here)](https://youtu.be/c1-PqTNx1vc)__
-* Monero passphrase support
+* ~~Monero passphrase support~~, posponed, possible #rabbit-hole (>48h work to implement in python)
 * Polyseed passphrase support
 * Native Segwit Multisig XPUB generation w/ QR display
 * __Unclear: Multisig support__
@@ -113,9 +113,9 @@ If you have specific questions about the project, our [Telegram Group](https://t
  |   |    |              |                   |              /- 2024-07-24 Milestone 4
  |   |    |              |                   |              |
 (S)==|===(1)============(2)=================(3)============(4)=====>
-      A
-      |
-      \------ Today: 2024-05-30
+        A
+        |
+        \------ Today: 2024-06-01
 ```
 ---------------
 

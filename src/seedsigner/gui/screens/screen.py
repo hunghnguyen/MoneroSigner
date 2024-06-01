@@ -75,7 +75,7 @@ class BaseScreen(BaseComponent):
     def _render(self):
         self.clear_screen()
 
-        # TODO: Check self.scroll_y and only render visible elements
+        # TODO:SEEDSIGNER: Check self.scroll_y and only render visible elements
         for component in self.components:
             component.render()
 
@@ -293,7 +293,7 @@ class ButtonListScreen(BaseTopNavScreen):
             right_icon_name = None
             button_label_color = None
 
-            # TODO: Define an actual class for button_data?
+            # TODO:SEEDSIGNER: Define an actual class for button_data?
             if type(button_label) == tuple:
                 if len(button_label) == 2:
                     (button_label, icon_name) = button_label
@@ -695,7 +695,7 @@ class QRDisplayScreen(BaseScreen):
 
         settings.set_value(SettingsConstants.SETTING__QR_BRIGHTNESS, cur_brightness)
 
-        # TODO: handle left as BACK
+        # TODO:SEEDSIGNER: handle left as BACK
 
 
 

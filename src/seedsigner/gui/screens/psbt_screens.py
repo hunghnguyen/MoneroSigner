@@ -120,7 +120,7 @@ class PSBTOverviewScreen(ButtonListScreen):
         # Now let's maximize the actual destination col by adjusting our addr truncation
         def calculate_destination_col_width(truncate_at: int = 0):
             def truncate_destination_addr(addr):
-                # TODO: Properly handle the ellipsis truncation in different languages
+                # TODO:SEEDSIGNER: Properly handle the ellipsis truncation in different languages
                 if len(addr) <= truncate_at + len("..."):
                     # No point in truncating
                     return addr
@@ -494,7 +494,7 @@ class PSBTMathScreen(ButtonListScreen):
             self.change_amount = " " * (longest_amount - len(self.change_amount)) + self.change_amount
 
         # Render the info to temp Image
-        # TODO: Test rendering the numeric amounts without the supersampling
+        # TODO:SEEDSIGNER: Test rendering the numeric amounts without the supersampling
         body_width = self.canvas_width - 2*GUIConstants.EDGE_PADDING
         body_height = self.buttons[0].screen_y - self.top_nav.height - 2*GUIConstants.COMPONENT_PADDING
         ssf = 2  # Super-sampling factor

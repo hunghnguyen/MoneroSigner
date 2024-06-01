@@ -12,7 +12,7 @@ from seedsigner.models.settings import Settings
 from seedsigner.models.settings_definition import SettingsConstants
 
 
-# TODO: Remove all pixel hard coding
+# TODO:SEEDSIGNER: Remove all pixel hard coding
 class GUIConstants:
     EDGE_PADDING = 8
     COMPONENT_PADDING = 8
@@ -25,7 +25,7 @@ class GUIConstants:
     # MONERO_ORANGE = "#ED5F00"  # TODO: seems not needed, delete 2024-05-30
     ACCENT_COLOR = "#ED5F00"
     TESTNET_COLOR = "#00f100"
-    REGTEST_COLOR = "#00caf1"
+    STAGENET_COLOR = "#00caf1"
 
     ICON_FONT_NAME__FONT_AWESOME = "Font_Awesome_6_Free-Solid-900"
     ICON_FONT_NAME__SEEDSIGNER = "seedsigner-glyphs"
@@ -252,7 +252,7 @@ class TextArea(BaseComponent):
         Attrs with defaults must be listed last.
     """
     text: str = "My text content"
-    width: int = None       # TODO: Implement autosize width?
+    width: int = None       # TODO:SEEDSIGNER: Implement autosize width?
     height: int = None      # None = special case: autosize to min height
     screen_x: int = 0
     screen_y: int = 0
@@ -289,7 +289,7 @@ class TextArea(BaseComponent):
         #   fits in its bounding rect (plus accounting for edge padding) using its given
         #   font.
         # Measure from left baseline ("ls")
-        # TODO: getbbox() seems to ignore "\n" so isn't properly factored into height
+        # TODO:SEEDSIGNER: getbbox() seems to ignore "\n" so isn't properly factored into height
         # calcs and yields incorrect full_text_width. For now must specify self.height to
         # render properly. Centering will be wrong.
         (left, top, full_text_width, bottom) = self.font.getbbox(self.text, anchor="ls")
@@ -371,7 +371,7 @@ class TextArea(BaseComponent):
                         _add_text_line(" ".join(words[0:index]), tw)
                         words = words[index:]
 
-            # TODO: Don't render blank lines as full height
+            # TODO:SEEDSIGNER: Don't render blank lines as full height
             total_text_height = self.bbox_height * len(self.text_lines) + self.line_spacing * (len(self.text_lines) - 1)
             if self.height is None:
                 # Autoscale height to text lines
@@ -401,7 +401,7 @@ class TextArea(BaseComponent):
     def render(self):
         # Render to a temp img scaled up by self.supersampling_factor, then resize down
         #   with bicubic resampling.
-        # TODO: Store resulting super-sampled image as a member var in __post_init__ and 
+        # TODO:SEEDSIGNER: Store resulting super-sampled image as a member var in __post_init__ and 
         # just re-paste it here.
         img = Image.new("RGB", (self.supersampled_width, self.supersampled_height), self.background_color)
         draw = ImageDraw.Draw(img)
@@ -773,8 +773,8 @@ class XmrAmount(BaseComponent):
         elif network == SettingsConstants.TESTNET:
             xmr_color = GUIConstants.TESTNET_COLOR
         
-        elif network == SettingsConstants.REGTEST:
-            xmr_color = GUIConstants.REGTEST_COLOR
+        elif network == SettingsConstants.STAGENET:
+            xmr_color = GUIConstants.STAGENET_COLOR
         
         digit_font = Fonts.get_font(font_name=GUIConstants.BODY_FONT_NAME, size=self.font_size)
         smaller_digit_font = Fonts.get_font(font_name=GUIConstants.BODY_FONT_NAME, size=self.font_size - 2)
@@ -971,7 +971,7 @@ class XmrAmount(BaseComponent):
 
 @dataclass
 class Button(BaseComponent):
-    # TODO: Rename the seedsigner.helpers.Buttons class (to Inputs?) to reduce confusion
+    # TODO:SEEDSIGNER: Rename the seedsigner.helpers.Buttons class (to Inputs?) to reduce confusion
     # with this GUI component.
     """
         Attrs with defaults must be listed last.
@@ -1033,7 +1033,7 @@ class Button(BaseComponent):
             # Note: "top" is negative when measured from a "baseline" anchor
             self.text_height = -1 * top
 
-            # TODO: Only apply screen_y at render
+            # TODO:SEEDSIGNER: Only apply screen_y at render
             if self.text_y_offset:
                 self.text_y = self.text_y_offset + self.text_height
             else:

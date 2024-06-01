@@ -1,8 +1,8 @@
 import logging
 import traceback
 
-from embit.descriptor import Descriptor
-from embit.psbt import PSBT
+from embit.descriptor import Descriptor  # TODO
+from embit.psbt import PSBT  # TODO
 from PIL.Image import Image
 from typing import List
 
@@ -57,8 +57,8 @@ class Controller(Singleton):
     settings: Settings = None
     renderer: Renderer = None
 
-    # TODO: Refactor these flow-related attrs that survive across multiple Screens.
-    # TODO: Should all in-memory flow-related attrs get wiped on MainMenuView?
+    # TODO:SEEDSIGNER: Refactor these flow-related attrs that survive across multiple Screens.
+    # TODO:SEEDSIGNER: Should all in-memory flow-related attrs get wiped on MainMenuView?
     psbt: PSBT = None
     psbt_seed: Seed = None
     psbt_parser: PSBTParser = None
@@ -69,7 +69,7 @@ class Controller(Singleton):
 
     image_entropy_preview_frames: List[Image] = None
     image_entropy_final_image: Image = None
-    # TODO: end refactor section
+    # TODO:SEEDSIGNER: end refactor section
 
     # Destination placeholder for when we need to jump out to a side flow but intend to
     # return navigation to the main flow (e.g. PSBT flow, load multisig descriptor,
@@ -120,7 +120,7 @@ class Controller(Singleton):
             controller.buttons = HardwareButtons.get_instance()
 
         # models
-        # TODO: Rename "storage" to something more indicative of its temp, in-memory state
+        # TODO:SEEDSIGNER: Rename "storage" to something more indicative of its temp, in-memory state
         controller.storage = SeedStorage()
         controller.settings = Settings.get_instance()
 

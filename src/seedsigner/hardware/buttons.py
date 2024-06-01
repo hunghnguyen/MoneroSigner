@@ -49,7 +49,7 @@ class HardwareButtons(Singleton):
 
 
     def wait_for(self, keys=[], check_release=True, release_keys=[]) -> int:
-        # TODO: Refactor to keep control in the Controller and not here
+        # TODO:SEEDSIGNER: Refactor to keep control in the Controller and not here
         from seedsigner.controller import Controller
         controller = Controller.get_instance()
 
@@ -162,7 +162,7 @@ class HardwareButtons(Singleton):
 
 
 # class used as short hand for static button/channel lookup values
-# TODO: Implement `release_lock` functionality as a global somewhere. Mixes up design
+# TODO:SEEDSIGNER: Implement `release_lock` functionality as a global somewhere. Mixes up design
 #   patterns to have a static constants class plus a settable global value.
 class HardwareButtonsConstants:
     KEY_UP = 6

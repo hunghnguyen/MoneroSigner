@@ -978,7 +978,7 @@ class BitcoinAddressQrDecoder(BaseSingleFrameQrDecoder):
 
                 elif r == "bcrt1q":
                     # Native Segwit (single sig or multisig), regtest
-                    self.address_type = (SettingsConstants.NATIVE_SEGWIT, SettingsConstants.REGTEST)
+                    self.address_type = (SettingsConstants.NATIVE_SEGWIT, SettingsConstants.STAGENET)
 
                 elif r == "bc1p":
                     # Native Segwit (single sig or multisig), mainnet 
@@ -990,7 +990,7 @@ class BitcoinAddressQrDecoder(BaseSingleFrameQrDecoder):
 
                 elif r == "bcrt1p":
                     # Native Segwit (single sig or multisig), regtest
-                    self.address_type = (SettingsConstants.TAPROOT, SettingsConstants.REGTEST)
+                    self.address_type = (SettingsConstants.TAPROOT, SettingsConstants.STAGENET)
                 
                 return DecodeQRStatus.COMPLETE
 

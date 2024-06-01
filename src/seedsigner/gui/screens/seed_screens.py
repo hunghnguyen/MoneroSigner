@@ -41,7 +41,7 @@ class SeedMnemonicEntryScreen(BaseTopNavScreen):
         self.arrow_up_is_active = False
         self.arrow_down_is_active = False
 
-        # TODO: support other BIP39 languages/charsets
+        # TODO:SEEDSIGNER: support other BIP39 languages/charsets
         self.keyboard = Keyboard(
             draw=self.image_draw,
             charset=self.possible_alphabet,
@@ -461,7 +461,8 @@ class SeedWordsScreen(WarningEdgesMixin, ButtonListScreen):
     def __post_init__(self):
         super().__post_init__()
 
-        words_per_page = len(self.words)
+        words_per_page = 4
+        # words_per_page = len(self.words)
 
         self.body_x = 0
         self.body_y = self.top_nav.height - int(GUIConstants.COMPONENT_PADDING / 2)
