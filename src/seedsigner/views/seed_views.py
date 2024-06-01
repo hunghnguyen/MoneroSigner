@@ -1,11 +1,11 @@
-import embit
+import embit  # TODO: remove before 2024-06-04
 import random
 import time
 
 from binascii import hexlify
-from embit import bip39
-from embit.descriptor import Descriptor
-from embit.networks import NETWORKS
+from embit import bip39  # TODO: remove before 2024-06-04
+from embit.descriptor import Descriptor  # TODO: remove before 2024-06-04
+from embit.networks import NETWORKS  # TODO: remove before 2024-06-04
 from typing import List
 
 from seedsigner.controller import Controller
@@ -73,13 +73,15 @@ class SeedsMenuView(View):
 class LoadSeedView(View):
     def run(self):
         SEED_QR = (" Scan a SeedQR", FontAwesomeIconConstants.QRCODE)
-        TYPE_12WORD = ("Enter 12-word seed", FontAwesomeIconConstants.KEYBOARD)
-        TYPE_24WORD = ("Enter 24-word seed", FontAwesomeIconConstants.KEYBOARD)
+        TYPE_13WORD = ("Enter 13-word seed", FontAwesomeIconConstants.KEYBOARD)
+        TYPE_25WORD = ("Enter 25-word seed", FontAwesomeIconConstants.KEYBOARD)
+        TYPE_POLYSEED = ("Enter Polyseed", FontAwesomeIconConstants.KEYBOARD)
         CREATE = (" Create a seed", FontAwesomeIconConstants.PLUS)
         button_data=[
             SEED_QR,
-            TYPE_12WORD,
-            TYPE_24WORD,
+            TYPE_13WORD,
+            TYPE_25WORD,
+            TYPE_POLYSEED,
             CREATE,
         ]
 
@@ -96,12 +98,16 @@ class LoadSeedView(View):
             from .scan_views import ScanView
             return Destination(ScanView)
         
-        elif button_data[selected_menu_num] == TYPE_12WORD:
-            self.controller.storage.init_pending_mnemonic(num_words=12)
+        elif button_data[selected_menu_num] == TYPE_13WORD:
+            self.controller.storage.init_pending_mnemonic(num_words=13)
             return Destination(SeedMnemonicEntryView)
 
-        elif button_data[selected_menu_num] == TYPE_24WORD:
-            self.controller.storage.init_pending_mnemonic(num_words=24)
+        elif button_data[selected_menu_num] == TYPE_25WORD:
+            self.controller.storage.init_pending_mnemonic(num_words=25)
+            return Destination(SeedMnemonicEntryView)
+
+        elif button_data[selected_menu_num] == TYPE_POLYSEED:
+            self.controller.storage.init_pending_mnemonic(num_words=16)  # TODO: check and correct, before 2024-06-04
             return Destination(SeedMnemonicEntryView)
 
         elif button_data[selected_menu_num] == CREATE:
@@ -110,7 +116,7 @@ class LoadSeedView(View):
 
 
 
-class SeedMnemonicEntryView(View):
+class SeedMnemonicEntryView(View):  # TODO: check the reasoning behind and if it can be used for monero seed and polyseed or if we need to modify/split, do before 2024-06-04!
     def __init__(self, cur_word_index: int = 0, is_calc_final_word: bool=False):
         super().__init__()
         self.cur_word_index = cur_word_index
@@ -128,7 +134,7 @@ class SeedMnemonicEntryView(View):
         if ret == RET_CODE__BACK_BUTTON:
             if self.cur_word_index > 0:
                 return Destination(BackStackView)
-                # return Destination(
+                # return Destination(  # TODO: heritage from seedsigner, remove before 2024-06-10
                 #     SeedMnemonicEntryView,
                 #     view_args={
                 #         "cur_word_index": self.cur_word_index - 1,
@@ -142,7 +148,7 @@ class SeedMnemonicEntryView(View):
         # ret will be our new mnemonic word
         self.controller.storage.update_pending_mnemonic(ret, self.cur_word_index)
 
-        if self.is_calc_final_word and self.cur_word_index == self.controller.storage.pending_mnemonic_length - 2:
+        if self.is_calc_final_word and self.cur_word_index == self.controller.storage.pending_mnemonic_length - 2:  # TODO: 2024-06-02, what is the idea and reasoning behind, really as checksum? monero can and will handle checksum itself, polyseed can NOT be done like that because polyseed encodes data into the seed and the checksum itself, pick your on seeds with polyseed will most probably fuck up the polyseed (invalid!)
             # Time to calculate the last word. User must decide how they want to specify
             # the last bits of entropy for the final word.
             from seedsigner.views.tools_views import ToolsCalcFinalWordFinalizePromptView
@@ -334,7 +340,7 @@ class SeedDiscardView(View):
 """****************************************************************************
     Views for actions on individual seeds:
 ****************************************************************************"""
-class SeedOptionsView(View):
+class SeedOptionsView(View):  # TODO: expire 2024-06-10, here should be probably the option to export the view keys
     def __init__(self, seed_num: int):
         super().__init__()
         self.seed_num = seed_num
@@ -347,7 +353,6 @@ class SeedOptionsView(View):
         SCAN_PSBT = ("Scan PSBT", FontAwesomeIconConstants.QRCODE)
         REVIEW_PSBT = "Review PSBT"
         VERIFY_ADDRESS = "Verify Addr"
-        EXPORT_XPUB = "Export Xpub"
         BACKUP = ("Backup Seed", None, None, None, SeedSignerCustomIconConstants.SMALL_CHEVRON_RIGHT)
         DISCARD = ("Discard Seed", None, None, "red")
 
@@ -372,15 +377,12 @@ class SeedOptionsView(View):
                     return Destination(PSBTOverviewView, skip_current_view=True)
             else:
                 # This seed does not seem to be a signer for this PSBT
-                # TODO: How sure are we? Should disable this entirely if we're 100% sure?
+                # TODO:SEEDSIGNER: How sure are we? Should disable this entirely if we're 100% sure?
                 REVIEW_PSBT += " (?)"
             button_data.append(REVIEW_PSBT)
         else:
             button_data.append(SCAN_PSBT)
         
-        if self.settings.get_value(SettingsConstants.SETTING__XPUB_EXPORT) == SettingsConstants.OPTION__ENABLED:
-            button_data.append(EXPORT_XPUB)
-
         button_data.append(BACKUP)
         button_data.append(DISCARD)
 
@@ -405,9 +407,6 @@ class SeedOptionsView(View):
         elif button_data[selected_menu_num] == VERIFY_ADDRESS:
             return Destination(SeedAddressVerificationView, view_args={"seed_num": self.seed_num})
 
-        elif button_data[selected_menu_num] == EXPORT_XPUB:
-            return Destination(SeedExportXpubSigTypeView, view_args={"seed_num": self.seed_num})
-
         elif button_data[selected_menu_num] == BACKUP:
             return Destination(SeedBackupView, view_args={"seed_num": self.seed_num})
 
@@ -416,7 +415,7 @@ class SeedOptionsView(View):
 
 
 
-class SeedBackupView(View):
+class SeedBackupView(View):  # TODO: expire 2024-06-10, base for view key export
     def __init__(self, seed_num):
         super().__init__()
         self.seed_num = seed_num
@@ -444,314 +443,10 @@ class SeedBackupView(View):
             return Destination(SeedTranscribeSeedQRFormatView, view_args={"seed_num": self.seed_num})
 
 
-
-"""****************************************************************************
-    Export Xpub flow
-****************************************************************************"""
-class SeedExportXpubSigTypeView(View):
-    def __init__(self, seed_num: int):
-        super().__init__()
-        self.seed_num = seed_num
-
-
-    def run(self):
-        if len(self.settings.get_value(SettingsConstants.SETTING__SIG_TYPES)) == 1:
-            # Nothing to select; skip this screen
-            return Destination(SeedExportXpubScriptTypeView, view_args={"seed_num": self.seed_num, "sig_type": self.settings.get_value(SettingsConstants.SETTING__SIG_TYPES)[0]}, skip_current_view=True)
-
-        SINGLE_SIG = "Single Sig"
-        MULTISIG = "Multisig"
-        button_data=[SINGLE_SIG, MULTISIG]
-
-        selected_menu_num = ButtonListScreen(
-            title="Export Xpub",
-            button_data=button_data
-        ).display()
-
-        if selected_menu_num == RET_CODE__BACK_BUTTON:
-            return Destination(BackStackView)
-
-        if button_data[selected_menu_num] == SINGLE_SIG:
-            return Destination(SeedExportXpubScriptTypeView, view_args={"seed_num": self.seed_num, "sig_type": SettingsConstants.SINGLE_SIG})
-
-        elif button_data[selected_menu_num] == MULTISIG:
-            return Destination(SeedExportXpubScriptTypeView, view_args={"seed_num": self.seed_num, "sig_type": SettingsConstants.MULTISIG})
-
-
-
-class SeedExportXpubScriptTypeView(View):
-    def __init__(self, seed_num: int, sig_type: str):
-        super().__init__()
-        self.seed_num = seed_num
-        self.sig_type = sig_type
-
-
-    def run(self):
-        args = {"seed_num": self.seed_num, "sig_type": self.sig_type}
-        if len(self.settings.get_value(SettingsConstants.SETTING__SCRIPT_TYPES)) == 1:
-            # Nothing to select; skip this screen
-            args["script_type"] = self.settings.get_value(SettingsConstants.SETTING__SCRIPT_TYPES)[0]
-            return Destination(SeedExportXpubCoordinatorView, view_args=args, skip_current_view=True)
-
-        button_data = []
-        for script_type in self.settings.get_multiselect_value_display_names(SettingsConstants.SETTING__SCRIPT_TYPES):
-            button_data.append(script_type)
-        selected_menu_num = ButtonListScreen(
-            title="Export Xpub",
-            is_button_text_centered=False,
-            button_data=button_data,
-        ).display()
-
-        if selected_menu_num < len(button_data):
-
-            script_types_settings_entry = SettingsDefinition.get_settings_entry(SettingsConstants.SETTING__SCRIPT_TYPES)
-            selected_display_name = button_data[selected_menu_num]
-            args["script_type"] = script_types_settings_entry.get_selection_option_value_by_display_name(selected_display_name)
-
-            if args["script_type"] == SettingsConstants.CUSTOM_DERIVATION:
-                return Destination(SeedExportXpubCustomDerivationView, view_args=args)
-
-            return Destination(SeedExportXpubCoordinatorView, view_args=args)
-
-        elif selected_menu_num == RET_CODE__BACK_BUTTON:
-            return Destination(BackStackView)
-
-
-
-class SeedExportXpubCustomDerivationView(View):
-    def __init__(self, seed_num: int, sig_type: str, script_type: str):
-        super().__init__()
-        self.seed_num = seed_num
-        self.sig_type = sig_type
-        self.script_type = script_type
-        self.custom_derivation_path = "m/"
-
-    def run(self):
-        ret = seed_screens.SeedExportXpubCustomDerivationScreen(
-            initial_value=self.custom_derivation_path,
-        ).display()
-
-        if ret == RET_CODE__BACK_BUTTON:
-            return Destination(BackStackView)
-        
-        # ret should be the custom derivation path; store it in Settings
-        custom_derivation = ret
-
-        return Destination(
-            SeedExportXpubCoordinatorView,
-            view_args={
-                "seed_num": self.seed_num,
-                "sig_type": self.sig_type,
-                "script_type": self.script_type,
-                "custom_derivation": custom_derivation,
-            }
-        )
-
-
-
-class SeedExportXpubCoordinatorView(View):
-    def __init__(self, seed_num: int, sig_type: str, script_type: str, custom_derivation: str = None):
-        super().__init__()
-        self.seed_num = seed_num
-        self.sig_type = sig_type
-        self.script_type = script_type
-        self.custom_derivation = custom_derivation
-
-
-    def run(self):
-        args = {
-            "seed_num": self.seed_num,
-            "sig_type": self.sig_type,
-            "script_type": self.script_type,
-            "custom_derivation": self.custom_derivation,
-        }
-        if len(self.settings.get_value(SettingsConstants.SETTING__COORDINATORS)) == 1:
-            # Nothing to select; skip this screen
-            args["coordinator"] = self.settings.get_value(SettingsConstants.SETTING__COORDINATORS)[0]
-            return Destination(SeedExportXpubWarningView, view_args=args, skip_current_view=True)
-
-        selected_menu_num = ButtonListScreen(
-            title="Export Xpub",
-            is_button_text_centered=False,
-            button_data=self.settings.get_multiselect_value_display_names(SettingsConstants.SETTING__COORDINATORS),
-        ).display()
-
-        if selected_menu_num < len(self.settings.get_value(SettingsConstants.SETTING__COORDINATORS)):
-            args["coordinator"] = self.settings.get_value(SettingsConstants.SETTING__COORDINATORS)[selected_menu_num]
-            return Destination(SeedExportXpubWarningView, view_args=args)
-
-        elif selected_menu_num == RET_CODE__BACK_BUTTON:
-            return Destination(BackStackView)
-
-
-
-class SeedExportXpubWarningView(View):
-    def __init__(self, seed_num: int, sig_type: str, script_type: str, coordinator: str, custom_derivation: str):
-        super().__init__()
-        self.seed_num = seed_num
-        self.sig_type = sig_type
-        self.script_type = script_type
-        self.coordinator = coordinator
-        self.custom_derivation = custom_derivation
-
-
-    def run(self):
-        destination = Destination(
-            SeedExportXpubDetailsView,
-            view_args={
-                "seed_num": self.seed_num,
-                "sig_type": self.sig_type,
-                "script_type": self.script_type,
-                "coordinator": self.coordinator,
-                "custom_derivation": self.custom_derivation,
-            },
-            skip_current_view=True,  # Prevent going BACK to WarningViews
-        )
-
-        if self.settings.get_value(SettingsConstants.SETTING__PRIVACY_WARNINGS) == SettingsConstants.OPTION__DISABLED:
-            # Skip the WarningView entirely
-            return destination
-
-        selected_menu_num = WarningScreen(
-            status_headline="Privacy Leak!",
-            text="""Xpub can be used to view all future transactions.""",
-        ).display()
-
-        if selected_menu_num == 0:
-            # User clicked "I Understand"
-            return destination
-
-        elif selected_menu_num == RET_CODE__BACK_BUTTON:
-            return Destination(BackStackView)
-
-
-
-class SeedExportXpubDetailsView(View):
-    """
-        Collects the user input from all the previous screens leading up to this and
-        finally calculates the xpub and displays the summary view to the user.
-    """
-    def __init__(self, seed_num: int, sig_type: str, script_type: str, coordinator: str, custom_derivation: str):
-        super().__init__()
-        self.sig_type = sig_type
-        self.script_type = script_type
-        self.coordinator = coordinator
-        self.custom_derivation = custom_derivation
-        
-        self.seed_num = seed_num
-        self.seed = self.controller.get_seed(self.seed_num)
-
-
-    def run(self):
-        # The calc_derivation takes a few moments. Run the loading screen while we wait.
-        self.loading_screen = LoadingScreenThread(text="Generating xpub...")
-        self.loading_screen.start()
-
-        try:
-            if self.script_type == SettingsConstants.CUSTOM_DERIVATION:
-                derivation_path = self.custom_derivation
-            else:
-                derivation_path = PSBTParser.calc_derivation(
-                    network=self.settings.get_value(SettingsConstants.SETTING__NETWORK),
-                    wallet_type=self.sig_type,
-                    script_type=self.script_type
-                )
-
-            if self.settings.get_value(SettingsConstants.SETTING__XPUB_DETAILS) == SettingsConstants.OPTION__ENABLED:
-                embit_network = NETWORKS[SettingsConstants.map_network_to_embit(self.settings.get_value(SettingsConstants.SETTING__NETWORK))]
-                version = embit.bip32.detect_version(
-                    derivation_path,
-                    default="xpub",
-                    network=embit_network
-                )
-
-                root = embit.bip32.HDKey.from_seed(
-                    self.seed.seed_bytes,
-                    version=embit_network["xprv"]
-                )
-
-                fingerprint = hexlify(root.child(0).fingerprint).decode('utf-8')
-                xprv = root.derive(derivation_path)
-                xpub = xprv.to_public()
-                xpub_base58 = xpub.to_string(version=version)
-
-                screen = seed_screens.SeedExportXpubDetailsScreen(
-                    fingerprint=fingerprint,
-                    has_passphrase=self.seed.passphrase is not None,
-                    derivation_path=derivation_path,
-                    xpub=xpub_base58,
-                )
-
-                self.loading_screen.stop()
-                selected_menu_num = screen.display()
-
-            else:
-                selected_menu_num = 0
-
-        finally:
-            self.loading_screen.stop()
-
-
-        if selected_menu_num == 0:
-            return Destination(
-                SeedExportXpubQRDisplayView,
-                {
-                    "seed_num": self.seed_num,
-                    "sig_type": self.sig_type,
-                    "script_type": self.script_type,
-                    "coordinator": self.coordinator,
-                    "derivation_path": derivation_path,
-                }
-            )
-
-        elif selected_menu_num == RET_CODE__BACK_BUTTON:
-            return Destination(BackStackView)
-
-
-
-class SeedExportXpubQRDisplayView(View):
-    def __init__(self, seed_num: int, sig_type: str, script_type: str, coordinator: str, derivation_path: str):
-        super().__init__()
-        self.seed = self.controller.get_seed(seed_num)
-
-        qr_density = self.settings.get_value(SettingsConstants.SETTING__QR_DENSITY)
-        if coordinator == SettingsConstants.COORDINATOR__SPECTER_DESKTOP:
-            qr_type = QRType.XPUB__SPECTER
-
-        elif coordinator == SettingsConstants.COORDINATOR__BLUE_WALLET:
-            qr_type = QRType.XPUB
-
-        elif coordinator == SettingsConstants.COORDINATOR__NUNCHUK:
-            qr_type = QRType.XPUB__UR
-
-            # As of 2022-03-02 Nunchuk doesn't seem to support animated QRs for Xpub import
-            qr_density = SettingsConstants.DENSITY__HIGH
-
-        else:
-            qr_type = QRType.XPUB__UR
-
-        self.qr_encoder = EncodeQR(
-            seed_phrase=self.seed.mnemonic_list,
-            passphrase=self.seed.passphrase,
-            derivation=derivation_path,
-            network=self.settings.get_value(SettingsConstants.SETTING__NETWORK),
-            qr_type=qr_type,
-            qr_density=qr_density,
-            wordlist_language_code=self.seed.wordlist_language_code
-        )
-
-
-    def run(self):
-        QRDisplayScreen(qr_encoder=self.qr_encoder).display()
-
-        return Destination(MainMenuView)
-
-
-
 """****************************************************************************
     View Seed Words flow
 ****************************************************************************"""
-class SeedWordsWarningView(View):
+class SeedWordsWarningView(View):  # TODO: adapt for master keys and view keys only before 2024-06-10
     def __init__(self, seed_num: int):
         super().__init__()
         self.seed_num = seed_num
@@ -763,11 +458,11 @@ class SeedWordsWarningView(View):
             view_args={"seed_num": self.seed_num, "page_index": 0},
             skip_current_view=True,  # Prevent going BACK to WarningViews
         )
-        if self.settings.get_value(SettingsConstants.SETTING__DIRE_WARNINGS) == SettingsConstants.OPTION__DISABLED:
+        if self.settings.get_value(SettingsConstants.SETTING__DIRE_WARNINGS) == SettingsConstants.OPTION__DISABLED:  # TODO: no warning or different warning for view keys, adapt before 2024-06-10
             # Forward straight to showing the words
             return destination
 
-        selected_menu_num = DireWarningScreen(
+        selected_menu_num = DireWarningScreen(  # TODO: see todo above, adapt text to master key and view keys before 2024-06-10
             text="""You must keep your seed words private & away from all online devices.""",
         ).display()
 
@@ -780,7 +475,7 @@ class SeedWordsWarningView(View):
 
 
 
-class SeedWordsView(View):
+class SeedWordsView(View):  # TODO: expire 2024-06-10, handle differences between masters key and view keys
     def __init__(self, seed_num: int, page_index: int = 0):
         super().__init__()
         self.seed_num = seed_num
@@ -797,7 +492,7 @@ class SeedWordsView(View):
         DONE = "Done"
 
         # Slice the mnemonic to our current 4-word section
-        words_per_page = 4  # TODO: eventually make this configurable for bigger screens?
+        words_per_page = 4
 
         mnemonic = self.seed.mnemonic_display_list
         words = mnemonic[self.page_index*words_per_page:(self.page_index + 1)*words_per_page]
@@ -880,8 +575,14 @@ class SeedWordsBackupTestView(View):
             self.cur_index = int(random.random() * len(self.mnemonic_list))
             while self.cur_index in self.confirmed_list:
                 self.cur_index = int(random.random() * len(self.mnemonic_list))
-        
+        # TODO: expire 2024-06-02, remove bip39, get random word from the provided wordlist (monero.seed/polyseed) instead of using bip39 and 2047, self.seed.get_wordlist(self.seed.wordlist_language_code) should give the correct wordlist. So we can do: `random.choice(self.seed.get_wordlist(self.seed.wordlist_language_code)` DOUBLE check
+        # TODO: expire 2024-06-04, we should make sure that each word is unique in the list, how should a user handle if a word is more then once to pick, even worse, once the real_word and once a fake_word
         real_word = self.mnemonic_list[self.cur_index]
+        four_words_to_pick = [real_word]
+        while len(four_words_to_pick) < 4:
+            new_word = random.choice(self.seed.get_wordlist(self.seed.wordlist_language_code))
+            if new_word not in four_words_to_pick:
+                four_words_to_pick.append(new_word)
         fake_word1 = bip39.WORDLIST[int(random.random() * 2047)]
         fake_word2 = bip39.WORDLIST[int(random.random() * 2047)]
         fake_word3 = bip39.WORDLIST[int(random.random() * 2047)]
@@ -1179,7 +880,7 @@ class SeedTranscribeSeedQRConfirmScanView(View):
         from seedsigner.gui.screens.scan_screens import ScanScreen
 
         # Run the live preview and QR code capture process
-        # TODO: Does this belong in its own BaseThread?
+        # TODO:SEEDSIGNER: Does this belong in its own BaseThread?
         wordlist_language_code = self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE)
         self.decoder = DecodeQR(wordlist_language_code=wordlist_language_code)
         ScanScreen(decoder=self.decoder, instructions_text="Scan your SeedQR").display()
@@ -1261,7 +962,7 @@ class AddressVerificationStartView(View):
             destination = Destination(NotYetImplementedView)
 
         elif self.controller.unverified_address["script_type"] == SettingsConstants.LEGACY_P2PKH:
-            # TODO: detect single sig vs multisig or have to prompt?
+            # TODO:SEEDSIGNER: detect single sig vs multisig or have to prompt?
             destination = Destination(NotYetImplementedView)
 
         derivation_path = PSBTParser.calc_derivation(
@@ -1324,8 +1025,8 @@ class SeedSingleSigAddressVerificationSelectSeedView(View):
         seeds = self.controller.storage.seeds
 
         SCAN_SEED = ("Scan a seed", FontAwesomeIconConstants.QRCODE)
-        TYPE_12WORD = ("Enter 12-word seed", FontAwesomeIconConstants.KEYBOARD)
-        TYPE_24WORD = ("Enter 24-word seed", FontAwesomeIconConstants.KEYBOARD)
+        TYPE_13WORD = ("Enter 12-word seed", FontAwesomeIconConstants.KEYBOARD)
+        TYPE_25WORD = ("Enter 24-word seed", FontAwesomeIconConstants.KEYBOARD)
         button_data = []
 
         text = "Load the seed to verify"
@@ -1334,15 +1035,15 @@ class SeedSingleSigAddressVerificationSelectSeedView(View):
             button_str = seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK))
             
             if seed.passphrase is not None:
-                # TODO: Include lock icon on right side of button
+                # TODO:SEEDSIGNER: Include lock icon on right side of button
                 pass
             button_data.append((button_str, SeedSignerCustomIconConstants.FINGERPRINT, "blue"))
 
             text = "Select seed to verify"
 
         button_data.append(SCAN_SEED)
-        button_data.append(TYPE_12WORD)
-        button_data.append(TYPE_24WORD)
+        button_data.append(TYPE_13WORD)
+        button_data.append(TYPE_25WORD)
 
         selected_menu_num = seed_screens.SeedSingleSigAddressVerificationSelectSeedScreen(
             title="Verify Address",
@@ -1369,12 +1070,12 @@ class SeedSingleSigAddressVerificationSelectSeedView(View):
             from seedsigner.views.scan_views import ScanView
             return Destination(ScanView)
 
-        elif button_data[selected_menu_num] in [TYPE_12WORD, TYPE_24WORD]:
+        elif button_data[selected_menu_num] in [TYPE_13WORD, TYPE_25WORD]:
             from seedsigner.views.seed_views import SeedMnemonicEntryView
-            if button_data[selected_menu_num] == TYPE_12WORD:
-                self.controller.storage.init_pending_mnemonic(num_words=12)
+            if button_data[selected_menu_num] == TYPE_13WORD:
+                self.controller.storage.init_pending_mnemonic(num_words=13)
             else:
-                self.controller.storage.init_pending_mnemonic(num_words=24)
+                self.controller.storage.init_pending_mnemonic(num_words=25)
             return Destination(SeedMnemonicEntryView)
 
 
@@ -1408,10 +1109,10 @@ class SeedAddressVerificationView(View):
         self.network = self.controller.unverified_address["network"]
 
         if self.script_type == SettingsConstants.TAPROOT:
-            # TODO: Taproot addr verification
+            # TODO:SEEDSIGNER: Taproot addr verification
             return Destination(NotYetImplementedView)
 
-        # TODO: This should be in `Seed` or `PSBT` utility class
+        # TODO:SEEDSIGNER: This should be in `Seed` or `PSBT` utility class
         embit_network = NETWORKS[SettingsConstants.map_network_to_embit(self.network)]
 
         # The ThreadsafeCounter will be shared by the brute-force thread to keep track of
@@ -1566,7 +1267,7 @@ class SeedAddressVerificationView(View):
                 receive_address = embit.script.p2pkh(r_pubkey).address(network=self.network)
                 change_address = embit.script.p2pkh(c_pubkey).address(network=self.network)
             elif self.script_type == SettingsConstants.TAPROOT:
-                # TODO: Not yet implemented!
+                # TODO:SEEDSIGNER: Not yet implemented!
                 raise Exception("Taproot verification not yet implemented!")
             
             return (receive_address, change_address)
@@ -1578,11 +1279,11 @@ class SeedAddressVerificationView(View):
                 change_address = self.descriptor.derive(index, branch_index=1).script_pubkey().address(network=self.network)
 
             elif self.script_type == SettingsConstants.LEGACY_P2PKH:
-                # TODO: Not yet implemented!
+                # TODO:SEEDSIGNER: Not yet implemented!
                 raise Exception("Taproot verification not yet implemented!")
 
             elif self.script_type == SettingsConstants.TAPROOT:
-                # TODO: Not yet implemented!
+                # TODO:SEEDSIGNER: Not yet implemented!
                 raise Exception("Taproot verification not yet implemented!")
             
             return (receive_address, change_address)
@@ -1678,7 +1379,7 @@ class MultisigWalletDescriptorView(View):
 
         elif button_data[selected_menu_num] == VERIFY:
             self.controller.resume_main_flow = None
-            # TODO: Route properly when multisig brute-force addr verification is done
+            # TODO:SEEDSIGNER: Route properly when multisig brute-force addr verification is done
             return Destination(SeedAddressVerificationView)
 
         return Destination(MainMenuView)
