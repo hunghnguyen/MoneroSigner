@@ -106,7 +106,6 @@ class Seed:
         raise Exception(f"Unrecognized wordlist_language_code {language_code}")
 
     def get_fingerprint(self, network: str = SettingsConstants.MAINNET) -> str:
-        print(f'network: {type(network)}, seed_bytes: {type(self.seed_bytes)}')  # TODO: 2024-06-01 remove, debug only
         return sha256(network.encode() + self.seed_bytes).hexdigest()[-6:].upper()  # TODO: remove comment after 2024-06-04 is there a better way for a fingerprint, is it only used to display the seeds temporarily saved?
     
     @staticmethod

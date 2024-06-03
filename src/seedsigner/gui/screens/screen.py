@@ -127,7 +127,7 @@ class LoadingScreenThread(BaseThread):
     def run(self):
         renderer: Renderer = Renderer.get_instance()
 
-        center_image = load_image("btc_logo_60x60.png")
+        center_image = load_image("xmr_logo_60x60.png")  # TODO: expire 2024-07-01, why hardcoded????
         orbit_gap = 2*GUIConstants.COMPONENT_PADDING
         bounding_box = (
             int((renderer.canvas_width - center_image.width)/2 - orbit_gap),

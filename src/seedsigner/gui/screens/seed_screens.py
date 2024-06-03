@@ -456,13 +456,11 @@ class SeedWordsScreen(WarningEdgesMixin, ButtonListScreen):
     num_pages: int = 3
     is_bottom_list: bool = True
     status_color: str = GUIConstants.DIRE_WARNING_COLOR
+    words_per_page: int = 4
 
 
     def __post_init__(self):
         super().__post_init__()
-
-        words_per_page = 4
-        # words_per_page = len(self.words)
 
         self.body_x = 0
         self.body_y = self.top_nav.height - int(GUIConstants.COMPONENT_PADDING / 2)
@@ -508,7 +506,7 @@ class SeedWordsScreen(WarningEdgesMixin, ButtonListScreen):
             draw.text(
                 (number_box_x + int(number_box_width/2), baseline_y),
                 font=number_font,
-                text=str(self.page_index * words_per_page + index + 1),
+                text=str(self.page_index * self.words_per_page + index + 1),
                 fill="#0084ff",
                 anchor="ms"  # Middle (centered), baSeline
             )

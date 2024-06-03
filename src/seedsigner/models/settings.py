@@ -165,5 +165,3 @@ class Settings(Singleton):
     @property
     def debug(self) -> bool:
         return self._data[SettingsConstants.SETTING__DEBUG] == SettingsConstants.OPTION__ENABLED
-
-

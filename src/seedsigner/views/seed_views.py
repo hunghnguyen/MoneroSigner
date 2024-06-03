@@ -19,6 +19,7 @@ from seedsigner.models.encode_qr import EncodeQR
 from seedsigner.models.psbt_parser import PSBTParser
 from seedsigner.models.qr_type import QRType
 from seedsigner.models.seed import InvalidSeedException, Seed
+from seedsigner.models.polyseed import PolyseedSeed
 from seedsigner.models.settings import SettingsConstants
 from seedsigner.models.settings_definition import SettingsDefinition
 from seedsigner.models.threads import BaseThread, ThreadsafeCounter
@@ -35,9 +36,12 @@ class SeedsMenuView(View):
         super().__init__()
         self.seeds = []
         for seed in self.controller.storage.seeds:
+            print(type(seed))
+            print(isinstance(seed, PolyseedSeed))
             self.seeds.append({
-                "fingerprint": seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK)),
-                "has_passphrase": seed.passphrase is not None
+                'fingerprint': seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK)),
+                'has_passphrase': seed.passphrase is not None,
+                'polyseed': isinstance(seed, PolyseedSeed)
             })
 
 
@@ -48,7 +52,7 @@ class SeedsMenuView(View):
 
         button_data = []
         for seed in self.seeds:
-            button_data.append((seed["fingerprint"], SeedSignerCustomIconConstants.FINGERPRINT, "blue"))
+            button_data.append((seed["fingerprint"], SeedSignerCustomIconConstants.FINGERPRINT, 'purple' if seed['polyseed'] else 'blue'))
         button_data.append("Load a seed")
 
         selected_menu_num = ButtonListScreen(
@@ -153,7 +157,6 @@ class SeedMnemonicEntryView(View):  # TODO: check the reasoning behind and if it
             # Time to calculate the last word. User must decide how they want to specify
             # the last bits of entropy for the final word.
             from seedsigner.views.tools_views import ToolsCalcFinalWordShowFinalWordView
-            # from seedsigner.views.tools_views import ToolsCalcFinalWordFinalizePromptView
             # return Destination(ToolsCalcFinalWordFinalizePromptView)  # TODO: expire 2024-06-04, remove how it makes no sense for us
             return Destination(ToolsCalcFinalWordShowFinalWordView, view_args=dict(coin_flips="0" * 7))
 
@@ -224,7 +227,7 @@ class SeedFinalizeView(View):
 
         button_data.append(FINALIZE)
 
-        if self.settings.get_value(SettingsConstants.SETTING__MONERO_SEED_PASSPHRASE) != SettingsConstants.OPTION__DISABLED:
+        if self.settings.get_value(SettingsConstants.SETTING__MONERO_SEED_PASSPHRASE) != SettingsConstants.OPTION__DISABLED:  # TODO: 2024-06-04, handle polyseed seeds correct and check extra for that settings...
             button_data.append(PASSPHRASE)
 
         selected_menu_num = seed_screens.SeedFinalizeScreen(
@@ -512,6 +515,7 @@ class SeedWordsView(View):  # TODO: expire 2024-06-10, handle differences betwee
             page_index=self.page_index,
             num_pages=self.num_pages,
             button_data=button_data,
+            words_per_page = words_per_page,
         ).display()
 
         if selected_menu_num == RET_CODE__BACK_BUTTON:

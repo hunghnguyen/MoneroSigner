@@ -1,8 +1,13 @@
 from .seed import Seed, InvalidSeedException
-
-from binascii import hexlify
+from .settings_definition import SettingsConstants
+from polyseed import Polyseed
 from polyseed.lang import Language
 from polyseed.exceptions import PolyseedWordCountMissmatchException, PolyseedLanguageNotFoundException
+
+from unicodedata import normalize
+
+from binascii import hexlify
+from typing import List, Optional
 
 class PolyseedSeed(Seed):
     def __init__(self,
@@ -14,7 +19,7 @@ class PolyseedSeed(Seed):
 
         if not mnemonic:
             raise Exception("Must initialize a Seed with a mnemonic List[str]")
-        self._mnemonic: List[str] = unicodedata.normalize("NFKD", " ".join(mnemonic).strip()).split()
+        self._mnemonic: List[str] = normalize("NFKD", " ".join(mnemonic).strip()).split()
 
         self._passphrase: str = ''
         self.set_passphrase(passphrase, regenerate_seed=False)
@@ -37,11 +42,11 @@ class PolyseedSeed(Seed):
 
     def _generate_seed(self) -> bool:
         try:
-            ps: PolyseedSeed = None
+            ps: Polyseed = None
             try:
-                ps = PolyseedSeed.decode(self.mnemonic_str)
-            except PolyseedWordCountMissmatchException:
-                ps = PolyseedSeed .decode_explicit(self.mnemonic_str, self.prefered_language)
+                ps = Polyseed.decode(self.mnemonic_str)
+            except PolyseedLanguageNotFoundException:
+                ps = Polyseed.decode_explicit(self.mnemonic_str, self.prefered_language)
             if ps.is_encrypted():
                 if not self.passphrase:
                     raise Exception('No passphrase provided for encrypted polyseed')

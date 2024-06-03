@@ -160,9 +160,10 @@ class SettingsConstants:
     SETTING__LANGUAGE = "language"
     SETTING__WORDLIST_LANGUAGE = "wordlist_language"  # TODO: remove after 2024-04-10, maybe there should be SETTING__WORDLIST_LANGUAGE_MONERO and SETTING__WORDLIST_LANGUAGE_POLYSEED? Makes this even sense, should it not be more dynamic letting the responsibility to the monero, polyseed implementation to have it more future proof?
     SETTING__PERSISTENT_SETTINGS = "persistent_settings"
-    SETTING__COORDINATORS = "coordinators"  # TODO: remove before 2024-06-04, WTF are coordinators, does that make any sense for monero? Check, educate yourself and remove if not needed
+    SETTING__COORDINATORS = "coordinators"  # TODO: remove before 2024-06-04, WTF are coordinators, does that make any sense for monero? Check, educate yourself and remove if not needed. As far I come there it seems like every walltet in Bitcoin ecosystem has it's own way to communicate, we should use always with UR the same way!
     SETTING__XMR_DENOMINATION = "denomination"
 
+    SEETING__LOW_SECURITY = 'low_security'
     SETTING__NETWORK = "network"
     SETTING__QR_DENSITY = "qr_density"
     SETTING__SIG_TYPES = "sig_types"
@@ -456,6 +457,12 @@ class SettingsDefinition:
                       display_name="Show privacy warnings",
                       visibility=SettingsConstants.VISIBILITY__ADVANCED,
                       default_value=SettingsConstants.OPTION__ENABLED),
+
+        SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
+                      attr_name=SettingsConstants.SEETING__LOW_SECURITY ,
+                      display_name="Low security",
+                      visibility=SettingsConstants.VISIBILITY__ADVANCED,
+                      default_value=SettingsConstants.OPTION__DISABLED),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
                       attr_name=SettingsConstants.SETTING__DIRE_WARNINGS,

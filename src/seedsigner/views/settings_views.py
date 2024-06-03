@@ -78,7 +78,7 @@ class SettingsMenuView(View):
             return Destination(DonateView)
 
         else:
-            # TODO: Free-entry types (are there any?) will need their own SettingsEntryUpdateFreeEntryView(?).
+            # TODO:SEEDSIGNER: Free-entry types (are there any?) will need their own SettingsEntryUpdateFreeEntryView(?).
             return Destination(SettingsEntryUpdateSelectionView, view_args={"attr_name": settings_entries[selected_menu_num].attr_name})
 
 
