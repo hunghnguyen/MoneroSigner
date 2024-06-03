@@ -109,7 +109,7 @@ class SettingsConstants:
     NESTED_SEGWIT = "nes"  # TODO: remove
     TAPROOT = "tr"  # TODO: remove
     CUSTOM_DERIVATION = "cus"  # TODO: remove
-    ALL_SCRIPT_TYPES = [  # TODO: check before 2024-04-03 as far I am aware there is only one valid way in Monero, check and remove if I'm right
+    ALL_SCRIPT_TYPES = [  # TODO: check before 2024-06-03 as far I am aware there is only one valid way in Monero, check and remove if I'm right
         (NATIVE_SEGWIT, "Native Segwit"),
         (NESTED_SEGWIT, "Nested Segwit (legacy)"),
         (TAPROOT, "Taproot"),
@@ -158,7 +158,7 @@ class SettingsConstants:
     
     # Individual SettingsEntry attr_names
     SETTING__LANGUAGE = "language"
-    SETTING__WORDLIST_LANGUAGE = "wordlist_language"  # TODO: remove after 2024-04-10, maybe there should be SETTING__WORDLIST_LANGUAGE_MONERO and SETTING__WORDLIST_LANGUAGE_POLYSEED? Makes this even sense, should it not be more dynamic letting the responsibility to the monero, polyseed implementation to have it more future proof?
+    SETTING__WORDLIST_LANGUAGE = "wordlist_language"  # TODO: remove after 2024-06-10, maybe there should be SETTING__WORDLIST_LANGUAGE_MONERO and SETTING__WORDLIST_LANGUAGE_POLYSEED? Makes this even sense, should it not be more dynamic letting the responsibility to the monero, polyseed implementation to have it more future proof?
     SETTING__PERSISTENT_SETTINGS = "persistent_settings"
     SETTING__COORDINATORS = "coordinators"  # TODO: remove before 2024-06-04, WTF are coordinators, does that make any sense for monero? Check, educate yourself and remove if not needed. As far I come there it seems like every walltet in Bitcoin ecosystem has it's own way to communicate, we should use always with UR the same way!
     SETTING__XMR_DENOMINATION = "denomination"

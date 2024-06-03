@@ -11,7 +11,9 @@ source_directory = 'src'
 output_file = 'INLINE_TODO.md'
 
 # Define the regex pattern to match TODO comments
-todo_pattern = re.compile(r'# TODO:(?P<tag>\w+:)?\s*(?P<content>.*?)\s*(?P<date>\d{4}-\d{2}-\d{2})?$')
+todo_pattern = re.compile(r'# TODO:(?P<tag>\w+:)?\s*(?P<content>.*?)$')
+date_pattern = re.compile(r'(?P<date>\d{4}-\d{2}-\d{2})')
+content_pattern = re.compile(r'# TODO:(?:\w+:\s*)?(.*)$')
 
 # Initialize lists to store the collected data
 todos = []
@@ -26,8 +28,9 @@ for root, dirs, files in os.walk(source_directory):
                     match = todo_pattern.search(line)
                     if match:
                         tag = match.group('tag').strip(':') if match.group('tag') else ''
-                        content = line.strip()
-                        date = match.group('date') if match.group('date') else '9999-12-31'  # Default to a far future date if no date is provided
+                        content = match.group('content')
+                        date_match = date_pattern.search(content)
+                        date = date_match.group('date') if date_match else 'No date provided'  # Default to a far future date if no date is provided
                         todos.append({'file': file_path, 'line': line_number, 'tag': tag, 'content': content, 'date': date})
 
 # Sort the todos by urgency (date) and then by file name
@@ -48,7 +51,12 @@ with open(output_file, 'w') as f:
             current_date = todo['date']
             f.write(f"\n## {current_date}\n")
         f.write(f"- [{todo['file']}](file://{todo['file']}):{todo['line']}\n")
-        f.write(f"  {todo['content']}\n")
+        if todo['tag'] == 'SEEDSIGNER':
+            f.write(f"  `SEEDSIGNER` {todo['content']}\n")
+        elif todo['tag'] == 'CONTINUE_HERE':
+            f.write(f"  `CONTINUE_HERE` {todo['content']}\n")
+        else:
+            f.write(f"  {todo['content']}\n")
 
     # Write the list sorted by file name
     f.write('\n# By File\n')
@@ -58,4 +66,9 @@ with open(output_file, 'w') as f:
             current_file = todo['file']
             f.write(f"\n## [{todo['file']}](file://{todo['file']})\n")
         f.write(f"- Line {todo['line']}: {todo['date']} {todo['tag']}\n")
-        f.write(f"  {todo['content']}\n")
+        if todo['tag'] == 'SEEDSIGNER':
+            f.write(f"  `SEEDSIGNER` {todo['content']}\n")
+        elif todo['tag'] == 'CONTINUE_HERE':
+            f.write(f"  `CONTINUE_HERE` {todo['content']}\n")
+        else:
+            f.write(f"  {todo['content']}\n")

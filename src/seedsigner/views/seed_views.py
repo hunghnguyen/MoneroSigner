@@ -1200,7 +1200,7 @@ class SeedAddressVerificationView(View):  # TODO: expire 2024-06-10, what is tha
 
 
 
-    class BruteForceAddressVerificationThread(BaseThread): # TODO: expire 2024-04-10, guess not needed for monero, so remove if not needed
+    class BruteForceAddressVerificationThread(BaseThread): # TODO: expire 2024-06-10, guess not needed for monero, so remove if not needed
         def __init__(self, address: str, seed: Seed, descriptor: Descriptor, script_type: str, network: str, derivation_path: str, threadsafe_counter: ThreadsafeCounter, verified_index: ThreadsafeCounter, verified_index_is_change: ThreadsafeCounter):
             """
                 Either seed or descriptor will be None

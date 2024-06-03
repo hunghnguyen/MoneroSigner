@@ -22,7 +22,6 @@ class GUIConstants:
     WARNING_COLOR = "#FFD60A"
     DIRE_WARNING_COLOR = "red"
     SUCCESS_COLOR = "#00dd00"
-    # MONERO_ORANGE = "#ED5F00"  # TODO: seems not needed, delete 2024-05-30
     ACCENT_COLOR = "#ED5F00"
     TESTNET_COLOR = "#00f100"
     STAGENET_COLOR = "#00caf1"
