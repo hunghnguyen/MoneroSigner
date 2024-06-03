@@ -153,11 +153,11 @@ class SeedMnemonicEntryView(View):  # TODO: check the reasoning behind and if it
         # ret will be our new mnemonic word
         self.controller.storage.update_pending_mnemonic(ret, self.cur_word_index)
 
-        if self.is_calc_final_word and self.cur_word_index == self.controller.storage.pending_mnemonic_length - 2:  # TODO: 2024-06-02, what is the idea and reasoning behind, really as checksum? monero can and will handle checksum itself, polyseed can NOT be done like that because polyseed encodes data into the seed and the checksum itself, pick your on seeds with polyseed will most probably fuck up the polyseed (invalid!)
+        if self.is_calc_final_word and self.cur_word_index == self.controller.storage.pending_mnemonic_length - 2:  # TODO: 2024-06-30, clean up, this code is no functional but uggly as fuck!
             # Time to calculate the last word. User must decide how they want to specify
             # the last bits of entropy for the final word.
             from seedsigner.views.tools_views import ToolsCalcFinalWordShowFinalWordView
-            # return Destination(ToolsCalcFinalWordFinalizePromptView)  # TODO: expire 2024-06-04, remove how it makes no sense for us
+            # return Destination(ToolsCalcFinalWordFinalizePromptView)  # TODO: expire 2024-06-30, lean it up
             return Destination(ToolsCalcFinalWordShowFinalWordView, view_args=dict(coin_flips="0" * 7))
 
         if self.is_calc_final_word and self.cur_word_index == self.controller.storage.pending_mnemonic_length - 1:
@@ -210,7 +210,6 @@ class SeedMnemonicInvalidView(View):
         elif button_data[selected_menu_num] == DISCARD:
             self.controller.storage.discard_pending_mnemonic()
             return Destination(MainMenuView)
-
 
 
 class SeedFinalizeView(View):

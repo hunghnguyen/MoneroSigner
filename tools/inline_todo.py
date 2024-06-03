@@ -52,7 +52,7 @@ with open(output_file, 'w') as f:
         if todo['date'] != current_date:
             current_date = todo['date']
             f.write(f"\n### {current_date}\n")
-        f.write(f"- [{todo['file']}](file://{todo['file']}):{todo['line']}\n")
+        f.write(f"- `{todo['file']}`:{todo['line']}\n")
         tags_str = ' '.join([f'**#{tag}**' for tag in todo['tags']])
         if len(tags_str) > 0:
             tags_str += ' '
@@ -64,7 +64,7 @@ with open(output_file, 'w') as f:
     for todo in sorted(todos, key=lambda x: x['file']):
         if todo['file'] != current_file:
             current_file = todo['file']
-            f.write(f"\n### [{todo['file']}](file://{todo['file']})\n")
+            f.write(f"\n### `{todo['file']}`\n")
         tags_str = ' '.join([f'**#{tag}**' for tag in todo['tags']])
         if len(tags_str) > 0:
             tags_str += ' '

@@ -345,7 +345,7 @@ class ToolsDicePolyseedView(View):
 """****************************************************************************
     Calc final word Views
 ****************************************************************************"""
-class ToolsCalcFinalWordNumWordsView(View): # TODO: expire 2024-06-30, offer only 25 words if not low security is set in settings
+class ToolsCalcFinalWordNumWordsView(View):
     def run(self):
         if self.settings.get_value(SettingsConstants.SEETING__LOW_SECURITY) == SettingsConstants.OPTION__ENABLED:
             THIRTEEN = "13 words"
@@ -385,7 +385,7 @@ class ToolsCalcFinalWordShowFinalWordView(View):  # TODO: 2024-06-04, rename, be
         wordlist_language_code = self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE)
         wordlist = Seed.get_wordlist(wordlist_language_code)
 
-        final_mnemonic = MoneroSeed(' '.join(self.controller.storage.pending_mnemonic[:(mnemonic_length -1)])).phrase.split(' ')  # TODO: 2024-06-04 hot fix, make it right, seems actually right to add checksum
+        final_mnemonic = MoneroSeed(MoneroSeed(' '.join(self.controller.storage.pending_mnemonic[:(mnemonic_length -1)])).hex).phrase.split(' ')  # TODO: 2024-06-04 hot fix, make it right, seems actually right to add checksum
         self.controller.storage.update_pending_mnemonic(final_mnemonic[-1], mnemonic_length - 1)
         return Destination(ToolsCalcFinalWordDoneView)
 
@@ -401,12 +401,6 @@ class ToolsCalcFinalWordDoneView(View):
         DISCARD = ("Discard", None, None, "red")
         button_data = [LOAD, DISCARD]
 
-        # TODO:CONTINUE_HERE: expire 2024-06-03, issue with fingerprint
-        print(f"""
-        final word: {final_word}
-        mnemonic word length: {mnemonic_word_length}
-        fingerprint: {self.controller.storage.get_pending_mnemonic_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK))}
-        """)
         selected_menu_num = ToolsCalcFinalWordDoneScreen(
             final_word=final_word,
             mnemonic_word_length=mnemonic_word_length,

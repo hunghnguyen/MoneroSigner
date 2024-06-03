@@ -1,7 +1,7 @@
 from hashlib import sha256
 from typing import List
 
-from polyseed import seed_phrase_from_bytes  # TODO: expire 2024-06-02, test
+from polyseed import seed_phrase_from_bytes
 
 # TODO: expire 2024-06-10, I think should be moved/merged with mnemonic_generation somehow and somewhere else, think about it.
 

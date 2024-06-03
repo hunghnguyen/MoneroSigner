@@ -68,7 +68,7 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
     - [x] Polyseed python implementation
     - [x] Monero seed generation with camera for entropy
     - [x] Monero seed generation on dice rolls
-    - [ ] Monero seed generation by picking words: issue arrised, solving it now.
+    - [x] Monero seed generation by picking words
     - [x] Polyseed generation with camera for entropy
     - [x] Polyseed generation on dice rolls
     - [ ] ~~Polyseed generation by picking words~~ can't be done, because you can't choose words, because seeds are generate with pbkdf sha256, so only one way, we could over an alternative, or generate need seeds out of the choosen one.
@@ -114,9 +114,9 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
  |   |   | |              |                   |              /- 2024-07-24 Milestone 4
  |   |   | |              |                   |              |
 (S)==|===|(1)============(2)=================(3)============(4)=====>
-         A
-         |
-         \------ Today: 2024-06-02
+          A
+          |
+          \------ Today: 2024-06-03
 ```
 ---------------
 

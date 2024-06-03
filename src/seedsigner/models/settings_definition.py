@@ -109,7 +109,7 @@ class SettingsConstants:
     NESTED_SEGWIT = "nes"  # TODO: remove
     TAPROOT = "tr"  # TODO: remove
     CUSTOM_DERIVATION = "cus"  # TODO: remove
-    ALL_SCRIPT_TYPES = [  # TODO: check before 2024-06-03 as far I am aware there is only one valid way in Monero, check and remove if I'm right
+    ALL_SCRIPT_TYPES = [  # TODO: check before 2024-06-04 as far I am aware there is only one valid way in Monero, check and remove if I'm right
         (NATIVE_SEGWIT, "Native Segwit"),
         (NESTED_SEGWIT, "Nested Segwit (legacy)"),
         (TAPROOT, "Taproot"),

@@ -24,7 +24,10 @@ class Seed:
 
         if not mnemonic:
             raise Exception("Must initialize a Seed with a mnemonic List[str]")
-        self._mnemonic: List[str] = unicodedata.normalize("NFKD", " ".join(mnemonic).strip()).split()
+        mnemonic_words = len(mnemonic)
+        if mnemonic_words not in (12, 13, 24, 25):
+            raise Exception(f'Mnemonic has not the right amounts of words, expected to have 12, 13, 24 or 25. Got: {mnemonic_words}')
+        self._mnemonic: List[str] = unicodedata.normalize('NFKD', ' '.join(mnemonic).strip()).split()
 
         self._passphrase: Optional[str] = None
         self.set_passphrase(passphrase, regenerate_seed=False)
