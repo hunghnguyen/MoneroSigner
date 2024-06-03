@@ -43,6 +43,7 @@ with open(output_file, 'w') as f:
     f.write('## Index\n')
     f.write('- [Urgent](#urgent)\n')
     f.write('- [By File](#by-file)\n')
+    f.write('- [External Todo](Todo.md)\n')
 
     # Write the urgent list
     f.write('\n## Urgent\n')
@@ -69,4 +70,3 @@ with open(output_file, 'w') as f:
             tags_str += ' '
         f.write(f"- Line {todo['line']}: {todo['date']} {tags_str}\n")
         f.write(f"  {todo['content']}\n")
-    f.write('\n[External Todo](Todo.md)')
