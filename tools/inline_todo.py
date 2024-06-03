@@ -26,7 +26,7 @@ for root, dirs, files in os.walk(source_directory):
                     match = todo_pattern.search(line)
                     if match:
                         tag = match.group('tag').strip(':') if match.group('tag') else ''
-                        content = match.group('content')
+                        content = line.strip()
                         date = match.group('date') if match.group('date') else '9999-12-31'  # Default to a far future date if no date is provided
                         todos.append({'file': file_path, 'line': line_number, 'tag': tag, 'content': content, 'date': date})
 
