@@ -59,3 +59,5 @@
 ---
 ## Considerations:
 - [ ] Shoud feather wallet 14 words seed be offered to be imported?
+---
+see also: [Inline Todo](INLINE_TODO.md)

@@ -1,22 +1,24 @@
-# Index
+# Inline Todo
+
+## Index
 - [Urgent](#urgent)
 - [By File](#by-file)
 
-# Urgent
+## Urgent
 
-## 2024-06-02
+### 2024-06-02
 - [src/seedsigner/helpers/polyseed_mnemonic_generation.py](file://src/seedsigner/helpers/polyseed_mnemonic_generation.py):4
   expire 2024-06-02, test
 - [src/seedsigner/views/seed_views.py](file://src/seedsigner/views/seed_views.py):156
   2024-06-02, what is the idea and reasoning behind, really as checksum? monero can and will handle checksum itself, polyseed can NOT be done like that because polyseed encodes data into the seed and the checksum itself, pick your on seeds with polyseed will most probably fuck up the polyseed (invalid!)
 
-## 2024-06-03
+### 2024-06-03
 - [src/seedsigner/models/settings_definition.py](file://src/seedsigner/models/settings_definition.py):112
   check before 2024-06-03 as far I am aware there is only one valid way in Monero, check and remove if I'm right
 - [src/seedsigner/views/tools_views.py](file://src/seedsigner/views/tools_views.py):404
-  `CONTINUE_HERE` expire 2024-06-03, issue with fingerprint
+  **#CONTINUE_HERE** expire 2024-06-03, issue with fingerprint
 
-## 2024-06-04
+### 2024-06-04
 - [src/seedsigner/models/seed.py](file://src/seedsigner/models/seed.py):109
   remove comment after 2024-06-04 is there a better way for a fingerprint, is it only used to display the seeds temporarily saved?
 - [src/seedsigner/models/settings_definition.py](file://src/seedsigner/models/settings_definition.py):163
@@ -56,7 +58,7 @@
 - [src/seedsigner/views/tools_views.py](file://src/seedsigner/views/tools_views.py):388
   2024-06-04 hot fix, make it right, seems actually right to add checksum
 
-## 2024-06-10
+### 2024-06-10
 - [src/seedsigner/helpers/polyseed_mnemonic_generation.py](file://src/seedsigner/helpers/polyseed_mnemonic_generation.py):6
   expire 2024-06-10, I think should be moved/merged with mnemonic_generation somehow and somewhere else, think about it.
 - [src/seedsigner/models/settings_definition.py](file://src/seedsigner/models/settings_definition.py):91
@@ -92,21 +94,21 @@
 - [src/seedsigner/views/seed_views.py](file://src/seedsigner/views/seed_views.py):1342
   expire 2024-06-10, adapt to monero
 
-## 2024-06-21
+### 2024-06-21
 - [src/seedsigner/views/tools_views.py](file://src/seedsigner/views/tools_views.py):28
   expire 2024-06-21, I think there should be a warning that this way most probale will lead to low entropy, should only be used if user is really knowing what he is doing... Maybe an alternative would be to use it as input entropy with pseudo entropy to generate a new "now magically random" (of course not, but at least with less probability of user picking the most prefered words out of the list and shootig himself in the foot.
 
-## 2024-06-30
+### 2024-06-30
 - [src/seedsigner/views/tools_views.py](file://src/seedsigner/views/tools_views.py):267
   expire 2024-06-30, offer only 25 words if not low security is set in settings
 - [src/seedsigner/views/tools_views.py](file://src/seedsigner/views/tools_views.py):348
   expire 2024-06-30, offer only 25 words if not low security is set in settings
 
-## 2024-06-31
+### 2024-06-31
 - [src/seedsigner/views/seed_views.py](file://src/seedsigner/views/seed_views.py):827
   expire 2024-06-31, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this???
 
-## 2024-07-01
+### 2024-07-01
 - [src/seedsigner/gui/screens/screen.py](file://src/seedsigner/gui/screens/screen.py):130
   expire 2024-07-01, why hardcoded????
 - [src/seedsigner/helpers/mnemonic_generation.py](file://src/seedsigner/helpers/mnemonic_generation.py):1
@@ -116,7 +118,7 @@
 - [src/seedsigner/views/tools_views.py](file://src/seedsigner/views/tools_views.py):236
   expire 2024-07-01, see #todo in seedsigner.helpers.mnemonic_generation, and fix language together...
 
-## 2024-07-31
+### 2024-07-31
 - [src/seedsigner/helpers/mnemonic_generation.py](file://src/seedsigner/helpers/mnemonic_generation.py):12
   expire 2024-07-31, handle seed languages...
 - [src/seedsigner/helpers/polyseed_mnemonic_generation.py](file://src/seedsigner/helpers/polyseed_mnemonic_generation.py):9
@@ -126,57 +128,57 @@
 - [src/seedsigner/views/tools_views.py](file://src/seedsigner/views/tools_views.py):226
   expire 2024-07-31, don't know python memory managment, but `del seed_entropy_image` etc seems for me the better way, well, need to investigate, when not mistaken, python uses GC, is there a way to clean up inmedately?
 
-## No date provided
+### No date provided
 - [src/seedsigner/controller.py](file://src/seedsigner/controller.py):60
-  `SEEDSIGNER` Refactor these flow-related attrs that survive across multiple Screens.
+  **#SEEDSIGNER** Refactor these flow-related attrs that survive across multiple Screens.
 - [src/seedsigner/controller.py](file://src/seedsigner/controller.py):61
-  `SEEDSIGNER` Should all in-memory flow-related attrs get wiped on MainMenuView?
+  **#SEEDSIGNER** Should all in-memory flow-related attrs get wiped on MainMenuView?
 - [src/seedsigner/controller.py](file://src/seedsigner/controller.py):72
-  `SEEDSIGNER` end refactor section
+  **#SEEDSIGNER** end refactor section
 - [src/seedsigner/controller.py](file://src/seedsigner/controller.py):123
-  `SEEDSIGNER` Rename "storage" to something more indicative of its temp, in-memory state
+  **#SEEDSIGNER** Rename "storage" to something more indicative of its temp, in-memory state
 - [src/seedsigner/gui/components.py](file://src/seedsigner/gui/components.py):15
-  `SEEDSIGNER` Remove all pixel hard coding
+  **#SEEDSIGNER** Remove all pixel hard coding
 - [src/seedsigner/gui/components.py](file://src/seedsigner/gui/components.py):254
-  `SEEDSIGNER` Implement autosize width?
+  **#SEEDSIGNER** Implement autosize width?
 - [src/seedsigner/gui/components.py](file://src/seedsigner/gui/components.py):291
-  `SEEDSIGNER` getbbox() seems to ignore "\n" so isn't properly factored into height
+  **#SEEDSIGNER** getbbox() seems to ignore "\n" so isn't properly factored into height
 - [src/seedsigner/gui/components.py](file://src/seedsigner/gui/components.py):373
-  `SEEDSIGNER` Don't render blank lines as full height
+  **#SEEDSIGNER** Don't render blank lines as full height
 - [src/seedsigner/gui/components.py](file://src/seedsigner/gui/components.py):403
-  `SEEDSIGNER` Store resulting super-sampled image as a member var in __post_init__ and 
+  **#SEEDSIGNER** Store resulting super-sampled image as a member var in __post_init__ and 
 - [src/seedsigner/gui/components.py](file://src/seedsigner/gui/components.py):786
   change to Monero icon
 - [src/seedsigner/gui/components.py](file://src/seedsigner/gui/components.py):973
-  `SEEDSIGNER` Rename the seedsigner.helpers.Buttons class (to Inputs?) to reduce confusion
+  **#SEEDSIGNER** Rename the seedsigner.helpers.Buttons class (to Inputs?) to reduce confusion
 - [src/seedsigner/gui/components.py](file://src/seedsigner/gui/components.py):1035
-  `SEEDSIGNER` Only apply screen_y at render
+  **#SEEDSIGNER** Only apply screen_y at render
 - [src/seedsigner/gui/renderer.py](file://src/seedsigner/gui/renderer.py):84
-  `SEEDSIGNER` Remove all references
+  **#SEEDSIGNER** Remove all references
 - [src/seedsigner/gui/renderer.py](file://src/seedsigner/gui/renderer.py):100
   Should probably move this to screens.py
 - [src/seedsigner/gui/renderer.py](file://src/seedsigner/gui/renderer.py):142
-  `SEEDSIGNER` Should probably move this to templates.py
+  **#SEEDSIGNER** Should probably move this to templates.py
 - [src/seedsigner/gui/renderer.py](file://src/seedsigner/gui/renderer.py):148
-  `SEEDSIGNER` Should probably move this to templates.py
+  **#SEEDSIGNER** Should probably move this to templates.py
 - [src/seedsigner/gui/screens/psbt_screens.py](file://src/seedsigner/gui/screens/psbt_screens.py):123
-  `SEEDSIGNER` Properly handle the ellipsis truncation in different languages
+  **#SEEDSIGNER** Properly handle the ellipsis truncation in different languages
 - [src/seedsigner/gui/screens/psbt_screens.py](file://src/seedsigner/gui/screens/psbt_screens.py):497
-  `SEEDSIGNER` Test rendering the numeric amounts without the supersampling
+  **#SEEDSIGNER** Test rendering the numeric amounts without the supersampling
 - [src/seedsigner/gui/screens/scan_screens.py](file://src/seedsigner/gui/screens/scan_screens.py):124
-  `SEEDSIGNER` KEY_UP gives control to NavBar; use its back arrow to cancel
+  **#SEEDSIGNER** KEY_UP gives control to NavBar; use its back arrow to cancel
 - [src/seedsigner/gui/screens/screen.py](file://src/seedsigner/gui/screens/screen.py):78
-  `SEEDSIGNER` Check self.scroll_y and only render visible elements
+  **#SEEDSIGNER** Check self.scroll_y and only render visible elements
 - [src/seedsigner/gui/screens/screen.py](file://src/seedsigner/gui/screens/screen.py):296
-  `SEEDSIGNER` Define an actual class for button_data?
+  **#SEEDSIGNER** Define an actual class for button_data?
 - [src/seedsigner/gui/screens/screen.py](file://src/seedsigner/gui/screens/screen.py):698
-  `SEEDSIGNER` handle left as BACK
+  **#SEEDSIGNER** handle left as BACK
 - [src/seedsigner/gui/screens/seed_screens.py](file://src/seedsigner/gui/screens/seed_screens.py):44
-  `SEEDSIGNER` support other BIP39 languages/charsets
+  **#SEEDSIGNER** support other BIP39 languages/charsets
 - [src/seedsigner/hardware/buttons.py](file://src/seedsigner/hardware/buttons.py):52
-  `SEEDSIGNER` Refactor to keep control in the Controller and not here
+  **#SEEDSIGNER** Refactor to keep control in the Controller and not here
 - [src/seedsigner/hardware/buttons.py](file://src/seedsigner/hardware/buttons.py):165
-  `SEEDSIGNER` Implement `release_lock` functionality as a global somewhere. Mixes up design
+  **#SEEDSIGNER** Implement `release_lock` functionality as a global somewhere. Mixes up design
 - [src/seedsigner/helpers/ur2/cbor_lite.py](file://src/seedsigner/helpers/ur2/cbor_lite.py):246
   Check that this is the right way -- do we need to use struct.unpack()?
 - [src/seedsigner/helpers/ur2/fountain_decoder.py](file://src/seedsigner/helpers/ur2/fountain_decoder.py):37
@@ -206,7 +208,7 @@
 - [src/seedsigner/models/psbt_parser.py](file://src/seedsigner/models/psbt_parser.py):200
   Is this right?
 - [src/seedsigner/models/settings.py](file://src/seedsigner/models/settings.py):78
-  `SEEDSIGNER` If value is not in entry.selection_options...
+  **#SEEDSIGNER** If value is not in entry.selection_options...
 - [src/seedsigner/models/settings_definition.py](file://src/seedsigner/models/settings_definition.py):107
   remove
 - [src/seedsigner/models/settings_definition.py](file://src/seedsigner/models/settings_definition.py):108
@@ -220,17 +222,17 @@
 - [src/seedsigner/models/settings_definition.py](file://src/seedsigner/models/settings_definition.py):186
   Not using these for display purposes yet (ever?)
 - [src/seedsigner/models/settings_definition.py](file://src/seedsigner/models/settings_definition.py):197
-  `SEEDSIGNER` Is there really a difference between ENABLED and PROMPT?
+  **#SEEDSIGNER** Is there really a difference between ENABLED and PROMPT?
 - [src/seedsigner/models/settings_definition.py](file://src/seedsigner/models/settings_definition.py):225
-  `SEEDSIGNER` Handle multi-language `display_name` and `help_text`
+  **#SEEDSIGNER** Handle multi-language `display_name` and `help_text`
 - [src/seedsigner/models/settings_definition.py](file://src/seedsigner/models/settings_definition.py):353
-  `SEEDSIGNER` Full babel multilanguage support! Until then, type == HIDDEN
+  **#SEEDSIGNER** Full babel multilanguage support! Until then, type == HIDDEN
 - [src/seedsigner/models/settings_definition.py](file://src/seedsigner/models/settings_definition.py):362
-  `SEEDSIGNER` Support other bip-39 wordlist languages! Until then, type == HIDDEN
+  **#SEEDSIGNER** Support other bip-39 wordlist languages! Until then, type == HIDDEN
 - [src/seedsigner/models/settings_definition.py](file://src/seedsigner/models/settings_definition.py):429
   change to VISIBILITY__ADVANCED after implementing passwords for monero seeds, is hidden because this feature is posponed because of insane password derivation method in monero (CryptoNight, need to transpile to python, very propably other #rabbit-hole, be aware before starting!)
 - [src/seedsigner/models/settings_definition.py](file://src/seedsigner/models/settings_definition.py):480
-  `SEEDSIGNER` No real Developer options needed yet. Disable for now.
+  **#SEEDSIGNER** No real Developer options needed yet. Disable for now.
 - [src/seedsigner/views/psbt_views.py](file://src/seedsigner/views/psbt_views.py):45
   Include lock icon on right side of button
 - [src/seedsigner/views/psbt_views.py](file://src/seedsigner/views/psbt_views.py):316
@@ -244,107 +246,107 @@
 - [src/seedsigner/views/screensaver.py](file://src/seedsigner/views/screensaver.py):14
   This early code is now outdated vis-a-vis Screen vs View distinctions
 - [src/seedsigner/views/seed_views.py](file://src/seedsigner/views/seed_views.py):386
-  `SEEDSIGNER` How sure are we? Should disable this entirely if we're 100% sure?
+  **#SEEDSIGNER** How sure are we? Should disable this entirely if we're 100% sure?
 - [src/seedsigner/views/seed_views.py](file://src/seedsigner/views/seed_views.py):883
-  `SEEDSIGNER` Does this belong in its own BaseThread?
+  **#SEEDSIGNER** Does this belong in its own BaseThread?
 - [src/seedsigner/views/seed_views.py](file://src/seedsigner/views/seed_views.py):965
-  `SEEDSIGNER` detect single sig vs multisig or have to prompt?
+  **#SEEDSIGNER** detect single sig vs multisig or have to prompt?
 - [src/seedsigner/views/seed_views.py](file://src/seedsigner/views/seed_views.py):1038
-  `SEEDSIGNER` Include lock icon on right side of button
+  **#SEEDSIGNER** Include lock icon on right side of button
 - [src/seedsigner/views/seed_views.py](file://src/seedsigner/views/seed_views.py):1112
-  `SEEDSIGNER` Taproot addr verification
+  **#SEEDSIGNER** Taproot addr verification
 - [src/seedsigner/views/seed_views.py](file://src/seedsigner/views/seed_views.py):1115
-  `SEEDSIGNER` This should be in `Seed` or `PSBT` utility class
+  **#SEEDSIGNER** This should be in `Seed` or `PSBT` utility class
 - [src/seedsigner/views/seed_views.py](file://src/seedsigner/views/seed_views.py):1270
-  `SEEDSIGNER` Not yet implemented!
+  **#SEEDSIGNER** Not yet implemented!
 - [src/seedsigner/views/seed_views.py](file://src/seedsigner/views/seed_views.py):1282
-  `SEEDSIGNER` Not yet implemented!
+  **#SEEDSIGNER** Not yet implemented!
 - [src/seedsigner/views/seed_views.py](file://src/seedsigner/views/seed_views.py):1286
-  `SEEDSIGNER` Not yet implemented!
+  **#SEEDSIGNER** Not yet implemented!
 - [src/seedsigner/views/seed_views.py](file://src/seedsigner/views/seed_views.py):1382
-  `SEEDSIGNER` Route properly when multisig brute-force addr verification is done
+  **#SEEDSIGNER** Route properly when multisig brute-force addr verification is done
 - [src/seedsigner/views/settings_views.py](file://src/seedsigner/views/settings_views.py):81
-  `SEEDSIGNER` Free-entry types (are there any?) will need their own SettingsEntryUpdateFreeEntryView(?).
+  **#SEEDSIGNER** Free-entry types (are there any?) will need their own SettingsEntryUpdateFreeEntryView(?).
 - [src/seedsigner/views/view.py](file://src/seedsigner/views/view.py):54
   Pull all rendering-related code out of Views and into gui.screens implementations
 
-# By File
+## By File
 
-## [src/seedsigner/controller.py](file://src/seedsigner/controller.py)
-- Line 60: No date provided SEEDSIGNER
-  `SEEDSIGNER` Refactor these flow-related attrs that survive across multiple Screens.
-- Line 61: No date provided SEEDSIGNER
-  `SEEDSIGNER` Should all in-memory flow-related attrs get wiped on MainMenuView?
-- Line 72: No date provided SEEDSIGNER
-  `SEEDSIGNER` end refactor section
-- Line 123: No date provided SEEDSIGNER
-  `SEEDSIGNER` Rename "storage" to something more indicative of its temp, in-memory state
+### [src/seedsigner/controller.py](file://src/seedsigner/controller.py)
+- Line 60: No date provided **#SEEDSIGNER** 
+  Refactor these flow-related attrs that survive across multiple Screens.
+- Line 61: No date provided **#SEEDSIGNER** 
+  Should all in-memory flow-related attrs get wiped on MainMenuView?
+- Line 72: No date provided **#SEEDSIGNER** 
+  end refactor section
+- Line 123: No date provided **#SEEDSIGNER** 
+  Rename "storage" to something more indicative of its temp, in-memory state
 
-## [src/seedsigner/gui/components.py](file://src/seedsigner/gui/components.py)
-- Line 15: No date provided SEEDSIGNER
-  `SEEDSIGNER` Remove all pixel hard coding
-- Line 254: No date provided SEEDSIGNER
-  `SEEDSIGNER` Implement autosize width?
-- Line 291: No date provided SEEDSIGNER
-  `SEEDSIGNER` getbbox() seems to ignore "\n" so isn't properly factored into height
-- Line 373: No date provided SEEDSIGNER
-  `SEEDSIGNER` Don't render blank lines as full height
-- Line 403: No date provided SEEDSIGNER
-  `SEEDSIGNER` Store resulting super-sampled image as a member var in __post_init__ and 
+### [src/seedsigner/gui/components.py](file://src/seedsigner/gui/components.py)
+- Line 15: No date provided **#SEEDSIGNER** 
+  Remove all pixel hard coding
+- Line 254: No date provided **#SEEDSIGNER** 
+  Implement autosize width?
+- Line 291: No date provided **#SEEDSIGNER** 
+  getbbox() seems to ignore "\n" so isn't properly factored into height
+- Line 373: No date provided **#SEEDSIGNER** 
+  Don't render blank lines as full height
+- Line 403: No date provided **#SEEDSIGNER** 
+  Store resulting super-sampled image as a member var in __post_init__ and 
 - Line 786: No date provided 
   change to Monero icon
-- Line 973: No date provided SEEDSIGNER
-  `SEEDSIGNER` Rename the seedsigner.helpers.Buttons class (to Inputs?) to reduce confusion
-- Line 1035: No date provided SEEDSIGNER
-  `SEEDSIGNER` Only apply screen_y at render
+- Line 973: No date provided **#SEEDSIGNER** 
+  Rename the seedsigner.helpers.Buttons class (to Inputs?) to reduce confusion
+- Line 1035: No date provided **#SEEDSIGNER** 
+  Only apply screen_y at render
 
-## [src/seedsigner/gui/renderer.py](file://src/seedsigner/gui/renderer.py)
-- Line 84: No date provided SEEDSIGNER
-  `SEEDSIGNER` Remove all references
+### [src/seedsigner/gui/renderer.py](file://src/seedsigner/gui/renderer.py)
+- Line 84: No date provided **#SEEDSIGNER** 
+  Remove all references
 - Line 100: No date provided 
   Should probably move this to screens.py
-- Line 142: No date provided SEEDSIGNER
-  `SEEDSIGNER` Should probably move this to templates.py
-- Line 148: No date provided SEEDSIGNER
-  `SEEDSIGNER` Should probably move this to templates.py
+- Line 142: No date provided **#SEEDSIGNER** 
+  Should probably move this to templates.py
+- Line 148: No date provided **#SEEDSIGNER** 
+  Should probably move this to templates.py
 
-## [src/seedsigner/gui/screens/psbt_screens.py](file://src/seedsigner/gui/screens/psbt_screens.py)
-- Line 123: No date provided SEEDSIGNER
-  `SEEDSIGNER` Properly handle the ellipsis truncation in different languages
-- Line 497: No date provided SEEDSIGNER
-  `SEEDSIGNER` Test rendering the numeric amounts without the supersampling
+### [src/seedsigner/gui/screens/psbt_screens.py](file://src/seedsigner/gui/screens/psbt_screens.py)
+- Line 123: No date provided **#SEEDSIGNER** 
+  Properly handle the ellipsis truncation in different languages
+- Line 497: No date provided **#SEEDSIGNER** 
+  Test rendering the numeric amounts without the supersampling
 
-## [src/seedsigner/gui/screens/scan_screens.py](file://src/seedsigner/gui/screens/scan_screens.py)
-- Line 124: No date provided SEEDSIGNER
-  `SEEDSIGNER` KEY_UP gives control to NavBar; use its back arrow to cancel
+### [src/seedsigner/gui/screens/scan_screens.py](file://src/seedsigner/gui/screens/scan_screens.py)
+- Line 124: No date provided **#SEEDSIGNER** 
+  KEY_UP gives control to NavBar; use its back arrow to cancel
 
-## [src/seedsigner/gui/screens/screen.py](file://src/seedsigner/gui/screens/screen.py)
+### [src/seedsigner/gui/screens/screen.py](file://src/seedsigner/gui/screens/screen.py)
 - Line 130: 2024-07-01 
   expire 2024-07-01, why hardcoded????
-- Line 78: No date provided SEEDSIGNER
-  `SEEDSIGNER` Check self.scroll_y and only render visible elements
-- Line 296: No date provided SEEDSIGNER
-  `SEEDSIGNER` Define an actual class for button_data?
-- Line 698: No date provided SEEDSIGNER
-  `SEEDSIGNER` handle left as BACK
+- Line 78: No date provided **#SEEDSIGNER** 
+  Check self.scroll_y and only render visible elements
+- Line 296: No date provided **#SEEDSIGNER** 
+  Define an actual class for button_data?
+- Line 698: No date provided **#SEEDSIGNER** 
+  handle left as BACK
 
-## [src/seedsigner/gui/screens/seed_screens.py](file://src/seedsigner/gui/screens/seed_screens.py)
-- Line 44: No date provided SEEDSIGNER
-  `SEEDSIGNER` support other BIP39 languages/charsets
+### [src/seedsigner/gui/screens/seed_screens.py](file://src/seedsigner/gui/screens/seed_screens.py)
+- Line 44: No date provided **#SEEDSIGNER** 
+  support other BIP39 languages/charsets
 
-## [src/seedsigner/hardware/buttons.py](file://src/seedsigner/hardware/buttons.py)
-- Line 52: No date provided SEEDSIGNER
-  `SEEDSIGNER` Refactor to keep control in the Controller and not here
-- Line 165: No date provided SEEDSIGNER
-  `SEEDSIGNER` Implement `release_lock` functionality as a global somewhere. Mixes up design
+### [src/seedsigner/hardware/buttons.py](file://src/seedsigner/hardware/buttons.py)
+- Line 52: No date provided **#SEEDSIGNER** 
+  Refactor to keep control in the Controller and not here
+- Line 165: No date provided **#SEEDSIGNER** 
+  Implement `release_lock` functionality as a global somewhere. Mixes up design
 
-## [src/seedsigner/helpers/mnemonic_generation.py](file://src/seedsigner/helpers/mnemonic_generation.py)
+### [src/seedsigner/helpers/mnemonic_generation.py](file://src/seedsigner/helpers/mnemonic_generation.py)
 - Line 1: 2024-07-01 
   expire 2024-07-01 what to do about this file? Do we do the same thing?
 - Line 12: 2024-07-31 
   expire 2024-07-31, handle seed languages...
 
-## [src/seedsigner/helpers/polyseed_mnemonic_generation.py](file://src/seedsigner/helpers/polyseed_mnemonic_generation.py)
+### [src/seedsigner/helpers/polyseed_mnemonic_generation.py](file://src/seedsigner/helpers/polyseed_mnemonic_generation.py)
 - Line 4: 2024-06-02 
   expire 2024-06-02, test
 - Line 6: 2024-06-10 
@@ -352,11 +354,11 @@
 - Line 9: 2024-07-31 
   expire 2024-07-31, handle seed languages...
 
-## [src/seedsigner/helpers/ur2/cbor_lite.py](file://src/seedsigner/helpers/ur2/cbor_lite.py)
+### [src/seedsigner/helpers/ur2/cbor_lite.py](file://src/seedsigner/helpers/ur2/cbor_lite.py)
 - Line 246: No date provided 
   Check that this is the right way -- do we need to use struct.unpack()?
 
-## [src/seedsigner/helpers/ur2/fountain_decoder.py](file://src/seedsigner/helpers/ur2/fountain_decoder.py)
+### [src/seedsigner/helpers/ur2/fountain_decoder.py](file://src/seedsigner/helpers/ur2/fountain_decoder.py)
 - Line 37: No date provided 
   Not efficient
 - Line 55: No date provided 
@@ -364,11 +366,11 @@
 - Line 200: No date provided 
   Does this need to make a copy of p?
 
-## [src/seedsigner/helpers/ur2/fountain_encoder.py](file://src/seedsigner/helpers/ur2/fountain_encoder.py)
+### [src/seedsigner/helpers/ur2/fountain_encoder.py](file://src/seedsigner/helpers/ur2/fountain_encoder.py)
 - Line 35: No date provided 
   Do something better with this check
 
-## [src/seedsigner/models/decode_qr.py](file://src/seedsigner/models/decode_qr.py)
+### [src/seedsigner/models/decode_qr.py](file://src/seedsigner/models/decode_qr.py)
 - Line 114: No date provided 
   Convert the test suite rather than handle here?
 - Line 320: No date provided 
@@ -380,27 +382,27 @@
 - Line 829: No date provided 
   Refactor this to work with the new SettingsDefinition
 
-## [src/seedsigner/models/encode_qr.py](file://src/seedsigner/models/encode_qr.py)
+### [src/seedsigner/models/encode_qr.py](file://src/seedsigner/models/encode_qr.py)
 - Line 28: No date provided 
   Refactor so that this is a base class with implementation classes for each
 - Line 123: No date provided 
   Make these properties?
 
-## [src/seedsigner/models/psbt_parser.py](file://src/seedsigner/models/psbt_parser.py)
+### [src/seedsigner/models/psbt_parser.py](file://src/seedsigner/models/psbt_parser.py)
 - Line 194: No date provided 
   Move this to Seed?
 - Line 200: No date provided 
   Is this right?
 
-## [src/seedsigner/models/seed.py](file://src/seedsigner/models/seed.py)
+### [src/seedsigner/models/seed.py](file://src/seedsigner/models/seed.py)
 - Line 109: 2024-06-04 
   remove comment after 2024-06-04 is there a better way for a fingerprint, is it only used to display the seeds temporarily saved?
 
-## [src/seedsigner/models/settings.py](file://src/seedsigner/models/settings.py)
-- Line 78: No date provided SEEDSIGNER
-  `SEEDSIGNER` If value is not in entry.selection_options...
+### [src/seedsigner/models/settings.py](file://src/seedsigner/models/settings.py)
+- Line 78: No date provided **#SEEDSIGNER** 
+  If value is not in entry.selection_options...
 
-## [src/seedsigner/models/settings_definition.py](file://src/seedsigner/models/settings_definition.py)
+### [src/seedsigner/models/settings_definition.py](file://src/seedsigner/models/settings_definition.py)
 - Line 112: 2024-06-03 
   check before 2024-06-03 as far I am aware there is only one valid way in Monero, check and remove if I'm right
 - Line 163: 2024-06-04 
@@ -425,20 +427,20 @@
   remove
 - Line 186: No date provided 
   Not using these for display purposes yet (ever?)
-- Line 197: No date provided SEEDSIGNER
-  `SEEDSIGNER` Is there really a difference between ENABLED and PROMPT?
-- Line 225: No date provided SEEDSIGNER
-  `SEEDSIGNER` Handle multi-language `display_name` and `help_text`
-- Line 353: No date provided SEEDSIGNER
-  `SEEDSIGNER` Full babel multilanguage support! Until then, type == HIDDEN
-- Line 362: No date provided SEEDSIGNER
-  `SEEDSIGNER` Support other bip-39 wordlist languages! Until then, type == HIDDEN
+- Line 197: No date provided **#SEEDSIGNER** 
+  Is there really a difference between ENABLED and PROMPT?
+- Line 225: No date provided **#SEEDSIGNER** 
+  Handle multi-language `display_name` and `help_text`
+- Line 353: No date provided **#SEEDSIGNER** 
+  Full babel multilanguage support! Until then, type == HIDDEN
+- Line 362: No date provided **#SEEDSIGNER** 
+  Support other bip-39 wordlist languages! Until then, type == HIDDEN
 - Line 429: No date provided 
   change to VISIBILITY__ADVANCED after implementing passwords for monero seeds, is hidden because this feature is posponed because of insane password derivation method in monero (CryptoNight, need to transpile to python, very propably other #rabbit-hole, be aware before starting!)
-- Line 480: No date provided SEEDSIGNER
-  `SEEDSIGNER` No real Developer options needed yet. Disable for now.
+- Line 480: No date provided **#SEEDSIGNER** 
+  No real Developer options needed yet. Disable for now.
 
-## [src/seedsigner/views/psbt_views.py](file://src/seedsigner/views/psbt_views.py)
+### [src/seedsigner/views/psbt_views.py](file://src/seedsigner/views/psbt_views.py)
 - Line 45: No date provided 
   Include lock icon on right side of button
 - Line 316: No date provided 
@@ -446,17 +448,17 @@
 - Line 487: No date provided 
   Reserved for Nick. Are there different failure scenarios that we can detect?
 
-## [src/seedsigner/views/scan_views.py](file://src/seedsigner/views/scan_views.py)
+### [src/seedsigner/views/scan_views.py](file://src/seedsigner/views/scan_views.py)
 - Line 19: No date provided 
   Does this belong in its own BaseThread?
 - Line 81: No date provided 
   Handle single-sig descriptors?
 
-## [src/seedsigner/views/screensaver.py](file://src/seedsigner/views/screensaver.py)
+### [src/seedsigner/views/screensaver.py](file://src/seedsigner/views/screensaver.py)
 - Line 14: No date provided 
   This early code is now outdated vis-a-vis Screen vs View distinctions
 
-## [src/seedsigner/views/seed_views.py](file://src/seedsigner/views/seed_views.py)
+### [src/seedsigner/views/seed_views.py](file://src/seedsigner/views/seed_views.py)
 - Line 156: 2024-06-02 
   2024-06-02, what is the idea and reasoning behind, really as checksum? monero can and will handle checksum itself, polyseed can NOT be done like that because polyseed encodes data into the seed and the checksum itself, pick your on seeds with polyseed will most probably fuck up the polyseed (invalid!)
 - Line 1: 2024-06-04 
@@ -511,34 +513,34 @@
   expire 2024-06-10, adapt to monero
 - Line 827: 2024-06-31 
   expire 2024-06-31, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this???
-- Line 386: No date provided SEEDSIGNER
-  `SEEDSIGNER` How sure are we? Should disable this entirely if we're 100% sure?
-- Line 883: No date provided SEEDSIGNER
-  `SEEDSIGNER` Does this belong in its own BaseThread?
-- Line 965: No date provided SEEDSIGNER
-  `SEEDSIGNER` detect single sig vs multisig or have to prompt?
-- Line 1038: No date provided SEEDSIGNER
-  `SEEDSIGNER` Include lock icon on right side of button
-- Line 1112: No date provided SEEDSIGNER
-  `SEEDSIGNER` Taproot addr verification
-- Line 1115: No date provided SEEDSIGNER
-  `SEEDSIGNER` This should be in `Seed` or `PSBT` utility class
-- Line 1270: No date provided SEEDSIGNER
-  `SEEDSIGNER` Not yet implemented!
-- Line 1282: No date provided SEEDSIGNER
-  `SEEDSIGNER` Not yet implemented!
-- Line 1286: No date provided SEEDSIGNER
-  `SEEDSIGNER` Not yet implemented!
-- Line 1382: No date provided SEEDSIGNER
-  `SEEDSIGNER` Route properly when multisig brute-force addr verification is done
+- Line 386: No date provided **#SEEDSIGNER** 
+  How sure are we? Should disable this entirely if we're 100% sure?
+- Line 883: No date provided **#SEEDSIGNER** 
+  Does this belong in its own BaseThread?
+- Line 965: No date provided **#SEEDSIGNER** 
+  detect single sig vs multisig or have to prompt?
+- Line 1038: No date provided **#SEEDSIGNER** 
+  Include lock icon on right side of button
+- Line 1112: No date provided **#SEEDSIGNER** 
+  Taproot addr verification
+- Line 1115: No date provided **#SEEDSIGNER** 
+  This should be in `Seed` or `PSBT` utility class
+- Line 1270: No date provided **#SEEDSIGNER** 
+  Not yet implemented!
+- Line 1282: No date provided **#SEEDSIGNER** 
+  Not yet implemented!
+- Line 1286: No date provided **#SEEDSIGNER** 
+  Not yet implemented!
+- Line 1382: No date provided **#SEEDSIGNER** 
+  Route properly when multisig brute-force addr verification is done
 
-## [src/seedsigner/views/settings_views.py](file://src/seedsigner/views/settings_views.py)
-- Line 81: No date provided SEEDSIGNER
-  `SEEDSIGNER` Free-entry types (are there any?) will need their own SettingsEntryUpdateFreeEntryView(?).
+### [src/seedsigner/views/settings_views.py](file://src/seedsigner/views/settings_views.py)
+- Line 81: No date provided **#SEEDSIGNER** 
+  Free-entry types (are there any?) will need their own SettingsEntryUpdateFreeEntryView(?).
 
-## [src/seedsigner/views/tools_views.py](file://src/seedsigner/views/tools_views.py)
-- Line 404: 2024-06-03 CONTINUE_HERE
-  `CONTINUE_HERE` expire 2024-06-03, issue with fingerprint
+### [src/seedsigner/views/tools_views.py](file://src/seedsigner/views/tools_views.py)
+- Line 404: 2024-06-03 **#CONTINUE_HERE** 
+  expire 2024-06-03, issue with fingerprint
 - Line 147: 2024-06-04 
   expire 2024-06-04 should be merged with ToolsImagePolyseedView, same code and be outsid of views...
 - Line 200: 2024-06-04 
@@ -562,6 +564,8 @@
 - Line 226: 2024-07-31 
   expire 2024-07-31, don't know python memory managment, but `del seed_entropy_image` etc seems for me the better way, well, need to investigate, when not mistaken, python uses GC, is there a way to clean up inmedately?
 
-## [src/seedsigner/views/view.py](file://src/seedsigner/views/view.py)
+### [src/seedsigner/views/view.py](file://src/seedsigner/views/view.py)
 - Line 54: No date provided 
   Pull all rendering-related code out of Views and into gui.screens implementations
+
+[External Todo](Todo.md)
