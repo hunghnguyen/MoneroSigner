@@ -160,15 +160,12 @@ def calc_text_centering(font: ImageFont,
 
 
 def load_icon(icon_name: str, load_selected_variant: bool = False):
-    #icon_url = os.path.join(pathlib.Path(__file__).parent.resolve(), "..", "resources", "icons", icon_name)  # TODO: 2024-06-04, remove
     icon_url = pathlib.Path(os.path.dirname(os.path.dirname(__file__)), 'resources', 'icons', icon_name).resolve()
     icon = Image.open(BytesIO(res('icons', image_name))).convert("RGB")
-    #icon = Image.open(icon_url + ".png").convert("RGB")
     if not load_selected_variant:
         return icon
     else:
         icon_selected = Image.open(BytesIO(res('icons', image_name + '_selected.png'))).convert("RGB")
-        #icon_selected = Image.open(icon_url + "_selected.png").convert("RGB")
         return (icon, icon_selected)
 
 
@@ -180,7 +177,7 @@ def load_image(image_name: str) -> Image.Image:
 
 
 class Fonts(Singleton):
-    font_path = os.path.join(pathlib.Path(__file__).parent.resolve(), "..", "resources", "fonts")
+    font_path = pathlib.Path(os.path.dirname(__file__), 'resources', 'fonts')
     fonts = {}
 
     @classmethod
@@ -194,7 +191,8 @@ class Fonts(Singleton):
         
         if size not in cls.fonts[font_name]:
             try:
-                cls.fonts[font_name][size] = ImageFont.truetype(os.path.join(cls.font_path, f"{font_name}.{file_extension}"), size)
+                # cls.fonts[font_name][size] = ImageFont.truetype(os.path.join(cls.font_path, f"{font_name}.{file_extension}"), size)
+                cls.fonts[font_name][size] = ImageFont.truetype(BytesIO(res('fonts', f'{font_name}.{file_extension}')), size)
             except OSError as e:
                 if "cannot open resource" in str(e):
                     raise Exception(f"Font {font_name}.ttf not found: {repr(e)}")
