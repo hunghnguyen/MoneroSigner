@@ -73,7 +73,9 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
     - [x] Polyseed generation on dice rolls
     - [ ] ~~Polyseed generation by picking words~~ can't be done, because you can't choose words, because seeds are generate with pbkdf sha256, so only one way, we could over an alternative, or generate need seeds out of the choosen one.
     - [ ] Wallet export Seed/hex/QR code
-    - [ ] Build script to generate executable (for linux, win32, macOS(?)
+    - [x] Build script to generate executable for linux
+    - [ ] Build script to generate executable win32
+    - [ ] Build script to generate executable macOS(?)
 
 
 2. Monero Signer working with companion Application (25 days from now)
@@ -114,9 +116,11 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
  |   |   | |              |                   |              /- 2024-07-24 Milestone 4
  |   |   | |              |                   |              |
 (S)==|===|(1)============(2)=================(3)============(4)=====>
-          A
-          |
-          \------ Today: 2024-06-03
+           A
+           |
+           \------ Today: 2024-06-04
+
+Hurry: Still three open tasks to finish the first Milestone on the last day.
 ```
 ---------------
 
