@@ -15,7 +15,7 @@ from seedsigner.models.settings_definition import SettingsConstants
 class LogoScreen(BaseScreen):
     def __init__(self):
         super().__init__()
-        self.logo = load_image("logo_black_240.png")
+        self.logo = load_image('logo_black_240.png')
 
         self.partners = [
             "monero_ccs",
@@ -23,7 +23,7 @@ class LogoScreen(BaseScreen):
 
         self.partner_logos: dict = {}
         for partner in self.partners:
-            logo_url = os.path.join("partners", f"{partner}_logo.png")
+            logo_url = f"partner_{partner}_logo.png"
             self.partner_logos[partner] = load_image(logo_url)
 
 

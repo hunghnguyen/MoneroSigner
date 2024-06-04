@@ -10,6 +10,8 @@ from typing import List, Tuple
 from seedsigner.models import Singleton
 from seedsigner.models.settings import Settings
 from seedsigner.models.settings_definition import SettingsConstants
+from seedsigner.resources import get as res
+from io import BytesIO
 
 
 # TODO:SEEDSIGNER: Remove all pixel hard coding
@@ -158,19 +160,21 @@ def calc_text_centering(font: ImageFont,
 
 
 def load_icon(icon_name: str, load_selected_variant: bool = False):
-    icon_url = os.path.join(pathlib.Path(__file__).parent.resolve(), "..", "resources", "icons", icon_name)
-    icon = Image.open(icon_url + ".png").convert("RGB")
+    #icon_url = os.path.join(pathlib.Path(__file__).parent.resolve(), "..", "resources", "icons", icon_name)  # TODO: 2024-06-04, remove
+    icon_url = pathlib.Path(os.path.dirname(os.path.dirname(__file__)), 'resources', 'icons', icon_name).resolve()
+    icon = Image.open(BytesIO(res('icons', image_name))).convert("RGB")
+    #icon = Image.open(icon_url + ".png").convert("RGB")
     if not load_selected_variant:
         return icon
     else:
-        icon_selected = Image.open(icon_url + "_selected.png").convert("RGB")
+        icon_selected = Image.open(BytesIO(res('icons', image_name + '_selected.png'))).convert("RGB")
+        #icon_selected = Image.open(icon_url + "_selected.png").convert("RGB")
         return (icon, icon_selected)
 
 
 
 def load_image(image_name: str) -> Image.Image:
-    image_url = os.path.join(pathlib.Path(__file__).parent.resolve(), "..", "resources", "img", image_name)
-    image = Image.open(image_url).convert("RGB")
+    image = Image.open(BytesIO(res('img', image_name))).convert("RGB")
     return image
 
 
