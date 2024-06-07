@@ -335,9 +335,10 @@ class TextArea(BaseComponent):
                     # Handle edge case where there's only one word in the last line
                     index = 1
 
-                print(self.font)
-                print(type(self.font))
-                tw, th = self.font.getsize(' '.join(words[0:index]))
+                if self.font.getsize:
+                    tw, th = self.font.getsize(' '.join(words[0:index]))
+                else:
+                    tw = self.font.getlength(' '.join(words[0:index]))
 
                 if tw > self.supersampled_width - (2 * self.edge_padding * self.supersampling_factor):
                     # Candidate line is still too long. Restrict search range down.
