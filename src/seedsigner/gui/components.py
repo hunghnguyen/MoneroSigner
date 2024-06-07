@@ -5,6 +5,7 @@ import pathlib
 from dataclasses import dataclass
 from decimal import Decimal
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import __version__ as pil_version
 from typing import List, Tuple
 
 from seedsigner.models import Singleton
@@ -12,6 +13,14 @@ from seedsigner.models.settings import Settings
 from seedsigner.models.settings_definition import SettingsConstants
 from seedsigner.resources import get as res
 from io import BytesIO
+
+PILLOW_VERSION = pil_version.split('.')
+
+
+def get_font_size(font: ImageFont, text: str) -> Tuple[int, int]:  # width, height
+    if PILLOW_VERSION[0] < 10:
+        return font.getsize(text)
+    return (font.getlength(text), font.height)
 
 
 # TODO:SEEDSIGNER: Remove all pixel hard coding
@@ -335,10 +344,7 @@ class TextArea(BaseComponent):
                     # Handle edge case where there's only one word in the last line
                     index = 1
 
-                if self.font.getsize:
-                    tw, th = self.font.getsize(' '.join(words[0:index]))
-                else:
-                    tw = self.font.getlength(' '.join(words[0:index]))
+                tw, th = get_font_size(self.font, ' '.join(words[0:index]))
 
                 if tw > self.supersampled_width - (2 * self.edge_padding * self.supersampling_factor):
                     # Candidate line is still too long. Restrict search range down.
@@ -611,7 +617,7 @@ class FormattedAddress(BaseComponent):
         self.accent_font = Fonts.get_font(GUIConstants.FIXED_WIDTH_EMPHASIS_FONT_NAME, self.font_size)
 
         # Fixed width font means we only have to measure one max-height character
-        char_width, char_height = self.font.getsize('Q')
+        char_width, char_height = get_font_size(self.font, 'Q')
 
         n = 7
         display_str = f"{self.address[:n]} {self.address[n:-1*n]} {self.address[-1*n:]}"
