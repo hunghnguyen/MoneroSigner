@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from PIL import Image, ImageDraw, ImageFont
+from seedsigner.helpers.pillow import get_font_size
 from typing import Tuple
 
 from seedsigner.gui.components import Fonts, GUIConstants
@@ -583,7 +584,7 @@ class TextEntryDisplay(TextEntryDisplayConstants):
             if end_pos_x < self.width:
                 # The entire cur_text plus the cursor bar fits
                 self.text_offset = 3 + cursor_bar_serif_half_width
-                tw_left, th = self.font.getsize(self.cur_text[:cursor_position])
+                tw_left, th = get_font_size(self.font, self.cur_text[:cursor_position])
                 cursor_bar_x = self.text_offset + tw_left
 
             else:
@@ -591,7 +592,7 @@ class TextEntryDisplay(TextEntryDisplayConstants):
                     cursor_position = len(self.cur_text)
 
                 # Is the cursor at either extreme?
-                tw_left, th = self.font.getsize(self.cur_text[:cursor_position])
+                tw_left, th = get_font_size(self.font, self.cur_text[:cursor_position])
 
                 if self.text_offset + tw_left + cursor_bar_serif_half_width + 3 >= self.width:
                     # Cursor is at the extreme right; have to push the full tw_right off

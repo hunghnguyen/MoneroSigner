@@ -31,22 +31,22 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
 
 ### Features
 
-* Calculate word 13/25 of monero seed phrase
-* Create a 25-word monero seed phrase with 99 dice rolls
-* Create a 16 word polyseed phrase with 99(?) dice rolls
- Create a 25-word monero seed phrase by taking a digital photo
- Create a 16-word polyseed phrase by taking a digital photo
-* Temporarily store up to 3 seed phrases while device is powered
-* ~~Monero passphrase support~~, posponed, possible #rabbit-hole (>48h work to implement in python)
-* Polyseed passphrase support
-* __Unclear: Multisig support__
-* Scan and parse transaction data from animated QR codes using [UR](https://www.blockchaincommons.com/specifications/Blockchain-Commons-URs-Support-Airgapped-PSBTs/)
-* Sign transactions & (__check: transfer Xmultisig datai__) using animated QR codes ~~[(demo video here)](https://youtu.be/LPqvdQ2gSzs)~~
-* Live preview during photo-to-seed and QR scanning UX
-* Optimized seed word entry interface
-* Support for Monero Mainnet, Stagenet & Testnet
-* On-demand receive address verification (__check__)
-* User-configurable QR code display density (__check: UR documentation about viability__)
+- [x] Calculate word 13/25 of monero seed phrase
+- [x] Create a 25-word monero seed phrase with 99 dice rolls
+- [x] Create a 16 word polyseed phrase with 99(?) dice rolls
+- [x] Create a 25-word monero seed phrase by taking a digital photo
+- [x] Create a 16-word polyseed phrase by taking a digital photo
+- [x] Temporarily store up to 3 seed phrases while device is powered
+- [ ] ~~Monero passphrase support~~, posponed, possible #rabbit-hole (>48h work to implement in python)
+- [x] Polyseed passphrase support
+- [ ] __Unclear: Multisig support__
+- [ ] Scan and parse transaction data from animated QR codes using [UR](https://www.blockchaincommons.com/specifications/Blockchain-Commons-URs-Support-Airgapped-PSBTs/)
+- [ ] Sign transactions & (__check: transfer Xmultisig datai__) using animated QR codes ~~[(demo video here)](https://youtu.be/LPqvdQ2gSzs)~~
+- [x] Live preview during photo-to-seed and QR scanning UX
+- [x] Optimized seed word entry interface
+- [ ] Support for Monero Mainnet, Stagenet & Testnet
+- [ ] On-demand receive address verification (__check__)
+- [ ] User-configurable QR code display density (__check: UR documentation about viability__)
 
 ### Considerations:
 * Built for compatibility using  [UR](https://www.blockchaincommons.com/specifications/Blockchain-Commons-URs-Support-Airgapped-PSBTs/) with Feather Waller, etc (__check__), and adapt oficial [Monero GUI](https://www.getmonero.org/downloads/#gui).
@@ -118,9 +118,9 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
  |   |   | |              |                   |              /- 2024-07-24 Milestone 4
  |   |   | |              |                   |              |
 (S)==|===|(1)============(2)=================(3)============(4)=====>
-             A
-             |
-             \------ Today: 2024-06-06
+              A
+              |
+              \------ Today: 2024-06-07
 ```
 ---------------
 

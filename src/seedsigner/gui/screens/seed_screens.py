@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import List, Tuple
 
 from PIL import Image, ImageDraw, ImageFilter
+from seedsigner.helpers.pillow import get_font_size
 from seedsigner.gui.renderer import Renderer
 from seedsigner.helpers.qr import QR
 from seedsigner.models.qr_type import QRType
@@ -994,7 +995,7 @@ class SeedReviewPassphraseScreen(ButtonListScreen):
             if found_solution:
                 break
             font = Fonts.get_font(font_name=GUIConstants.FIXED_WIDTH_FONT_NAME, size=font_size)
-            char_width, char_height = font.getsize("X")
+            char_width, char_height = get_font_size(font, 'X')
             for num_lines in range(1, max_lines+1):
                 # Break the passphrase into n lines
                 chars_per_line = math.ceil(len(self.passphrase) / num_lines)

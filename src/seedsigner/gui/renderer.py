@@ -1,4 +1,5 @@
 from PIL import Image, ImageDraw, ImageFont
+from seedsigner.helpers.pillow import get_font_size
 from threading import Lock
 
 from seedsigner.gui.components import Fonts, GUIConstants
@@ -182,13 +183,13 @@ class Renderer(ConfigurableSingleton):
             tw, th = self.draw.textsize(lines[3], font=Fonts.get_font("Assistant-Medium", 22))
             self.draw.text(((240 - tw) / 2, 160), lines[3], fill=self.color, font=Fonts.get_font("Assistant-Medium", 22))
 
-        a_x_offset = 240 - Fonts.get_font("Assistant-Medium", 25).getsize(a_txt)[0]
+        a_x_offset = 240 - get_font_size(Fonts.get_font("Assistant-Medium", 25), a_txt)[0]
         self.draw.text((a_x_offset, 39 + 0), a_txt, fill=self.color, font=Fonts.get_font("Assistant-Medium", 25))
 
-        b_x_offset = 240 - Fonts.get_font("Assistant-Medium", 25).getsize(b_txt)[0]
+        b_x_offset = 240 - get_font_size(Fonts.get_font("Assistant-Medium", 25), b_txt)[0]
         self.draw.text((b_x_offset , 39 + 60), b_txt, fill=self.color, font=Fonts.get_font("Assistant-Medium", 25))
 
-        c_x_offset = 240 - Fonts.get_font("Assistant-Medium", 25).getsize(c_txt)[0]
+        c_x_offset = 240 - get_font_size(Fonts.get_font("Assistant-Medium", 25), c_txt)[0]
         self.draw.text((c_x_offset , 39 + 120), c_txt, fill=self.color, font=Fonts.get_font("Assistant-Medium", 25))
 
         self.show_image()
