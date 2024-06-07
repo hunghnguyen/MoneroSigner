@@ -1,5 +1,6 @@
 from PIL import ImageFont
 from PIL import __version__ as pil_version
+from typing import Tuple
 
 
 PILLOW_VERSION = pil_version.split('.')
