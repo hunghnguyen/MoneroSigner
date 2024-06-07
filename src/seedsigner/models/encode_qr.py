@@ -56,37 +56,6 @@ class EncodeQR:
         elif self.qr_type == QRType.PSBT__UR2:
             self.encoder = UrPsbtQrEncoder(psbt=self.psbt, qr_density=self.qr_density)
 
-        # XPUB formats
-        elif self.qr_type == QRType.XPUB:
-            self.encoder = XpubQrEncoder(
-                seed_phrase=self.seed_phrase,
-                passphrase=self.passphrase,
-                derivation=self.derivation,
-                network=self.network,
-                wordlist_language_code=self.wordlist_language_code
-            )
-
-        elif self.qr_type == QRType.XPUB__UR:
-            self.encoder = UrXpubQrEncoder(
-                qr_density=self.qr_density,
-                seed_phrase=self.seed_phrase,
-                passphrase=self.passphrase,
-                derivation=self.derivation,
-                network=self.network,
-                wordlist_language_code=self.wordlist_language_code
-            )
-
-        elif self.qr_type == QRType.XPUB__SPECTER:
-            self.encoder = SpecterXPubQrEncoder(
-                qr_density=self.qr_density,
-                seed_phrase=self.seed_phrase,
-                passphrase=self.passphrase,
-                derivation=self.derivation,
-                network=self.network,
-                wordlist_language_code=self.wordlist_language_code
-            )
-
-
         # SeedQR formats
         elif self.qr_type == QRType.SEED__SEEDQR:
             self.encoder = SeedQrEncoder(seed_phrase=self.seed_phrase,

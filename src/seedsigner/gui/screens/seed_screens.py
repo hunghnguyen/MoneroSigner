@@ -410,6 +410,7 @@ class SeedMnemonicEntryScreen(BaseTopNavScreen):
 @dataclass
 class SeedFinalizeScreen(ButtonListScreen):
     fingerprint: str = None
+    polyseed: bool = False
     title: str = "Finalize Seed"
     is_bottom_list: bool = True
     button_data: list = None
@@ -421,7 +422,7 @@ class SeedFinalizeScreen(ButtonListScreen):
 
         self.fingerprint_icontl = IconTextLine(
             icon_name=SeedSignerCustomIconConstants.FINGERPRINT,
-            icon_color="blue",
+            icon_color='purple' if self.polyseed else 'blue',
             icon_size=GUIConstants.ICON_FONT_SIZE + 12,
             label_text="fingerprint",
             value_text=self.fingerprint,
@@ -438,11 +439,12 @@ class SeedOptionsScreen(ButtonListScreen):
     # Customize defaults
     is_bottom_list: bool = True
     fingerprint: str = None
+    polyseed: bool = False
     has_passphrase: bool = False
 
     def __post_init__(self):
         self.top_nav_icon_name = SeedSignerCustomIconConstants.FINGERPRINT
-        self.top_nav_icon_color = "blue"
+        self.top_nav_icon_color = 'purple' if self.polyseed else 'blue'
         self.title = self.fingerprint
         self.is_button_text_centered = False
         super().__post_init__()
@@ -546,7 +548,7 @@ class SeedWordsBackupTestPromptScreen(ButtonListScreen):
 
 
 @dataclass
-class SeedExportXpubCustomDerivationScreen(KeyboardScreen):
+class SeedExportXpubCustomDerivationScreen(KeyboardScreen):  # TODO: 2024-06-10, remove: Xpub related
     def __post_init__(self):
         self.title = "Derivation Path"
         self.user_input = "m/"
@@ -562,7 +564,7 @@ class SeedExportXpubCustomDerivationScreen(KeyboardScreen):
 
 
 @dataclass
-class SeedExportXpubDetailsScreen(WarningEdgesMixin, ButtonListScreen):
+class SeedExportXpubDetailsScreen(WarningEdgesMixin, ButtonListScreen):  # TODO: 2024-06-10, remove: Xpub related
     # Customize defaults
     title: str = "Xpub Details"
     is_bottom_list: bool = True
@@ -614,13 +616,13 @@ class SeedExportXpubDetailsScreen(WarningEdgesMixin, ButtonListScreen):
 
 @dataclass
 class SeedAddPassphraseScreen(BaseTopNavScreen):
-    title: str = "Add Passphrase"
-    passphrase: str = ""
+    title: str = 'Add Passphrase'
+    passphrase: str = ''
 
-    KEYBOARD__LOWERCASE_BUTTON_TEXT = "abc"
-    KEYBOARD__UPPERCASE_BUTTON_TEXT = "ABC"
-    KEYBOARD__DIGITS_BUTTON_TEXT = "123"
-    KEYBOARD__SYMBOLS_BUTTON_TEXT = "!@#"
+    KEYBOARD__LOWERCASE_BUTTON_TEXT = 'abc'
+    KEYBOARD__UPPERCASE_BUTTON_TEXT = 'ABC'
+    KEYBOARD__DIGITS_BUTTON_TEXT = '123'
+    KEYBOARD__SYMBOLS_BUTTON_TEXT = '!@#'
 
 
     def __post_init__(self):
@@ -962,6 +964,7 @@ class SeedAddPassphraseScreen(BaseTopNavScreen):
 class SeedReviewPassphraseScreen(ButtonListScreen):
     fingerprint_without: str = None
     fingerprint_with: str = None
+    polyseed: bool = False
     passphrase: str = None
 
     def __post_init__(self):
@@ -973,7 +976,7 @@ class SeedReviewPassphraseScreen(ButtonListScreen):
 
         self.components.append(IconTextLine(
             icon_name=SeedSignerCustomIconConstants.FINGERPRINT,
-            icon_color="blue",
+            icon_color='purple' if self.polyseed else 'blue',
             label_text="changes fingerprint",
             value_text=f"{self.fingerprint_without} >> {self.fingerprint_with}",
             is_text_centered=True,

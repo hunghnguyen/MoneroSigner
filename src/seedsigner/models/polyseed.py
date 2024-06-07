@@ -50,6 +50,7 @@ class PolyseedSeed(Seed):
             if ps.is_encrypted():
                 if not self.passphrase:
                     raise Exception('No passphrase provided for encrypted polyseed')
+            if self.passphrase:
                 ps.crypt(self.passphrase)
             self.seed_bytes = ps.keygen()
         except Exception as e:

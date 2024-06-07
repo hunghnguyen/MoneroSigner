@@ -7,7 +7,7 @@ from PIL.ImageOps import autocontrast
 
 from seedsigner.hardware.camera import Camera
 from seedsigner.gui.components import FontAwesomeIconConstants
-from seedsigner.gui.screens import (RET_CODE__BACK_BUTTON, ButtonListScreen)
+from seedsigner.gui.screens import (RET_CODE__BACK_BUTTON, ButtonListScreen, DireWarningScreen)
 from seedsigner.gui.screens.tools_screens import ToolsCalcFinalWordFinalizePromptScreen, ToolsCalcFinalWordScreen, ToolsCoinFlipEntryScreen, ToolsDiceEntropyEntryScreen, ToolsImageEntropyFinalImageScreen, ToolsImageEntropyLivePreviewScreen, ToolsCalcFinalWordDoneScreen
 from seedsigner.helpers import mnemonic_generation
 from seedsigner.helpers import polyseed_mnemonic_generation
@@ -20,13 +20,19 @@ from monero.seed import Seed as MoneroSeed
 from .view import View, Destination, BackStackView
 
 
-
 class ToolsMenuView(View):
+    def __init__(self, secure_only: bool = False):
+        super().__init__()
+        self.secure_only = secure_only
+
     def run(self):
         IMAGE = (" New seed", FontAwesomeIconConstants.CAMERA)
         DICE = ("New seed", FontAwesomeIconConstants.DICE)
         KEYBOARD = ("Pick own words", FontAwesomeIconConstants.KEYBOARD)  # TODO: expire 2024-06-21, I think there should be a warning that this way most probale will lead to low entropy, should only be used if user is really knowing what he is doing... Maybe an alternative would be to use it as input entropy with pseudo entropy to generate a new "now magically random" (of course not, but at least with less probability of user picking the most prefered words out of the list and shootig himself in the foot.
-        button_data = [IMAGE, DICE, KEYBOARD]
+        if self.secure_only or self.settings.get_value(SettingsConstants.SEETING__LOW_SECURITY) == SettingsConstants.OPTION__DISABLED:
+            button_data = [IMAGE, DICE]
+        else:
+            button_data = [IMAGE, DICE, KEYBOARD]
         screen = ButtonListScreen(
             title="Tools",
             is_button_text_centered=False,
@@ -44,7 +50,7 @@ class ToolsMenuView(View):
             return Destination(ToolsDiceSeedTypeView)
 
         elif button_data[selected_menu_num] == KEYBOARD:
-            return Destination(ToolsCalcFinalWordNumWordsView)
+            return Destination(ToolsCalcFinalWordWarningView)
 
 
 
@@ -345,6 +351,39 @@ class ToolsDicePolyseedView(View):
 """****************************************************************************
     Calc final word Views
 ****************************************************************************"""
+class ToolsCalcFinalWordWarningView(View):
+    def __init__(self):
+        super().__init__()
+
+    def run(self):
+        destination = Destination(
+            ToolsCalcFinalWordNumWordsView,
+            skip_current_view=True,  # Prevent going BACK to WarningViews
+        )
+        if self.settings.get_value(SettingsConstants.SETTING__DIRE_WARNINGS) == SettingsConstants.OPTION__DISABLED:
+            return destination
+
+        MORE_SECURE = "Choose secure way"
+        AWARE = "I know what I'm doing"
+        button_data = [MORE_SECURE, AWARE]
+
+        selected_menu_num = DireWarningScreen(
+            title="Low Entropy Warning",
+            show_back_button=False,
+            status_headline="Are you sure?",
+            text="""The most insecure way, except chosen really random.""",
+            button_data=button_data
+        ).display()
+
+        if button_data[selected_menu_num] == AWARE:
+            # User clicked "I Understand"
+            return destination
+
+        elif button_data[selected_menu_num] == MORE_SECURE:
+            # return Destination(BackStackView)
+            return Destination(ToolsMenuView, view_args={'secure_only': True}, clear_history=True)
+
+
 class ToolsCalcFinalWordNumWordsView(View):
     def run(self):
         if self.settings.get_value(SettingsConstants.SEETING__LOW_SECURITY) == SettingsConstants.OPTION__ENABLED:

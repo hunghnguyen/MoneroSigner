@@ -72,16 +72,18 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
     - [x] Polyseed generation with camera for entropy
     - [x] Polyseed generation on dice rolls
     - [ ] ~~Polyseed generation by picking words~~ can't be done, because you can't choose words, because seeds are generate with pbkdf sha256, so only one way, we could over an alternative, or generate need seeds out of the choosen one.
-    - [ ] Wallet export Seed/hex/QR code
+    - [x] Wallet export seed phrase
+    - [ ] Wallet export seed hex
+    - [ ] Wallet export QR code
     - [x] Build script to generate executable for linux
-    - [ ] Build script to generate executable win32
-    - [ ] Build script to generate executable macOS(?)
+    - [-] ~~Build script to generate executable win32~~ Not supported because of pyzbar issues
+    - [ ] Build script to generate executable macOS(?) (Will not be much better, ass soon you don't operate in there walled gardern)
 
 
 2. Monero Signer working with companion Application (25 days from now)
     - [ ] Monero signer companion Application finished
     - [ ] All missing Monero signer functionality
-    - [ ] PortableMoneroQR stable
+    - [ ] ~~PortableMoneroQR stable~~
     - [ ] UR's implemented
 
 
@@ -91,7 +93,7 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
     - [ ] Documentation final version
     - [ ] Final cleanup Monero Signer
     - [ ] Final cleanup companion Application
-    - [ ] Final cleanup PortableMoneroQR
+    - [ ] ~~Final cleanup PortableMoneroQR~~
 
 
 4. Monero-GUI integration (60 days from now from, until PR)
@@ -116,11 +118,9 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
  |   |   | |              |                   |              /- 2024-07-24 Milestone 4
  |   |   | |              |                   |              |
 (S)==|===|(1)============(2)=================(3)============(4)=====>
-           A
-           |
-           \------ Today: 2024-06-04
-
-Hurry: Still three open tasks to finish the first Milestone on the last day.
+             A
+             |
+             \------ Today: 2024-06-06
 ```
 ---------------
 

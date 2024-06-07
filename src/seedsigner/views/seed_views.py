@@ -139,13 +139,6 @@ class SeedMnemonicEntryView(View):  # TODO: check the reasoning behind and if it
         if ret == RET_CODE__BACK_BUTTON:
             if self.cur_word_index > 0:
                 return Destination(BackStackView)
-                # return Destination(  # TODO: heritage from seedsigner, remove before 2024-06-10
-                #     SeedMnemonicEntryView,
-                #     view_args={
-                #         "cur_word_index": self.cur_word_index - 1,
-                #         "is_calc_final_word": self.is_calc_final_word
-                #     }
-                # )
             else:
                 self.controller.storage.discard_pending_mnemonic()
                 return Destination(MainMenuView)
@@ -217,6 +210,7 @@ class SeedFinalizeView(View):
         super().__init__()
         self.seed = self.controller.storage.get_pending_seed()
         self.fingerprint = self.seed.get_fingerprint(network=self.settings.get_value(SettingsConstants.SETTING__NETWORK))
+        self.polyseed = isinstance(self.seed, PolyseedSeed)
 
 
     def run(self):
@@ -226,11 +220,12 @@ class SeedFinalizeView(View):
 
         button_data.append(FINALIZE)
 
-        if self.settings.get_value(SettingsConstants.SETTING__MONERO_SEED_PASSPHRASE) != SettingsConstants.OPTION__DISABLED:  # TODO: 2024-06-04, handle polyseed seeds correct and check extra for that settings...
+        if (not self.polyseed and self.settings.get_value(SettingsConstants.SETTING__MONERO_SEED_PASSPHRASE) == SettingsConstants.OPTION__ENABLED) or (self.polyseed and self.settings.get_value(SettingsConstants.SETTING__POLYSEED_PASSPHRASE) == SettingsConstants.OPTION__ENABLED):
             button_data.append(PASSPHRASE)
 
         selected_menu_num = seed_screens.SeedFinalizeScreen(
             fingerprint=self.fingerprint,
+            polyseed=self.polyseed,
             button_data=button_data,
         ).display()
 
@@ -242,7 +237,6 @@ class SeedFinalizeView(View):
             return Destination(SeedAddPassphraseView)
 
 
-
 class SeedAddPassphraseView(View):
     def __init__(self):
         super().__init__()
@@ -250,7 +244,7 @@ class SeedAddPassphraseView(View):
 
 
     def run(self):
-        ret = seed_screens.SeedAddPassphraseScreen(passphrase=self.seed.passphrase).display()
+        ret = seed_screens.SeedAddPassphraseScreen(passphrase=self.seed.passphrase_str).display()
 
         if ret == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
@@ -279,7 +273,7 @@ class SeedReviewPassphraseView(View):
         network = self.settings.get_value(SettingsConstants.SETTING__NETWORK)
         passphrase = self.seed.passphrase
         fingerprint_with = self.seed.get_fingerprint(network=network)
-        self.seed.set_passphrase("")
+        self.seed.set_passphrase(None)
         fingerprint_without = self.seed.get_fingerprint(network=network)
         self.seed.set_passphrase(passphrase)
         
@@ -289,6 +283,7 @@ class SeedReviewPassphraseView(View):
             fingerprint_without=fingerprint_without,
             fingerprint_with=fingerprint_with,
             passphrase=self.seed.passphrase,
+            polyseed=isinstance(self.seed, PolyseedSeed),
             button_data=button_data,
             show_back_button=False,
         ).display()
@@ -394,6 +389,7 @@ class SeedOptionsView(View):  # TODO: expire 2024-06-10, here should be probably
         selected_menu_num = seed_screens.SeedOptionsScreen(
             button_data=button_data,
             fingerprint=self.seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK)),
+            polyseed=isinstance(self.seed, PolyseedSeed),
             has_passphrase=self.seed.passphrase is not None
         ).display()
 

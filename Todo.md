@@ -13,17 +13,17 @@
 ## Seeds
 ### Seed
 - [x] Remove Export Xpub (BTC only)
-- [ ] Export monero seed
-- [ ] Export Polyseed (if Polyseed wallet)
-- [ ] Convert Polyseed to monero 25 words seed (future)
-- [ ] Convert 14 words feather wallet seeds to monero 25 words seed (future)
+- [x] Export monero seed
+- [x] Export Polyseed (if Polyseed wallet)
+- [.] Convert Polyseed to monero 25 words seed (future)
+- [.] Convert 14 words feather wallet seeds to monero 25 words seed (future)
 - [ ] Export QR
 - [ ] Export View Key
 #### Load seed
 - [ ] Scan seed QR
 - [ ] Enter 13 word monero seed
 - [ ] Enter 25 word monero seed
-- [ ] Enter 14 words feather wallet seed (think should be supported in future)
+- [?] Enter 14 words feather wallet seed (think should be supported in future)
 - [ ] Enter Polyseed
 ## Tools
 - [x] New camera seed
@@ -32,15 +32,16 @@
 - [x] New dice monero seed
 - [x] Restrict new dice monero seeds to 25 words, 13 words only possible if activated low security in settings
 - [x] New dice Polyseed
-- [ ] Calc 25 word monero seed, should show a warning
-- [ ] Calc 25 word monero seed, 13 words only possible if activated low security in settings
+- [x] Pick own words monero seed only with activated low security in settings
+- [x] Calc 25 word monero seed, should show a warning
+- [x] Calc 25 word monero seed, 13 words only possible if activated low security in settings
 ## Setting
 - [ ] Coordinator Software, should not be necessary because of only one way: UR, so remove Coordinator code
 - [x] Denomination Display
 ### Advanced
 - [x] Network Monero: Change Regtest to stagenet
 - [-] Monero seed passphrase, __not viable at the moment, excluded from the CCS, to be done with calm (#rabbit-hole)__
-- [ ] Polyseed passphrase
+- [x] Polyseed passphrase
 - [ ] Compact Seed QR (check)
 - [x] Partner logos: 'Monero CCS' for now
 - [ ] Handle donation screen
@@ -58,6 +59,6 @@
 - [ ] Modify [Monero GUI](https://github.com/DiosDelRayo/monero-gui)
 ---
 ## Considerations:
-- [ ] Shoud feather wallet 14 words seed be offered to be imported?
+- [?] Shoud feather wallet 14 words seed be offered to be imported?
 ---
 see also: [Inline Todo](INLINE_TODO.md)
