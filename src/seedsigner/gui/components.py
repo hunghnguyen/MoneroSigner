@@ -20,7 +20,8 @@ PILLOW_VERSION = pil_version.split('.')
 def get_font_size(font: ImageFont, text: str) -> Tuple[int, int]:  # width, height
     if int(PILLOW_VERSION[0]) < 10:
         return font.getsize(text)
-    return (font.getlength(text), font.height)
+    box = font.getbbox(text)
+    return (font.getlength(text), box[3] - box[1])
 
 
 # TODO:SEEDSIGNER: Remove all pixel hard coding
