@@ -5,7 +5,7 @@ import pathlib
 from dataclasses import dataclass
 from decimal import Decimal
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
-from PIL import __version__ as pil_version
+from seedsigner.helpers.pillow import get_font_size
 from typing import List, Tuple
 
 from seedsigner.models import Singleton
@@ -13,15 +13,6 @@ from seedsigner.models.settings import Settings
 from seedsigner.models.settings_definition import SettingsConstants
 from seedsigner.resources import get as res
 from io import BytesIO
-
-PILLOW_VERSION = pil_version.split('.')
-
-
-def get_font_size(font: ImageFont, text: str) -> Tuple[int, int]:  # width, height
-    if int(PILLOW_VERSION[0]) < 10:
-        return font.getsize(text)
-    box = font.getbbox(text)
-    return (font.getlength(text), box[3] - box[1])
 
 
 # TODO:SEEDSIGNER: Remove all pixel hard coding
