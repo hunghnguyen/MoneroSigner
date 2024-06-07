@@ -18,7 +18,7 @@ PILLOW_VERSION = pil_version.split('.')
 
 
 def get_font_size(font: ImageFont, text: str) -> Tuple[int, int]:  # width, height
-    if PILLOW_VERSION[0] < 10:
+    if int(PILLOW_VERSION[0]) < 10:
         return font.getsize(text)
     return (font.getlength(text), font.height)
 
