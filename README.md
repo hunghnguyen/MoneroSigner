@@ -73,7 +73,7 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
     - [x] Polyseed generation on dice rolls
     - [ ] ~~Polyseed generation by picking words~~ can't be done, because you can't choose words, because seeds are generate with pbkdf sha256, so only one way, we could over an alternative, or generate need seeds out of the choosen one.
     - [x] Wallet export seed phrase
-    - [ ] Wallet export seed hex
+    - [-] ~~Wallet export seed hex~~ not to be implemented, bad decision
     - [x] Wallet export QR code
     - [x] Build script to generate executable for linux
     - [x] Build script to generate executable win32
