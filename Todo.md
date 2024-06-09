@@ -62,3 +62,8 @@
 - [?] Shoud feather wallet 14 words seed be offered to be imported?
 ---
 see also: [Inline Todo](INLINE_TODO.md)
+
+## SECURITY RELATED!
+- [ ] study: [monero burning bug](https://www.getmonero.org/2018/09/25/a-post-mortum-of-the-burning-bug.html)
+- [ ] study: [public key be used for more-than one payment](https://monero.stackexchange.com/questions/4163/can-a-one-time-public-key-be-used-for-more-than-one-payment)
+- [ ] consult `jeffro256` about security issues on MoneroSigner in-/outside (Monero-GUI modification, monero-python, Companion Application), `rucknium` referd me to him.
