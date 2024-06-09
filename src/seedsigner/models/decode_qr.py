@@ -4,6 +4,7 @@ import logging
 import re
 
 from binascii import a2b_base64, b2a_base64
+from monero.address import address as monero_address
 from enum import IntEnum
 from embit import psbt, bip39
 from pyzbar import pyzbar
@@ -66,9 +67,6 @@ class DecodeQR:
             if self.qr_type in [QRType.PSBT__UR2, QRType.OUTPUT__UR, QRType.ACCOUNT__UR, QRType.BYTES__UR]:
                 self.decoder = URDecoder() # BCUR Decoder
 
-            elif self.qr_type == QRType.PSBT__SPECTER:
-                self.decoder = SpecterPsbtQrDecoder() # Specter Desktop PSBT QR base64 decoder
-
             elif self.qr_type == QRType.PSBT__BASE64:
                 self.decoder = Base64PsbtQrDecoder() # Single Segments Base64
 
@@ -82,10 +80,7 @@ class DecodeQR:
                 self.decoder = SettingsQrDecoder()  # Settings config
 
             elif self.qr_type == QRType.MONERO_ADDRESS:
-                self.decoder = BitcoinAddressQrDecoder() # Single Segment bitcoin address
-
-            elif self.qr_type == QRType.WALLET__SPECTER:
-                self.decoder = SpecterWalletQrDecoder() # Specter Desktop Wallet Export decoder
+                self.decoder = MoneroAddressQrDecoder() # Single Segment monero address
 
             elif self.qr_type == QRType.WALLET__GENERIC:
                 self.decoder = GenericWalletQrDecoder()
@@ -111,7 +106,7 @@ class DecodeQR:
         if type(data) == bytes:
             # Should always be bytes, but the test suite has some manual datasets that
             # are strings.
-            # TODO: Convert the test suite rather than handle here?
+            # TODO:SEEDSIGNER: Convert the test suite rather than handle here?
             qr_str = data.decode('utf-8')
         else:
             # it's already str data
@@ -217,11 +212,6 @@ class DecodeQR:
         if self.qr_type in [QRType.PSBT__UR2, QRType.OUTPUT__UR, QRType.ACCOUNT__UR, QRType.BYTES__UR]:
             return int(self.decoder.estimated_percent_complete() * 100)
 
-        elif self.qr_type in [QRType.PSBT__SPECTER]:
-            if self.decoder.total_segments == None:
-                return 0
-            return int((self.decoder.collected_segments / self.decoder.total_segments) * 100)
-
         elif self.decoder.total_segments == 1:
             # The single frame QR formats are all or nothing
             if self.decoder.complete:
@@ -247,7 +237,6 @@ class DecodeQR:
     def is_psbt(self) -> bool:
         return self.qr_type in [
             QRType.PSBT__UR2,
-            QRType.PSBT__SPECTER,
             QRType.PSBT__BASE64,
             QRType.PSBT__BASE43,
         ]
@@ -275,7 +264,7 @@ class DecodeQR:
 
     @property
     def is_wallet_descriptor(self):
-        check = self.qr_type in [QRType.WALLET__SPECTER, QRType.WALLET__UR, QRType.WALLET__CONFIGFILE, QRType.WALLET__GENERIC, QRType.OUTPUT__UR]
+        check = self.qr_type in [QRType.WALLET__UR, QRType.WALLET__CONFIGFILE, QRType.WALLET__GENERIC, QRType.OUTPUT__UR]
         
         if self.qr_type in [QRType.BYTES__UR]:
             cbor = self.decoder.result_message().cbor
@@ -317,7 +306,7 @@ class DecodeQR:
             if type(s) == bytes:
                 # Should always be bytes, but the test suite has some manual datasets that
                 # are strings.
-                # TODO: Convert the test suite rather than handle here?
+                # TODO:SEEDSIGNER: Convert the test suite rather than handle here?
                 s = s.decode('utf-8')
 
             # PSBT
@@ -330,9 +319,6 @@ class DecodeQR:
             elif re.search("^UR:CRYPTO-ACCOUNT/", s, re.IGNORECASE):
                 return QRType.ACCOUNT__UR
 
-            elif re.search(r'^p(\d+)of(\d+) ([A-Za-z0-9+\/=]+$)', s, re.IGNORECASE): #must be base64 characters only in segment
-                return QRType.PSBT__SPECTER
-
             elif re.search("^UR:BYTES/", s, re.IGNORECASE):
                 return QRType.BYTES__UR
 
@@ -340,27 +326,18 @@ class DecodeQR:
                 return QRType.PSBT__BASE64
 
             # Wallet Descriptor
-            desc_str = s.replace("\n","").replace(" ","")
-            if re.search(r'^p(\d+)of(\d+) ', s, re.IGNORECASE):
-                # when not a SPECTER Base64 PSBT from above, assume it's json
-                return QRType.WALLET__SPECTER
-
-            elif re.search(r'^\{\"label\".*\"descriptor\"\:.*', desc_str, re.IGNORECASE):
-                # if json starting with label and contains descriptor, assume specter wallet json
-                return QRType.WALLET__SPECTER
-            
-            elif "multisig setup file" in s.lower():
+            if "multisig setup file" in s.lower():
                 return QRType.WALLET__CONFIGFILE
             
             elif "sortedmulti" in s:
                 return QRType.WALLET__GENERIC
 
             # Seed
-            if re.search(r'\d{48,96}', s):
+            if re.search(r'\d{52,100}', s):  # TODO: 2024-06-15, handle Polyseed different from here? 52 decimals (13 words, 100 decimals (25 words), 16 polyseed words would be 64 decimals
                 return QRType.SEED__SEEDQR
 
-            # Bitcoin Address
-            elif DecodeQR.is_bitcoin_address(s):
+            # Monero Address
+            elif DecodeQR.is_monero_address(s):
                 return QRType.MONERO_ADDRESS
 
             # config data
@@ -472,15 +449,14 @@ class DecodeQR:
         result.reverse()
         return bytes(result)
 
-
     @staticmethod
-    def is_bitcoin_address(s):
-        if re.search(r'^bitcoin\:.*', s, re.IGNORECASE):
+    def is_monero_address(s: str) -> bool:
+        if s.startswith('monero:'):
+            s = s[7:]
+        try:
+            monero_address(s)
             return True
-        elif re.search(r'^((bc1|tb1|bcr|[123]|[mn])[a-zA-HJ-NP-Z0-9]{25,62})$', s):
-            # TODO: Handle regtest bcrt?
-            return True
-        else:
+        except:
             return False
     
     @staticmethod
@@ -639,40 +615,6 @@ class BaseAnimatedQrDecoder(BaseQrDecoder):
         return DecodeQRStatus.PART_EXISTING # segment not added because it's already been added
 
 
-
-class SpecterPsbtQrDecoder(BaseAnimatedQrDecoder):
-    """
-        Used to decode Specter Desktop Animated QR PSBT encoding.
-    """
-    def get_base64_data(self) -> str:
-        base64 = "".join(self.segments)
-        if self.complete and DecodeQR.is_base64(base64):
-            return base64
-
-        return None
-
-
-    def get_data(self):
-        base64 = self.get_base64_data()
-        if base64 != None:
-            return a2b_base64(base64)
-
-        return None
-
-
-    def current_segment_num(self, segment) -> int:
-        if re.search(r'^p(\d+)of(\d+) ', segment, re.IGNORECASE) != None:
-            return int(re.search(r'^p(\d+)of(\d+) ', segment, re.IGNORECASE).group(1))
-
-
-    def total_segment_nums(self, segment) -> int:
-        if re.search(r'^p(\d+)of(\d+) ', segment, re.IGNORECASE) != None:
-            return int(re.search(r'^p(\d+)of(\d+) ', segment, re.IGNORECASE).group(2))
-
-
-    def parse_segment(self, segment) -> str:
-        return segment.split(" ")[-1].strip()
-
 class Base64PsbtQrDecoder(BaseSingleFrameQrDecoder):
     """
         Decodes single frame base64 encoded qr image.
@@ -700,7 +642,6 @@ class Base64PsbtQrDecoder(BaseSingleFrameQrDecoder):
         return None
 
 
-
 class Base43PsbtQrDecoder(BaseSingleFrameQrDecoder):
     """
         Decodes single frame base43 encoded qr image.
@@ -720,7 +661,6 @@ class Base43PsbtQrDecoder(BaseSingleFrameQrDecoder):
         return self.data
 
 
-
 class SeedQrDecoder(BaseSingleFrameQrDecoder):
     """
         Decodes single frame representing a seed.
@@ -733,7 +673,6 @@ class SeedQrDecoder(BaseSingleFrameQrDecoder):
         self.seed_phrase = []
         self.wordlist_language_code = wordlist_language_code
         self.wordlist = Seed.get_wordlist(wordlist_language_code)
-
 
     def add(self, segment, qr_type=QRType.SEED__SEEDQR):
         # `segment` data will either be bytes or str, depending on the qr_type
@@ -760,7 +699,7 @@ class SeedQrDecoder(BaseSingleFrameQrDecoder):
 
         if qr_type == QRType.SEED__COMPACTSEEDQR:
             try:
-                self.seed_phrase = bip39.mnemonic_from_bytes(segment).split()
+                self.seed_phrase = bip39.mnemonic_from_bytes(segment).split()  # TODO: 2024-06-10, fix to monero (and polyseed?)
                 self.complete = True
                 self.collected_segments = 1
                 return DecodeQRStatus.COMPLETE
@@ -791,7 +730,7 @@ class SeedQrDecoder(BaseSingleFrameQrDecoder):
                 seed_phrase_list = segment.strip().split(" ")
                 words = []
                 for s in seed_phrase_list:
-                    # TODO: Pre-calculate this once on startup
+                    # TODO:SEEDSIGNER: Pre-calculate this once on startup
                     _4LETTER_WORDLIST = [word[:4].strip() for word in self.wordlist]
                     words.append(self.wordlist[_4LETTER_WORDLIST.index(s)])
 
@@ -826,7 +765,7 @@ class SeedQrDecoder(BaseSingleFrameQrDecoder):
 
 
 
-# TODO: Refactor this to work with the new SettingsDefinition
+# TODO:SEEDSIGNER: Refactor this to work with the new SettingsDefinition
 class SettingsQrDecoder(BaseSingleFrameQrDecoder):
     def __init__(self):
         super().__init__()
@@ -867,17 +806,6 @@ class SettingsQrDecoder(BaseSingleFrameQrDecoder):
                 "s": SettingsConstants.SINGLE_SIG,
                 "m": SettingsConstants.MULTISIG,
             }
-            map_abbreviated_scripts = {
-                "na": SettingsConstants.NATIVE_SEGWIT,
-                "ne": SettingsConstants.NESTED_SEGWIT,
-                "tr": SettingsConstants.TAPROOT,
-                "cu": SettingsConstants.CUSTOM_DERIVATION,
-            }
-            map_abbreviated_coordinators = {
-                "bw": SettingsConstants.COORDINATOR__BLUE_WALLET,
-                "sw": SettingsConstants.COORDINATOR__SPARROW,
-                "sd": SettingsConstants.COORDINATOR__SPECTER_DESKTOP,
-            }
 
             def convert_abbreviated_value(category, key, abbreviation_map, is_list=False, new_key_name=None):
                 try:
@@ -911,11 +839,7 @@ class SettingsQrDecoder(BaseSingleFrameQrDecoder):
                     logger.exception(e)
                     return
 
-            convert_abbreviated_value("wallet", "coord", map_abbreviated_coordinators, is_list=True, new_key_name="coordinators")
-            convert_abbreviated_value("features", "xpub", map_abbreviated_enable, new_key_name="xpub_export")
             convert_abbreviated_value("features", "sigs", map_abbreviated_sig_types, is_list=True, new_key_name="sig_types")
-            convert_abbreviated_value("features", "scripts", map_abbreviated_scripts, is_list=True, new_key_name="script_types")
-            convert_abbreviated_value("features", "xp_det", map_abbreviated_enable, new_key_name="show_xpub_details")
             convert_abbreviated_value("features", "passphrase", map_abbreviated_enable)
             convert_abbreviated_value("features", "priv_warn", map_abbreviated_enable, new_key_name="show_privacy_warnings")
             convert_abbreviated_value("features", "dire_warn", map_abbreviated_enable, new_key_name="show_dire_warnings")
@@ -929,9 +853,9 @@ class SettingsQrDecoder(BaseSingleFrameQrDecoder):
 
 
 
-class BitcoinAddressQrDecoder(BaseSingleFrameQrDecoder):
+class MoneroAddressQrDecoder(BaseSingleFrameQrDecoder):
     """
-        Decodes single frame representing a bitcoin address
+        Decodes single frame representing a monero address
     """
     def __init__(self):
         super().__init__()
@@ -940,60 +864,17 @@ class BitcoinAddressQrDecoder(BaseSingleFrameQrDecoder):
 
 
     def add(self, segment, qr_type=QRType.MONERO_ADDRESS):
-        r = re.search(r'((bc1q|tb1q|bcrt1q|bc1p|tb1p|bcrt1p|[123]|[mn])[a-zA-HJ-NP-Z0-9]{25,64})', segment)
+        r = re.search(r'\b[1-9A-HJ-NP-Za-km-z]{95}\b|[1-9A-HJ-NP-Za-km-z]{106}', segment)
         if r != None:
-            self.address = r.group(1)
-        
-            if re.search(r'^((bc1q|tb1q|bcrt1q|bc1p|tb1p|bcrt1p|[123]|[mn])[a-zA-HJ-NP-Z0-9]{25,64})$', self.address) != None:
+            try:
+                a = monero_address(r.group(1))
+                self.address_type = a.net
+                self.address = str(a)
                 self.complete = True
                 self.collected_segments = 1
-                
-                # get address type
-                r = re.search(r'^((bc1q|tb1q|bcrt1q|bc1p|tb1p|bcrt1p|[123]|[mn])[a-zA-HJ-NP-Z0-9]{25,64})$', self.address)
-                if r != None:
-                    r = r.group(2)
-                
-                if r == "1":
-                    # Legacy P2PKH. mainnet
-                    self.address_type = (SettingsConstants.LEGACY_P2PKH, SettingsConstants.MAINNET)
-
-                elif r == "m" or r == "n":
-                    self.address_type = (SettingsConstants.LEGACY_P2PKH, SettingsConstants.TESTNET)
-
-                elif r == "3":
-                    # Nested Segwit Single Sig (P2WPKH in P2SH) or Multisig (P2WSH in P2SH); mainnet
-                    self.address_type = (SettingsConstants.NESTED_SEGWIT, SettingsConstants.MAINNET)
-
-                elif r == "2":
-                    # Nested Segwit Single Sig (P2WPKH in P2SH) or Multisig (P2WSH in P2SH); testnet
-                    self.address_type = (SettingsConstants.NESTED_SEGWIT, SettingsConstants.TESTNET)
-
-                elif r == "bc1q":
-                    # Native Segwit (single sig or multisig), mainnet 
-                    self.address_type = (SettingsConstants.NATIVE_SEGWIT, SettingsConstants.MAINNET)
-
-                elif r == "tb1q":
-                    # Native Segwit (single sig or multisig), testnet
-                    self.address_type = (SettingsConstants.NATIVE_SEGWIT, SettingsConstants.TESTNET)
-
-                elif r == "bcrt1q":
-                    # Native Segwit (single sig or multisig), regtest
-                    self.address_type = (SettingsConstants.NATIVE_SEGWIT, SettingsConstants.STAGENET)
-
-                elif r == "bc1p":
-                    # Native Segwit (single sig or multisig), mainnet 
-                    self.address_type = (SettingsConstants.TAPROOT, SettingsConstants.MAINNET)
-
-                elif r == "tb1p":
-                    # Native Segwit (single sig or multisig), testnet
-                    self.address_type = (SettingsConstants.TAPROOT, SettingsConstants.TESTNET)
-
-                elif r == "bcrt1p":
-                    # Native Segwit (single sig or multisig), regtest
-                    self.address_type = (SettingsConstants.TAPROOT, SettingsConstants.STAGENET)
-                
                 return DecodeQRStatus.COMPLETE
-
+            except:
+                pass
         return DecodeQRStatus.INVALID
 
 

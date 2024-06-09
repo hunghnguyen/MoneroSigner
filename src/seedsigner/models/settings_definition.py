@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Any, List
+from monero.const import NET_MAIN, NET_TEST, NET_STAGE, NETS
 
 
 
@@ -26,18 +27,6 @@ class SettingsConstants:
     ]
     ALL_OPTIONS = OPTIONS__ENABLED_DISABLED_PROMPT + [
         (OPTION__REQUIRED, "Required"),
-    ]
-
-    # User-facing selection options
-    COORDINATOR__BLUE_WALLET = "bw"
-    COORDINATOR__NUNCHUK = "nun"
-    COORDINATOR__SPARROW = "spa"
-    COORDINATOR__SPECTER_DESKTOP = "spd"
-    ALL_COORDINATORS = [
-        (COORDINATOR__BLUE_WALLET, "BlueWallet"),
-        (COORDINATOR__NUNCHUK, "Nunchuk"),
-        (COORDINATOR__SPARROW, "Sparrow"),
-        (COORDINATOR__SPECTER_DESKTOP, "Specter Desktop"),
     ]
 
     LANGUAGE__ENGLISH = "en"
@@ -78,23 +67,23 @@ class SettingsConstants:
     ]
 
     # Seed-related constants
-    MAINNET = "M"
-    TESTNET = "T"
-    STAGENET = "S"
+    MAINNET = NET_MAIN[0].upper()  # M
+    TESTNET = NET_TEST[0].upper()  # T
+    STAGENET = NET_STAGE[0].upper()  # S
     ALL_NETWORKS = [
-        (MAINNET, "Mainnet"),
-        (TESTNET, "Testnet"),
-        (STAGENET, "Stagenet")
+        (MAINNET, NET_MAIN.capitalize()),
+        (TESTNET, NET_TEST.capitalize()),
+        (STAGENET, NET_STAGE.capitalize())
     ]
 
     @classmethod
-    def map_network_to_embit(cls, network) -> str: # TODO: remove comment after 2024-06-10, do we need that for monero, what relays on it?
+    def network_name(cls, network_constant: str) -> str:
         if network == SettingsConstants.MAINNET:
-            return "main"
+            return NET_MAIN
         elif network == SettingsConstants.TESTNET:
-            return "test"
+            return NET_TEST
         if network == SettingsConstants.STAGENET:
-            return "regtest"
+            return NET_STAGE
     
 
     SINGLE_SIG = "ss"
@@ -102,18 +91,6 @@ class SettingsConstants:
     ALL_SIG_TYPES = [
         (SINGLE_SIG, "Single Sig"),
         (MULTISIG, "Multisig"),
-    ]
-
-    LEGACY_P2PKH = "leg"  # Intentionally excluded from ALL_SCRIPT_TYPES  # TODO: remove
-    NATIVE_SEGWIT = "nat"  # TODO: remove
-    NESTED_SEGWIT = "nes"  # TODO: remove
-    TAPROOT = "tr"  # TODO: remove
-    CUSTOM_DERIVATION = "cus"  # TODO: remove
-    ALL_SCRIPT_TYPES = [  # TODO: check before 2024-06-04 as far I am aware there is only one valid way in Monero, check and remove if I'm right
-        (NATIVE_SEGWIT, "Native Segwit"),
-        (NESTED_SEGWIT, "Nested Segwit (legacy)"),
-        (TAPROOT, "Taproot"),
-        (CUSTOM_DERIVATION, "Custom Derivation"),
     ]
 
     WORDLIST_LANGUAGE__ENGLISH = "en"  # TODO: remove comment before 2024-06-10 handle differences in wordlist languages in monero seed and polyseed, think should be handled in the wordlist implementations instead
@@ -160,14 +137,12 @@ class SettingsConstants:
     SETTING__LANGUAGE = "language"
     SETTING__WORDLIST_LANGUAGE = "wordlist_language"  # TODO: remove after 2024-06-10, maybe there should be SETTING__WORDLIST_LANGUAGE_MONERO and SETTING__WORDLIST_LANGUAGE_POLYSEED? Makes this even sense, should it not be more dynamic letting the responsibility to the monero, polyseed implementation to have it more future proof?
     SETTING__PERSISTENT_SETTINGS = "persistent_settings"
-    SETTING__COORDINATORS = "coordinators"  # TODO: remove before 2024-06-04, WTF are coordinators, does that make any sense for monero? Check, educate yourself and remove if not needed. As far I come there it seems like every walltet in Bitcoin ecosystem has it's own way to communicate, we should use always with UR the same way!
     SETTING__XMR_DENOMINATION = "denomination"
 
     SEETING__LOW_SECURITY = 'low_security'
     SETTING__NETWORK = "network"
     SETTING__QR_DENSITY = "qr_density"
     SETTING__SIG_TYPES = "sig_types"
-    SETTING__SCRIPT_TYPES = "script_types"
     SETTING__MONERO_SEED_PASSPHRASE = "monero_seed_passphrase"
     SETTING__POLYSEED_PASSPHRASE = "polyseed_passphrase"
     SETTING__CAMERA_ROTATION = "camera_rotation"
@@ -374,13 +349,6 @@ class SettingsDefinition:
                       help_text="Store Settings on SD card.",
                       default_value=SettingsConstants.OPTION__DISABLED),
 
-        # SettingsEntry(category=SettingsConstants.CATEGORY__WALLET,  TODO: remove before 2024-06-10 Coordinators needed for out purpose?
-        #              attr_name=SettingsConstants.SETTING__COORDINATORS,
-        #              display_name="Coordinator software",
-        #              type=SettingsConstants.TYPE__MULTISELECT,
-        #              selection_options=SettingsConstants.ALL_COORDINATORS,
-        #              default_value=SettingsConstants.ALL_COORDINATORS),
-
         SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
                       attr_name=SettingsConstants.SETTING__XMR_DENOMINATION,
                       display_name="Denomination display",
@@ -413,14 +381,6 @@ class SettingsDefinition:
                       visibility=SettingsConstants.VISIBILITY__ADVANCED,
                       selection_options=SettingsConstants.ALL_SIG_TYPES,
                       default_value=SettingsConstants.ALL_SIG_TYPES),
-
-        SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,  # TODO: expire 2024-06-10, seems not relevant to Monero, double check before removing
-                      attr_name=SettingsConstants.SETTING__SCRIPT_TYPES,
-                      display_name="Script types",
-                      type=SettingsConstants.TYPE__MULTISELECT,
-                      visibility=SettingsConstants.VISIBILITY__ADVANCED,
-                      selection_options=SettingsConstants.ALL_SCRIPT_TYPES,
-                      default_value=[SettingsConstants.NATIVE_SEGWIT, SettingsConstants.NESTED_SEGWIT]),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
                       attr_name=SettingsConstants.SETTING__MONERO_SEED_PASSPHRASE,

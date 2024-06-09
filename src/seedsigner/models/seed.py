@@ -2,6 +2,8 @@ import unicodedata
 
 from monero.seed import Seed as MoneroSeed
 from monero.seed import wordlists as MoneroWordlists
+from monero.wallet import Wallet
+from monero.backends.offline import OfflineWallet
 from typing import List, Optional, Union
 from hashlib import sha256
 from binascii import unhexlify
@@ -11,6 +13,10 @@ from seedsigner.models.settings import SettingsConstants
 
 
 class InvalidSeedException(Exception):
+    pass
+
+
+class NoSeedBytesException(Exception):
     pass
 
 class Seed:
@@ -106,6 +112,12 @@ class Seed:
 
     def get_fingerprint(self, network: str = SettingsConstants.MAINNET) -> str:
         return sha256(network.encode() + self.seed_bytes).hexdigest()[-6:].upper()
+
+    def get_wallet(self) -> Wallet:
+        if self.seed_bytes is None:
+            raise NoSeedBytesException()
+        monero_seed = MoneroSeed(hexlify(self.seed_bytes))
+        return Wallet(OfflineWallet(monero_seed.public_address(), monero_seed.secret_view_key(), monero_seed.secret_spend_key()))
     
     @staticmethod
     def from_key(key: Union[str, bytes], password: Union[str, bytes, None] = None, language_code: str = SettingsConstants.WORDLIST_LANGUAGE__ENGLISH) -> 'Seed':

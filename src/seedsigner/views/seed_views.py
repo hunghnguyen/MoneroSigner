@@ -3,8 +3,7 @@ import random
 import time
 
 from binascii import hexlify
-from embit import bip39  # TODO: remove before 2024-06-04
-from embit.descriptor import Descriptor  # TODO: remove before 2024-06-04
+from embit.descriptor import Descriptor  # TODO: remove before 2024-06-10
 from embit.networks import NETWORKS  # TODO: remove before 2024-06-04
 from typing import List
 from math import ceil
@@ -354,6 +353,7 @@ class SeedOptionsView(View):  # TODO: expire 2024-06-10, here should be probably
         REVIEW_PSBT = "Review PSBT"
         VERIFY_ADDRESS = "Verify Addr"
         BACKUP = ("Backup Seed", None, None, None, SeedSignerCustomIconConstants.SMALL_CHEVRON_RIGHT)
+        CONVERT_POOLYSEED = ('Convert to Monero seed', None, None, 'blue')
         DISCARD = ("Discard Seed", None, None, "red")
 
         button_data = []
@@ -384,6 +384,10 @@ class SeedOptionsView(View):  # TODO: expire 2024-06-10, here should be probably
             button_data.append(SCAN_PSBT)
         
         button_data.append(BACKUP)
+
+        if isinstance(self.seed, PolyseedSeed):
+            button_data.append(CONVERT_POOLYSEED)
+
         button_data.append(DISCARD)
 
         selected_menu_num = seed_screens.SeedOptionsScreen(
@@ -415,8 +419,7 @@ class SeedOptionsView(View):  # TODO: expire 2024-06-10, here should be probably
             return Destination(SeedDiscardView, view_args={"seed_num": self.seed_num})
 
 
-
-class SeedBackupView(View):  # TODO: expire 2024-06-10, base for view key export
+class SeedBackupView(View):
     def __init__(self, seed_num):
         super().__init__()
         self.seed_num = seed_num
@@ -447,7 +450,7 @@ class SeedBackupView(View):  # TODO: expire 2024-06-10, base for view key export
 """****************************************************************************
     View Seed Words flow
 ****************************************************************************"""
-class SeedWordsWarningView(View):  # TODO: adapt for master keys and view keys only before 2024-06-10
+class SeedWordsWarningView(View):
     def __init__(self, seed_num: int):
         super().__init__()
         self.seed_num = seed_num
@@ -476,7 +479,7 @@ class SeedWordsWarningView(View):  # TODO: adapt for master keys and view keys o
 
 
 
-class SeedWordsView(View):  # TODO: expire 2024-06-10, handle differences between masters key and view keys
+class SeedWordsView(View):
     def __init__(self, seed_num: int, page_index: int = 0):
         super().__init__()
         self.seed_num = seed_num
@@ -674,7 +677,6 @@ class SeedTranscribeSeedQRFormatView(View): # TODO: expire 2024-06-04: adapt to 
         super().__init__()
         self.seed_num = seed_num
 
-
     def run(self):
         seed = self.controller.get_seed(self.seed_num)
         if len(seed.mnemonic_list) == 12:
@@ -727,7 +729,6 @@ class SeedTranscribeSeedQRFormatView(View): # TODO: expire 2024-06-04: adapt to 
             )
 
 
-
 class SeedTranscribeSeedQRWarningView(View):
     def __init__(self, seed_num: int, seedqr_format: str = QRType.SEED__SEEDQR, num_modules: int = 29):
         super().__init__()
@@ -762,7 +763,6 @@ class SeedTranscribeSeedQRWarningView(View):
         else:
             # User clicked "I Understand"
             return destination
-    
 
 
 class SeedTranscribeSeedQRWholeQRView(View):
@@ -798,7 +798,6 @@ class SeedTranscribeSeedQRWholeQRView(View):
                     "seedqr_format": self.seedqr_format
                 }
             )
-
 
 
 class SeedTranscribeSeedQRZoomedInView(View):
@@ -1075,7 +1074,7 @@ class SeedSingleSigAddressVerificationSelectSeedView(View):
 
 
 
-class SeedAddressVerificationView(View):  # TODO: expire 2024-06-10, what is that about??? Remove BTC stuff and make it for monero working. If not needed for monero, remove it
+class SeedAddressVerificationView(View):  # TODO: expire 2024-06-15, what is that about??? Remove BTC stuff and make it for monero working. If not needed for monero, remove it
     """
         Creates a worker thread to brute-force calculate addresses. Writes its
         iteration status to a shared `ThreadsafeCounter`.
@@ -1098,194 +1097,35 @@ class SeedAddressVerificationView(View):  # TODO: expire 2024-06-10, what is tha
         else:
             self.seed = None
         self.address = self.controller.unverified_address["address"]
-        self.derivation_path = self.controller.unverified_address["derivation_path"]
-        self.script_type = self.controller.unverified_address["script_type"]
+        self.derivation_path = self.controller.unverified_address["derivation_path"]  # account?
         self.sig_type = self.controller.unverified_address["sig_type"]
         self.network = self.controller.unverified_address["network"]
 
-        if self.script_type == SettingsConstants.TAPROOT:
-            # TODO:SEEDSIGNER: Taproot addr verification
-            return Destination(NotYetImplementedView)
-
-        # TODO:SEEDSIGNER: This should be in `Seed` or `PSBT` utility class
-        embit_network = NETWORKS[SettingsConstants.map_network_to_embit(self.network)]
-
-        # The ThreadsafeCounter will be shared by the brute-force thread to keep track of
-        # its current addr index number and the Screen to display its progress and
-        # respond to UI requests to jump the index ahead.
-        self.threadsafe_counter = ThreadsafeCounter()
-
-        # Shared coordination var so the display thread can detect success
-        self.verified_index = ThreadsafeCounter(initial_value=None)
-        self.verified_index_is_change = ThreadsafeCounter(initial_value=None)
-
         # Create the brute-force calculation thread that will run in the background
-        self.addr_verification_thread = self.BruteForceAddressVerificationThread(
-            address=self.address,
-            seed=self.seed,
-            descriptor=self.controller.multisig_wallet_descriptor,
-            script_type=self.script_type,
-            network=embit_network,
-            derivation_path=self.derivation_path,
-            threadsafe_counter=self.threadsafe_counter,
-            verified_index=self.verified_index,
-            verified_index_is_change=self.verified_index_is_change,
-        )
+        # self.addr_verification_thread = None  # TODO: 2024-06-15, nonsense for us
 
 
     def run(self):
-        # Start brute-force calculations from the zero-th index
-        self.addr_verification_thread.start()
+        # TODO: 2024-06-15, remove all the cluster fuck here, we can verify easy if a address belongs to a wallet in monero
+        # script_type_settings_entry = 'REMOVE ME'
+        # script_type_display = script_type_settings_entry.get_selection_option_display_name_by_value(self.script_type)
+        # sig_type_settings_entry = SettingsDefinition.get_settings_entry(SettingsConstants.SETTING__SIG_TYPES)
+        # sig_type_display = sig_type_settings_entry.get_selection_option_display_name_by_value(self.sig_type)
+        # network_settings_entry = SettingsDefinition.get_settings_entry(SettingsConstants.SETTING__NETWORK)
+        # network_display = network_settings_entry.get_selection_option_display_name_by_value(self.network)
+        # mainnet = network_settings_entry.get_selection_option_display_name_by_value(SettingsConstants.MAINNET)
+        # Here was before "Brute force address-wallet verification"
 
-        SKIP_10 = "Skip 10"
-        CANCEL = "Cancel"
-        button_data = [SKIP_10, CANCEL]
-
-        script_type_settings_entry = SettingsDefinition.get_settings_entry(SettingsConstants.SETTING__SCRIPT_TYPES)
-        script_type_display = script_type_settings_entry.get_selection_option_display_name_by_value(self.script_type)
-
-        sig_type_settings_entry = SettingsDefinition.get_settings_entry(SettingsConstants.SETTING__SIG_TYPES)
-        sig_type_display = sig_type_settings_entry.get_selection_option_display_name_by_value(self.sig_type)
-
-        network_settings_entry = SettingsDefinition.get_settings_entry(SettingsConstants.SETTING__NETWORK)
-        network_display = network_settings_entry.get_selection_option_display_name_by_value(self.network)
-        mainnet = network_settings_entry.get_selection_option_display_name_by_value(SettingsConstants.MAINNET)
-
-        # Display the Screen to show the brute-forcing progress.
-        # Using a loop here to handle the SKIP_10 button presses to increment the counter
-        # and resume displaying the screen. User won't even notice that the Screen is
-        # being re-constructed.
-        while True:
-            selected_menu_num = seed_screens.SeedAddressVerificationScreen(
-                address=self.address,
-                derivation_path=self.derivation_path,
-                script_type=script_type_display,
-                sig_type=sig_type_display,
-                network=network_display,
-                is_mainnet=network_display == mainnet,
-                threadsafe_counter=self.threadsafe_counter,
-                verified_index=self.verified_index,
-                button_data=button_data,
-            ).display()
-
-            if self.verified_index.cur_count is not None:
-                break
-
-            if selected_menu_num == RET_CODE__BACK_BUTTON:
-                break
-
-            if button_data[selected_menu_num] == SKIP_10:
-                self.threadsafe_counter.increment(10)
-
-            elif button_data[selected_menu_num] == CANCEL:
-                break
-
-        if self.verified_index.cur_count is not None:
-            # Successfully verified the addr; update the data
-            self.controller.unverified_address["verified_index"] = self.verified_index.cur_count
-            self.controller.unverified_address["verified_index_is_change"] = self.verified_index_is_change.cur_count == 1
+        if self.address_belongs_to_wallet:
+            # if self.verified_index.cur_count is not None:
+                # Successfully verified the addr; update the data
+                # self.controller.unverified_address["verified_index"] = self.verified_index.cur_count
+                # self.controller.unverified_address["verified_index_is_change"] = self.verified_index_is_change.cur_count == 1
             return Destination(AddressVerificationSuccessView, view_args=dict(seed_num=self.seed_num))
-
-        else:
-            # Halt the thread if the user gave up (will already be stopped if it verified the
-            # target addr).
-            self.addr_verification_thread.stop()
-
         return Destination(MainMenuView)
 
 
-
-    class BruteForceAddressVerificationThread(BaseThread): # TODO: expire 2024-06-10, guess not needed for monero, so remove if not needed
-        def __init__(self, address: str, seed: Seed, descriptor: Descriptor, script_type: str, network: str, derivation_path: str, threadsafe_counter: ThreadsafeCounter, verified_index: ThreadsafeCounter, verified_index_is_change: ThreadsafeCounter):
-            """
-                Either seed or descriptor will be None
-            """
-            super().__init__()
-            self.address = address
-            self.seed = seed
-            self.descriptor = descriptor
-            self.script_type = script_type
-            self.network = network
-            self.derivation_path = derivation_path
-            self.threadsafe_counter = threadsafe_counter
-            self.verified_index = verified_index
-            self.verified_index_is_change = verified_index_is_change
-
-            if self.seed:
-                root = embit.bip32.HDKey.from_seed(self.seed.seed_bytes, version=network["xprv"])
-                xprv = root.derive(self.derivation_path)
-                self.xpub = xprv.to_public()
-
-
-        def run(self):
-            while self.keep_running:
-                if self.threadsafe_counter.cur_count % 10 == 0:
-                    print(f"Incremented to {self.threadsafe_counter.cur_count}")
-                
-                i = self.threadsafe_counter.cur_count
-
-                if self.descriptor:
-                    (receive_address, change_address) = self.derive_multisig(i)
-                else:
-                    (receive_address, change_address) = self.derive_single_sig(i)
-                    
-                if self.address == receive_address:
-                    self.verified_index.set_value(i)
-                    self.verified_index_is_change.set_value(0)
-                    self.keep_running = False
-                    break
-
-                elif self.address == change_address:
-                    self.verified_index.set_value(i)
-                    self.verified_index_is_change.set_value(1)
-                    self.keep_running = False
-                    break
-
-                # Increment our index counter
-                self.threadsafe_counter.increment()
-
-
-        def derive_single_sig(self, index):
-            r_pubkey = self.xpub.derive([0,index]).key
-            c_pubkey = self.xpub.derive([1,index]).key
-            
-            receive_address = ""
-            change_address = ""
-            
-            if self.script_type == SettingsConstants.NATIVE_SEGWIT:
-                receive_address = embit.script.p2wpkh(r_pubkey).address(network=self.network)
-                change_address = embit.script.p2wpkh(c_pubkey).address(network=self.network)
-            elif self.script_type == SettingsConstants.NESTED_SEGWIT:
-                receive_address = embit.script.p2sh(embit.script.p2wpkh(r_pubkey)).address(network=self.network)
-                change_address = embit.script.p2sh(embit.script.p2wpkh(c_pubkey)).address(network=self.network)
-            elif self.script_type == SettingsConstants.LEGACY_P2PKH:
-                receive_address = embit.script.p2pkh(r_pubkey).address(network=self.network)
-                change_address = embit.script.p2pkh(c_pubkey).address(network=self.network)
-            elif self.script_type == SettingsConstants.TAPROOT:
-                # TODO:SEEDSIGNER: Not yet implemented!
-                raise Exception("Taproot verification not yet implemented!")
-            
-            return (receive_address, change_address)
-        
-
-        def derive_multisig(self, index):
-            if self.script_type in [SettingsConstants.NATIVE_SEGWIT, SettingsConstants.NESTED_SEGWIT]:
-                receive_address = self.descriptor.derive(index, branch_index=0).script_pubkey().address(network=self.network)
-                change_address = self.descriptor.derive(index, branch_index=1).script_pubkey().address(network=self.network)
-
-            elif self.script_type == SettingsConstants.LEGACY_P2PKH:
-                # TODO:SEEDSIGNER: Not yet implemented!
-                raise Exception("Taproot verification not yet implemented!")
-
-            elif self.script_type == SettingsConstants.TAPROOT:
-                # TODO:SEEDSIGNER: Not yet implemented!
-                raise Exception("Taproot verification not yet implemented!")
-            
-            return (receive_address, change_address)
-
-
-
-class AddressVerificationSuccessView(View):  # TODO: expire 2024-06-10, check if needed for monero, delete or modify
+class AddressVerificationSuccessView(View):  # TODO: expire 2024-06-12, check if needed for monero, delete or modify
     def __init__(self, seed_num: int):
         super().__init__()
         self.seed_num = seed_num

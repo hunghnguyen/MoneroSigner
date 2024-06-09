@@ -57,7 +57,7 @@ class PSBTParser():
 
 
     def _set_root(self):
-        self.root = bip32.HDKey.from_seed(self.seed.seed_bytes, version=NETWORKS[SettingsConstants.map_network_to_embit(self.network)]["xprv"])
+        self.root = bip32.HDKey.from_seed(self.seed.seed_bytes, version=NETWORKS[SettingsConstants.network_name(self.network)]["xprv"])
 
 
     def parse(self):
@@ -142,7 +142,7 @@ class PSBTParser():
                 if sc.data == self.psbt.tx.vout[i].script_pubkey.data:
                     is_change = True
             if is_change:
-                addr = self.psbt.tx.vout[i].script_pubkey.address(NETWORKS[SettingsConstants.map_network_to_embit(self.network)])
+                addr = self.psbt.tx.vout[i].script_pubkey.address(NETWORKS[SettingsConstants.network_name(self.network)])
                 fingerprints = None
                 derivation_paths = None
                 if len(self.psbt.outputs[i].bip32_derivations) > 0:
@@ -160,7 +160,7 @@ class PSBTParser():
                 })
                 self.change_amount += self.psbt.tx.vout[i].value
             else:
-                addr = self.psbt.tx.vout[i].script_pubkey.address(NETWORKS[SettingsConstants.map_network_to_embit(self.network)])
+                addr = self.psbt.tx.vout[i].script_pubkey.address(NETWORKS[SettingsConstants.network_name(self.network)])
                 self.destination_addresses.append(addr)
                 self.destination_amounts.append(self.psbt.tx.vout[i].value)
                 self.spend_amount += self.psbt.tx.vout[i].value

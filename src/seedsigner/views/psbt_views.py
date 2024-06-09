@@ -42,7 +42,7 @@ class PSBTSelectSeedView(View):
                 button_str += " (?)"
             
             if seed.passphrase is not None:
-                # TODO: Include lock icon on right side of button
+                # TODO:SEEDSIGNER: Include lock icon on right side of button
                 pass
             button_data.append((button_str, SeedSignerCustomIconConstants.FINGERPRINT, "blue"))
         button_data.append(SCAN_SEED)
@@ -313,7 +313,7 @@ class PSXMRhangeDetailsView(View):
         seed_fingerprint = self.controller.psbt_seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK))
 
         if seed_fingerprint not in change_data.get("fingerprint"):
-            # TODO: Something is wrong with this psbt(?). Reroute to warning?
+            # TODO:SEEDSIGNER: Something is wrong with this psbt(?). Reroute to warning?
             return Destination(NotYetImplementedView)
 
         i = change_data.get("fingerprint").index(seed_fingerprint)
@@ -375,12 +375,12 @@ class PSXMRhangeDetailsView(View):
                 if script_type == "p2sh":
                     # single sig only so p2sh is always p2sh-p2wpkh
                     calc_address = script.p2sh(script.p2wpkh(xpub_key)).address(
-                        network=NETWORKS[SettingsConstants.map_network_to_embit(network)]
+                        network=NETWORKS[SettingsConstants.network_name(network)]
                     )
                 else:
                     # single sig so this handles p2wpkh and p2wpkh (and p2tr in the future)
                     calc_address = scriptcall(xpub_key).address(
-                        network=NETWORKS[SettingsConstants.map_network_to_embit(network)]
+                        network=NETWORKS[SettingsConstants.network_name(network)]
                     )
 
                 if change_data["address"] == calc_address:
@@ -484,35 +484,17 @@ class PSBTFinalizeView(View):
 
             if sig_cnt == PSBTParser.sig_count(trimmed_psbt):
                 # Signing failed / didn't do anything
-                # TODO: Reserved for Nick. Are there different failure scenarios that we can detect?
+                # TODO:SEEDSIGNER: Reserved for Nick. Are there different failure scenarios that we can detect?
                 # Would be nice to alter the message on the next screen w/more detail.
                 return Destination(PSBTSigningErrorView)
             
             else:
                 self.controller.psbt = trimmed_psbt
 
-                if len(self.settings.get_value(SettingsConstants.SETTING__COORDINATORS)) == 1:
-                    return Destination(PSBTSignedQRDisplayView, view_args={"coordinator": self.settings.get_value(SettingsConstants.SETTING__COORDINATORS)[0]})
-                else:
-                    return Destination(PSBTSelectCoordinatorView)
+                return Destination(PSBTSignedQRDisplayView, view_args={"coordinator": 'REMOVE ME'})  # TODO: 2024-06-15 remove coordinator
 
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
-
-
-
-class PSBTSelectCoordinatorView(View):
-    def run(self):
-        button_data = self.settings.get_multiselect_value_display_names(SettingsConstants.SETTING__COORDINATORS)
-        selected_menu_num = psbt_screens.PSBTSelectCoordinatorScreen(
-            button_data=button_data
-        ).display()
-
-        if selected_menu_num == RET_CODE__BACK_BUTTON:
-            return Destination(BackStackView)
-
-        return Destination(PSBTSignedQRDisplayView, view_args={"coordinator": button_data[selected_menu_num]})
-
 
 
 class PSBTSignedQRDisplayView(View):
@@ -522,9 +504,6 @@ class PSBTSignedQRDisplayView(View):
     
     def run(self):
         qr_psbt_type = QRType.PSBT__UR2
-        if self.coordinator == SettingsConstants.COORDINATOR__SPECTER_DESKTOP:
-            qr_psbt_type = QRType.PSBT__SPECTER
-
         qr_encoder = EncodeQR(
             psbt=self.controller.psbt,
             qr_type=qr_psbt_type,
