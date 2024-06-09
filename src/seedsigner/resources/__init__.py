@@ -6,11 +6,9 @@ from lzma import decompress as lzma
 def get(namespace, name):
     file_path = path.join(dirname(__file__), namespace, name)
     if path.exists(file_path):
-        print(f'load from file: {file_path}...')
         with open(file_path, 'rb') as file:
             return file.read()
     try:
-        print(f'load resource: {namespace}.{name}...')
         if namespace == 'icons':
             from . import icons
             return lzma(b85decode(icons.data[name]))
