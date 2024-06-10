@@ -1,8 +1,6 @@
 import logging
 import traceback
 
-from embit.descriptor import Descriptor  # TODO
-from embit.psbt import PSBT  # TODO
 from PIL.Image import Image
 from typing import List
 
@@ -17,7 +15,6 @@ from .models import Seed, SeedStorage, Settings, Singleton, PSBTParser
 logger = logging.getLogger(__name__)
 
 
-
 class BackStack(List[Destination]):
     def __repr__(self):
         if len(self) == 0:
@@ -27,7 +24,6 @@ class BackStack(List[Destination]):
             out += f"    {index:2d}: {destination}\n"
         out += "]"
         return out
-            
 
 
 class Controller(Singleton):
@@ -59,13 +55,15 @@ class Controller(Singleton):
 
     # TODO:SEEDSIGNER: Refactor these flow-related attrs that survive across multiple Screens.
     # TODO:SEEDSIGNER: Should all in-memory flow-related attrs get wiped on MainMenuView?
-    psbt: PSBT = None
+    # psbt: PSBT = None
+    psbt = None
     psbt_seed: Seed = None
     psbt_parser: PSBTParser = None
 
     unverified_address = None
 
-    multisig_wallet_descriptor: Descriptor = None
+    multisig_wallet_descriptor = None
+    # multisig_wallet_descriptor: Descriptor = None
 
     image_entropy_preview_frames: List[Image] = None
     image_entropy_final_image: Image = None

@@ -7,22 +7,16 @@
 
 ## Urgent
 
-### 2024-04-10
-- `src/seedsigner/views/seed_views.py`:154
-  2024-04-10, ~~probably should get our own view `PolyseedMnemonicInvalidView~~ should be okay now also. Test and delete comment if working
-- `src/seedsigner/views/seed_views.py`:156
-  2024-04-10, ~~probably should get our own view `PolyseedFinalizeView`~~ should be fine, test and remove comment
-
 ### 2024-06-04
-- `src/seedsigner/views/seed_views.py`:731
+- `src/seedsigner/views/seed_views.py`:741
   expire 2024-06-04: adapt to polyseed, monero seed and view keys - we don't supportMyMonero keys for export. Wait, need to check again, seems that is meant to draw your QR codes on paper, so it would not really make sense for view keys, not? Would it? Think again about before taking decision!
-- `src/seedsigner/views/seed_views.py`:812
+- `src/seedsigner/views/seed_views.py`:822
   expire 2024-06-04, not true for view keys, but should stil be a warning that with view keys you can fuck up your privacy
-- `src/seedsigner/views/seed_views.py`:875
+- `src/seedsigner/views/seed_views.py`:885
   expire 2024-06-04, can only be 25 (monero seed) or 16 (polyseed)
-- `src/seedsigner/views/seed_views.py`:981
+- `src/seedsigner/views/seed_views.py`:991
   expire 2024-06-04, remove BTC related stuff, make it work for monero
-- `src/seedsigner/views/seed_views.py`:1031
+- `src/seedsigner/views/seed_views.py`:1041
   expire 2024-06-04, remove BTC stuff, make monero work
 - `src/seedsigner/views/tools_views.py`:153
   expire 2024-06-04 should be merged with ToolsImagePolyseedView, same code and be outsid of views...
@@ -48,23 +42,19 @@
   remove comment before 2024-06-10 handle differences in wordlist languages in monero seed and polyseed, think should be handled in the wordlist implementations instead
 - `src/seedsigner/models/settings_definition.py`:138
   remove after 2024-06-10, maybe there should be SETTING__WORDLIST_LANGUAGE_MONERO and SETTING__WORDLIST_LANGUAGE_POLYSEED? Makes this even sense, should it not be more dynamic letting the responsibility to the monero, polyseed implementation to have it more future proof?
-- `src/seedsigner/views/seed_views.py`:152
-  2024-06-10, check what is it doing and resolve for Polyseed
-- `src/seedsigner/views/seed_views.py`:380
-  expire 2024-06-10, here should be probably the option to export the view keys
-- `src/seedsigner/views/seed_views.py`:521
+- `src/seedsigner/views/seed_views.py`:481
+  2024-06-10: finish implementation
+- `src/seedsigner/views/seed_views.py`:531
   no warning or different warning for view keys, adapt before 2024-06-10
-- `src/seedsigner/views/seed_views.py`:525
+- `src/seedsigner/views/seed_views.py`:535
   see todo above, adapt text to master key and view keys before 2024-06-10
-- `src/seedsigner/views/seed_views.py`:1212
+- `src/seedsigner/views/seed_views.py`:1222
   expire 2024-06-10, adapt to monero
-- `src/seedsigner/views/seed_views.py`:1233
+- `src/seedsigner/views/seed_views.py`:1243
   expire 2024-06-10, adapt to monero
 
 ### 2024-06-12
-- `src/seedsigner/views/seed_views.py`:112
-  check and correct, before 2024-06-12
-- `src/seedsigner/views/seed_views.py`:1184
+- `src/seedsigner/views/seed_views.py`:1194
   expire 2024-06-12, check if needed for monero, delete or modify
 
 ### 2024-06-15
@@ -72,11 +62,11 @@
   2024-06-15, handle Polyseed different from here? 52 decimals (13 words, 100 decimals (25 words), 16 polyseed words would be 64 decimals
 - `src/seedsigner/views/psbt_views.py`:494
   2024-06-15 remove coordinator
-- `src/seedsigner/views/seed_views.py`:1133
+- `src/seedsigner/views/seed_views.py`:1143
   expire 2024-06-15, what is that about??? Remove BTC stuff and make it for monero working. If not needed for monero, remove it
-- `src/seedsigner/views/seed_views.py`:1161
+- `src/seedsigner/views/seed_views.py`:1171
   2024-06-15, nonsense for us
-- `src/seedsigner/views/seed_views.py`:1165
+- `src/seedsigner/views/seed_views.py`:1175
   2024-06-15, remove all the cluster fuck here, we can verify easy if a address belongs to a wallet in monero
 
 ### 2024-06-21
@@ -84,15 +74,15 @@
   expire 2024-06-21, I think there should be a warning that this way most probale will lead to low entropy, should only be used if user is really knowing what he is doing... Maybe an alternative would be to use it as input entropy with pseudo entropy to generate a new "now magically random" (of course not, but at least with less probability of user picking the most prefered words out of the list and shootig himself in the foot.
 
 ### 2024-06-30
-- `src/seedsigner/views/seed_views.py`:185
+- `src/seedsigner/views/seed_views.py`:155
   2024-06-30, clean up, this code is now functional but uggly as fuck!
-- `src/seedsigner/views/seed_views.py`:189
+- `src/seedsigner/views/seed_views.py`:159
   expire 2024-06-30, lean it up
 - `src/seedsigner/views/tools_views.py`:273
   expire 2024-06-30, offer only 25 words if not low security is set in settings
 
 ### 2024-06-31
-- `src/seedsigner/views/seed_views.py`:877
+- `src/seedsigner/views/seed_views.py`:887
   expire 2024-06-31, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this???
 
 ### 2024-07-01
@@ -116,13 +106,13 @@
   expire 2024-07-31, don't know python memory managment, but `del seed_entropy_image` etc seems for me the better way, well, need to investigate, when not mistaken, python uses GC, is there a way to clean up inmedately?
 
 ### No date provided
-- `src/seedsigner/controller.py`:60
+- `src/seedsigner/controller.py`:56
   **#SEEDSIGNER** Refactor these flow-related attrs that survive across multiple Screens.
-- `src/seedsigner/controller.py`:61
+- `src/seedsigner/controller.py`:57
   **#SEEDSIGNER** Should all in-memory flow-related attrs get wiped on MainMenuView?
-- `src/seedsigner/controller.py`:72
+- `src/seedsigner/controller.py`:70
   **#SEEDSIGNER** end refactor section
-- `src/seedsigner/controller.py`:123
+- `src/seedsigner/controller.py`:121
   **#SEEDSIGNER** Rename "storage" to something more indicative of its temp, in-memory state
 - `src/seedsigner/gui/components.py`:18
   **#SEEDSIGNER** Remove all pixel hard coding
@@ -220,15 +210,15 @@
   Handle single-sig descriptors?
 - `src/seedsigner/views/screensaver.py`:14
   This early code is now outdated vis-a-vis Screen vs View distinctions
-- `src/seedsigner/views/seed_views.py`:418
+- `src/seedsigner/views/seed_views.py`:428
   **#SEEDSIGNER** How sure are we? Should disable this entirely if we're 100% sure?
-- `src/seedsigner/views/seed_views.py`:933
+- `src/seedsigner/views/seed_views.py`:943
   **#SEEDSIGNER** Does this belong in its own BaseThread?
-- `src/seedsigner/views/seed_views.py`:1015
+- `src/seedsigner/views/seed_views.py`:1025
   **#SEEDSIGNER** detect single sig vs multisig or have to prompt?
-- `src/seedsigner/views/seed_views.py`:1088
+- `src/seedsigner/views/seed_views.py`:1098
   **#SEEDSIGNER** Include lock icon on right side of button
-- `src/seedsigner/views/seed_views.py`:1273
+- `src/seedsigner/views/seed_views.py`:1283
   **#SEEDSIGNER** Route properly when multisig brute-force addr verification is done
 - `src/seedsigner/views/settings_views.py`:81
   **#SEEDSIGNER** Free-entry types (are there any?) will need their own SettingsEntryUpdateFreeEntryView(?).
@@ -238,13 +228,13 @@
 ## By File
 
 ### `src/seedsigner/controller.py`
-- Line 60: No date provided **#SEEDSIGNER** 
+- Line 56: No date provided **#SEEDSIGNER** 
   Refactor these flow-related attrs that survive across multiple Screens.
-- Line 61: No date provided **#SEEDSIGNER** 
+- Line 57: No date provided **#SEEDSIGNER** 
   Should all in-memory flow-related attrs get wiped on MainMenuView?
-- Line 72: No date provided **#SEEDSIGNER** 
+- Line 70: No date provided **#SEEDSIGNER** 
   end refactor section
-- Line 123: No date provided **#SEEDSIGNER** 
+- Line 121: No date provided **#SEEDSIGNER** 
   Rename "storage" to something more indicative of its temp, in-memory state
 
 ### `src/seedsigner/gui/components.py`
@@ -410,57 +400,49 @@
   This early code is now outdated vis-a-vis Screen vs View distinctions
 
 ### `src/seedsigner/views/seed_views.py`
-- Line 154: 2024-04-10 
-  2024-04-10, ~~probably should get our own view `PolyseedMnemonicInvalidView~~ should be okay now also. Test and delete comment if working
-- Line 156: 2024-04-10 
-  2024-04-10, ~~probably should get our own view `PolyseedFinalizeView`~~ should be fine, test and remove comment
-- Line 731: 2024-06-04 
+- Line 741: 2024-06-04 
   expire 2024-06-04: adapt to polyseed, monero seed and view keys - we don't supportMyMonero keys for export. Wait, need to check again, seems that is meant to draw your QR codes on paper, so it would not really make sense for view keys, not? Would it? Think again about before taking decision!
-- Line 812: 2024-06-04 
+- Line 822: 2024-06-04 
   expire 2024-06-04, not true for view keys, but should stil be a warning that with view keys you can fuck up your privacy
-- Line 875: 2024-06-04 
+- Line 885: 2024-06-04 
   expire 2024-06-04, can only be 25 (monero seed) or 16 (polyseed)
-- Line 981: 2024-06-04 
+- Line 991: 2024-06-04 
   expire 2024-06-04, remove BTC related stuff, make it work for monero
-- Line 1031: 2024-06-04 
+- Line 1041: 2024-06-04 
   expire 2024-06-04, remove BTC stuff, make monero work
-- Line 152: 2024-06-10 
-  2024-06-10, check what is it doing and resolve for Polyseed
-- Line 380: 2024-06-10 
-  expire 2024-06-10, here should be probably the option to export the view keys
-- Line 521: 2024-06-10 
+- Line 481: 2024-06-10 
+  2024-06-10: finish implementation
+- Line 531: 2024-06-10 
   no warning or different warning for view keys, adapt before 2024-06-10
-- Line 525: 2024-06-10 
+- Line 535: 2024-06-10 
   see todo above, adapt text to master key and view keys before 2024-06-10
-- Line 1212: 2024-06-10 
+- Line 1222: 2024-06-10 
   expire 2024-06-10, adapt to monero
-- Line 1233: 2024-06-10 
+- Line 1243: 2024-06-10 
   expire 2024-06-10, adapt to monero
-- Line 112: 2024-06-12 
-  check and correct, before 2024-06-12
-- Line 1184: 2024-06-12 
+- Line 1194: 2024-06-12 
   expire 2024-06-12, check if needed for monero, delete or modify
-- Line 1133: 2024-06-15 
+- Line 1143: 2024-06-15 
   expire 2024-06-15, what is that about??? Remove BTC stuff and make it for monero working. If not needed for monero, remove it
-- Line 1161: 2024-06-15 
+- Line 1171: 2024-06-15 
   2024-06-15, nonsense for us
-- Line 1165: 2024-06-15 
+- Line 1175: 2024-06-15 
   2024-06-15, remove all the cluster fuck here, we can verify easy if a address belongs to a wallet in monero
-- Line 185: 2024-06-30 
+- Line 155: 2024-06-30 
   2024-06-30, clean up, this code is now functional but uggly as fuck!
-- Line 189: 2024-06-30 
+- Line 159: 2024-06-30 
   expire 2024-06-30, lean it up
-- Line 877: 2024-06-31 
+- Line 887: 2024-06-31 
   expire 2024-06-31, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this???
-- Line 418: No date provided **#SEEDSIGNER** 
+- Line 428: No date provided **#SEEDSIGNER** 
   How sure are we? Should disable this entirely if we're 100% sure?
-- Line 933: No date provided **#SEEDSIGNER** 
+- Line 943: No date provided **#SEEDSIGNER** 
   Does this belong in its own BaseThread?
-- Line 1015: No date provided **#SEEDSIGNER** 
+- Line 1025: No date provided **#SEEDSIGNER** 
   detect single sig vs multisig or have to prompt?
-- Line 1088: No date provided **#SEEDSIGNER** 
+- Line 1098: No date provided **#SEEDSIGNER** 
   Include lock icon on right side of button
-- Line 1273: No date provided **#SEEDSIGNER** 
+- Line 1283: No date provided **#SEEDSIGNER** 
   Route properly when multisig brute-force addr verification is done
 
 ### `src/seedsigner/views/settings_views.py`

@@ -37,8 +37,9 @@ class SeedsMenuView(View):
             print(isinstance(seed, PolyseedSeed))
             self.seeds.append({
                 'fingerprint': seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK)),
-                'has_passphrase': seed.passphrase is not None,
-                'polyseed': isinstance(seed, PolyseedSeed)
+                'has_passphrase': seed.has_passphrase,
+                'polyseed': isinstance(seed, PolyseedSeed),
+                'mymonero': seed.is_my_monero
             })
 
 
@@ -49,7 +50,15 @@ class SeedsMenuView(View):
 
         button_data = []
         for seed in self.seeds:
-            button_data.append((seed["fingerprint"], SeedSignerCustomIconConstants.FINGERPRINT, 'purple' if seed['polyseed'] else 'blue'))
+            button_data.append(
+                (
+                    seed["fingerprint"],
+                    SeedSignerCustomIconConstants.FINGERPRINT,
+                    'purple' if seed['polyseed'] else 'blue' if not seed['mymonero'] else 'red',
+                    None,
+                    FontAwesomeIconConstants.LOCK if seed['has_passphrase'] else None
+                )
+            )
         button_data.append("Load a seed")
 
         selected_menu_num = ButtonListScreen(
@@ -109,7 +118,7 @@ class LoadSeedView(View):
             return Destination(SeedMnemonicEntryView)
 
         elif button_data[selected_menu_num] == TYPE_POLYSEED:
-            self.controller.storage.init_pending_mnemonic(num_words=16)  # TODO: check and correct, before 2024-06-12
+            self.controller.storage.init_pending_mnemonic(num_words=16)
             return Destination(PolyseedMnemonicEntryView)
 
         elif button_data[selected_menu_num] == CREATE:
@@ -378,7 +387,7 @@ class SeedDiscardView(View):
 """****************************************************************************
     Views for actions on individual seeds:
 ****************************************************************************"""
-class SeedOptionsView(View):  # TODO: expire 2024-06-10, here should be probably the option to export the view keys
+class SeedOptionsView(View):
     def __init__(self, seed_num: int):
         super().__init__()
         self.seed_num = seed_num
@@ -469,7 +478,7 @@ class SeedOptionsView(View):  # TODO: expire 2024-06-10, here should be probably
                 ).display()
                 return Destination(BackStackView, skip_current_view=True)
 
-        if button_data[selected_menu_num] == VIEW_ONLY_WALLET:
+        if button_data[selected_menu_num] == VIEW_ONLY_WALLET:  # TODO: 2024-06-10: finish implementation
             return Destination(WalletViewKeyQRView, view_args={'seed_num': self.seed_num})
 
         if button_data[selected_menu_num] == DISCARD:

@@ -87,7 +87,7 @@ class Seed:
 
     @property
     def has_passphrase(self) -> bool:
-        return self._passphrase is not None
+        return self._passphrase is not None and self._passphrase is not ''
 
     def set_passphrase(self, passphrase: Optional[str] = None, regenerate_seed: bool = True):
         if passphrase and passphrase != '':
@@ -98,6 +98,10 @@ class Seed:
         if regenerate_seed:
             # Regenerate the internal seed since passphrase changes the result
             self._generate_seed()
+
+    @property
+    def is_my_monero(self) -> bool:
+        return len(self._mnemonic) == 13
 
     @property
     def wordlist(self) -> List[str]:
