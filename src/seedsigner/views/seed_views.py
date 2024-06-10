@@ -110,7 +110,7 @@ class LoadSeedView(View):
 
         elif button_data[selected_menu_num] == TYPE_POLYSEED:
             self.controller.storage.init_pending_mnemonic(num_words=16)  # TODO: check and correct, before 2024-06-12
-            return Destination(SeedMnemonicEntryView)
+            return Destination(PolyseedMnemonicEntryView)
 
         elif button_data[selected_menu_num] == CREATE:
             from .tools_views import ToolsMenuView
@@ -118,45 +118,6 @@ class LoadSeedView(View):
 
 
 class SeedMnemonicEntryView(View):
-
-    def __init__(self, cur_word_index: int = 0):
-        super().__init__(cur_word_index, False)
-
-    def run(self):
-        ret = seed_screens.SeedMnemonicEntryScreen(
-            title=f"Polyseed Word #{self.cur_word_index + 1}",  # Human-readable 1-indexing!
-            initial_letters=list(self.cur_word) if self.cur_word else ["a"],
-            wordlist=PolyseedSeed.get_wordlist(wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE)),
-        ).display()
-
-        if ret == RET_CODE__BACK_BUTTON:
-            if self.cur_word_index > 0:
-                return Destination(BackStackView)
-            else:
-                self.controller.storage.discard_pending_mnemonic()
-                return Destination(MainMenuView)
-        
-        # ret will be our new mnemonic word
-        self.controller.storage.update_pending_mnemonic(ret, self.cur_word_index)
-
-        if self.cur_word_index < self.controller.storage.pending_mnemonic_length - 1:
-            return Destination(
-                PolyseedMnemonicEntryView,
-                view_args={
-                    "cur_word_index": self.cur_word_index + 1
-                }
-            )
-        else:
-            # Attempt to finalize the mnemonic
-            try:
-                self.controller.storage.convert_pending_mnemonic_to_pending_seed()  # TODO: 2024-06-10, check what is it doing and resolve for Polyseed
-            except InvalidSeedException:
-                return Destination(SeedMnemonicInvalidView, view_args={'polyseed': True})  # TODO: 2024-04-10, ~~probably should get our own view `PolyseedMnemonicInvalidView~~ should be okay now also. Test and delete comment if working
-
-            return Destination(SeedFinalizeView)  # TODO: 2024-04-10, ~~probably should get our own view `PolyseedFinalizeView`~~ should be fine, test and remove comment
-
-
-class PolyseedMnemonicEntryView(SeedMnemonicEntryView):
 
     def __init__(self, cur_word_index: int = 0, is_calc_final_word: bool=False):
         super().__init__()
@@ -213,6 +174,44 @@ class PolyseedMnemonicEntryView(SeedMnemonicEntryView):
             return Destination(SeedFinalizeView)
 
 
+class PolyseedMnemonicEntryView(SeedMnemonicEntryView):
+
+    def __init__(self, cur_word_index: int = 0):
+        super().__init__(cur_word_index, False)
+
+    def run(self):
+        ret = seed_screens.SeedMnemonicEntryScreen(
+            title=f"Polyseed Word #{self.cur_word_index + 1}",  # Human-readable 1-indexing!
+            initial_letters=list(self.cur_word) if self.cur_word else ["a"],
+            wordlist=PolyseedSeed.get_wordlist(wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE)),
+        ).display()
+
+        if ret == RET_CODE__BACK_BUTTON:
+            if self.cur_word_index > 0:
+                return Destination(BackStackView)
+            else:
+                self.controller.storage.discard_pending_mnemonic()
+                return Destination(MainMenuView)
+        
+        # ret will be our new mnemonic word
+        self.controller.storage.update_pending_mnemonic(ret, self.cur_word_index)
+
+        if self.cur_word_index < self.controller.storage.pending_mnemonic_length - 1:
+            return Destination(
+                PolyseedMnemonicEntryView,
+                view_args={
+                    "cur_word_index": self.cur_word_index + 1
+                }
+            )
+        else:
+            # Attempt to finalize the mnemonic
+            try:
+                self.controller.storage.convert_pending_mnemonic_to_pending_polyseed()
+            except InvalidSeedException:
+                return Destination(SeedMnemonicInvalidView, view_args={'polyseed': True})
+            return Destination(SeedFinalizeView)
+
+
 class SeedMnemonicInvalidView(View):
 
     def __init__(self, polyseed: bool = False):
@@ -235,8 +234,10 @@ class SeedMnemonicInvalidView(View):
         ).display()
 
         if button_data[selected_menu_num] == EDIT:
-            return Destination(PolyseedMnemonicEntryView if self.polyseed else SeedMnemonicEntryView, view_args={"cur_word_index": 0})
-
+            return Destination(
+                PolyseedMnemonicEntryView if self.polyseed else SeedMnemonicEntryView,
+                view_args={"cur_word_index": 0}
+            )
         elif button_data[selected_menu_num] == DISCARD:
             self.controller.storage.discard_pending_mnemonic()
             return Destination(MainMenuView)

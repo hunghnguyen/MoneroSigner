@@ -15,16 +15,16 @@
 - [x] Remove Export Xpub (BTC only)
 - [x] Export monero seed
 - [x] Export Polyseed (if Polyseed wallet)
-- [.] Convert Polyseed to monero 25 words seed (future)
+- [x] Convert Polyseed to monero 25 words seed
 - [.] Convert 14 words feather wallet seeds to monero 25 words seed (future)
 - [ ] Export QR
 - [ ] Export View Key
 #### Load seed
 - [ ] Scan seed QR
-- [ ] Enter 13 word monero seed
-- [ ] Enter 25 word monero seed
+- [x] Enter 13 word monero seed
+- [x] Enter 25 word monero seed
 - [?] Enter 14 words feather wallet seed (think should be supported in future)
-- [ ] Enter Polyseed
+- [x] Enter Polyseed
 ## Tools
 - [x] New camera seed
 - [x] restrict normally camara seed to 25 word monero seed, 13 words only possible if activated low security in settings
@@ -36,7 +36,7 @@
 - [x] Calc 25 word monero seed, should show a warning
 - [x] Calc 25 word monero seed, 13 words only possible if activated low security in settings
 ## Setting
-- [ ] Coordinator Software, should not be necessary because of only one way: UR, so remove Coordinator code
+- [x] Coordinator Software, should not be necessary because of only one way: UR, so remove Coordinator code
 - [x] Denomination Display
 ### Advanced
 - [x] Network Monero: Change Regtest to stagenet
@@ -48,8 +48,8 @@
 - [x] Low security: disabled/enabled
 
 ## Other things
-- [ ] remove all xpub related code
-- [ ] remove seedsigner public signing key from repository
+- [x] remove all xpub related code
+- [x] remove seedsigner public signing key from repository
 - [ ] offer signatures for source and builds, tend to use signify over gpg
 - [ ] Change links where necessary
 - [ ] Adapt documentation

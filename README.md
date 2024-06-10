@@ -118,9 +118,9 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
  |   |   | |              |                   |              /- 2024-07-24 Milestone 4
  |   |   | |              |                   |              |
 (S)==|===|(1)============(2)=================(3)============(4)=====>
-               A
-               |
-               \------ Today: 2024-06-08
+                 A
+                 |
+                 \------ Today: 2024-06-10
 ```
 ---------------
 
