@@ -13,7 +13,7 @@ class PolyseedSeed(Seed):
     def __init__(self,
                  mnemonic: List[str] = None,
                  passphrase: str = "",
-                 wordlist_language_code: str = SettingsConstants.WORDLIST_LANGUAGE__ENGLISH) -> None:
+                 wordlist_language_code: str = SettingsConstants.WORDLIST_LANGUAGE__ENGLISH):
         self.wordlist_language_code = wordlist_language_code
         self.prefered_language = wordlist_language_code
 
@@ -54,11 +54,10 @@ class PolyseedSeed(Seed):
                 ps.crypt(self.passphrase)
             self.seed_bytes = ps.keygen()
         except Exception as e:
-            print(repr(e))
             raise InvalidSeedException(repr(e))
     
     def to_monero_seed(self, password: Optional[str]) -> Seed:
-        Seed.from_key(hexlify(self.seed_bytes), password, self.wordlist_language_code)
+        return Seed.from_key(hexlify(self.seed_bytes), password, self.wordlist_language_code)
 
     ### override operators    
     def __eq__(self, other: Seed):

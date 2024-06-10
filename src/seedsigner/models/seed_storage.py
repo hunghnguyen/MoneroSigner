@@ -6,6 +6,7 @@ from seedsigner.models.settings_definition import SettingsConstants
 
 
 class SeedStorage:
+
     def __init__(self) -> None:
         self.seeds: List[Seed] = []
         self.pending_seed: Seed = None

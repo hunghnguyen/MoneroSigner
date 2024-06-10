@@ -1,5 +1,7 @@
 import math
 
+from monero.wallet import Wallet
+
 from embit import bip32
 from embit.networks import NETWORKS
 from binascii import b2a_base64, hexlify

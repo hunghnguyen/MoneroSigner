@@ -1,10 +1,7 @@
-import embit  # TODO: remove before 2024-06-04
 import random
 import time
 
 from binascii import hexlify
-from embit.descriptor import Descriptor  # TODO: remove before 2024-06-10
-from embit.networks import NETWORKS  # TODO: remove before 2024-06-04
 from typing import List
 from math import ceil
 
@@ -24,6 +21,7 @@ from seedsigner.models.settings_definition import SettingsDefinition
 from seedsigner.models.threads import BaseThread, ThreadsafeCounter
 from seedsigner.views.psbt_views import PSXMRhangeDetailsView
 from seedsigner.views.scan_views import ScanView
+from seedsigner.views.wallet_views import WalletViewKeyQRView
 
 from .view import NotYetImplementedView, View, Destination, BackStackView, MainMenuView
 
@@ -111,7 +109,7 @@ class LoadSeedView(View):
             return Destination(SeedMnemonicEntryView)
 
         elif button_data[selected_menu_num] == TYPE_POLYSEED:
-            self.controller.storage.init_pending_mnemonic(num_words=16)  # TODO: check and correct, before 2024-06-04
+            self.controller.storage.init_pending_mnemonic(num_words=16)  # TODO: check and correct, before 2024-06-12
             return Destination(SeedMnemonicEntryView)
 
         elif button_data[selected_menu_num] == CREATE:
@@ -119,8 +117,47 @@ class LoadSeedView(View):
             return Destination(ToolsMenuView)
 
 
+class SeedMnemonicEntryView(View):
 
-class SeedMnemonicEntryView(View):  # TODO: check the reasoning behind and if it can be used for monero seed and polyseed or if we need to modify/split, do before 2024-06-04!
+    def __init__(self, cur_word_index: int = 0):
+        super().__init__(cur_word_index, False)
+
+    def run(self):
+        ret = seed_screens.SeedMnemonicEntryScreen(
+            title=f"Polyseed Word #{self.cur_word_index + 1}",  # Human-readable 1-indexing!
+            initial_letters=list(self.cur_word) if self.cur_word else ["a"],
+            wordlist=PolyseedSeed.get_wordlist(wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE)),
+        ).display()
+
+        if ret == RET_CODE__BACK_BUTTON:
+            if self.cur_word_index > 0:
+                return Destination(BackStackView)
+            else:
+                self.controller.storage.discard_pending_mnemonic()
+                return Destination(MainMenuView)
+        
+        # ret will be our new mnemonic word
+        self.controller.storage.update_pending_mnemonic(ret, self.cur_word_index)
+
+        if self.cur_word_index < self.controller.storage.pending_mnemonic_length - 1:
+            return Destination(
+                PolyseedMnemonicEntryView,
+                view_args={
+                    "cur_word_index": self.cur_word_index + 1
+                }
+            )
+        else:
+            # Attempt to finalize the mnemonic
+            try:
+                self.controller.storage.convert_pending_mnemonic_to_pending_seed()  # TODO: 2024-06-10, check what is it doing and resolve for Polyseed
+            except InvalidSeedException:
+                return Destination(SeedMnemonicInvalidView, view_args={'polyseed': True})  # TODO: 2024-04-10, ~~probably should get our own view `PolyseedMnemonicInvalidView~~ should be okay now also. Test and delete comment if working
+
+            return Destination(SeedFinalizeView)  # TODO: 2024-04-10, ~~probably should get our own view `PolyseedFinalizeView`~~ should be fine, test and remove comment
+
+
+class PolyseedMnemonicEntryView(SeedMnemonicEntryView):
+
     def __init__(self, cur_word_index: int = 0, is_calc_final_word: bool=False):
         super().__init__()
         self.cur_word_index = cur_word_index
@@ -145,7 +182,7 @@ class SeedMnemonicEntryView(View):  # TODO: check the reasoning behind and if it
         # ret will be our new mnemonic word
         self.controller.storage.update_pending_mnemonic(ret, self.cur_word_index)
 
-        if self.is_calc_final_word and self.cur_word_index == self.controller.storage.pending_mnemonic_length - 2:  # TODO: 2024-06-30, clean up, this code is no functional but uggly as fuck!
+        if self.is_calc_final_word and self.cur_word_index == self.controller.storage.pending_mnemonic_length - 2:  # TODO: 2024-06-30, clean up, this code is now functional but uggly as fuck!
             # Time to calculate the last word. User must decide how they want to specify
             # the last bits of entropy for the final word.
             from seedsigner.views.tools_views import ToolsCalcFinalWordShowFinalWordView
@@ -176,11 +213,12 @@ class SeedMnemonicEntryView(View):  # TODO: check the reasoning behind and if it
             return Destination(SeedFinalizeView)
 
 
-
 class SeedMnemonicInvalidView(View):
-    def __init__(self):
+
+    def __init__(self, polyseed: bool = False):
         super().__init__()
         self.mnemonic: List[str] = self.controller.storage.pending_mnemonic
+        self.polyseed = polyseed
 
 
     def run(self):
@@ -197,7 +235,7 @@ class SeedMnemonicInvalidView(View):
         ).display()
 
         if button_data[selected_menu_num] == EDIT:
-            return Destination(SeedMnemonicEntryView, view_args={"cur_word_index": 0})
+            return Destination(PolyseedMnemonicEntryView if self.polyseed else SeedMnemonicEntryView, view_args={"cur_word_index": 0})
 
         elif button_data[selected_menu_num] == DISCARD:
             self.controller.storage.discard_pending_mnemonic()
@@ -205,12 +243,12 @@ class SeedMnemonicInvalidView(View):
 
 
 class SeedFinalizeView(View):
+
     def __init__(self):
         super().__init__()
         self.seed = self.controller.storage.get_pending_seed()
         self.fingerprint = self.seed.get_fingerprint(network=self.settings.get_value(SettingsConstants.SETTING__NETWORK))
         self.polyseed = isinstance(self.seed, PolyseedSeed)
-
 
     def run(self):
         FINALIZE = "Done"
@@ -345,15 +383,15 @@ class SeedOptionsView(View):  # TODO: expire 2024-06-10, here should be probably
         self.seed_num = seed_num
         self.seed = self.controller.get_seed(self.seed_num)
 
-
     def run(self):
         from seedsigner.views.psbt_views import PSBTOverviewView
 
         SCAN_PSBT = ("Scan PSBT", FontAwesomeIconConstants.QRCODE)
         REVIEW_PSBT = "Review PSBT"
         VERIFY_ADDRESS = "Verify Addr"
+        VIEW_ONLY_WALLET = ("View only Wallet")
         BACKUP = ("Backup Seed", None, None, None, SeedSignerCustomIconConstants.SMALL_CHEVRON_RIGHT)
-        CONVERT_POOLYSEED = ('Convert to Monero seed', None, None, 'blue')
+        CONVERT_POOLYSEED = ('Convert to Monero seed')
         DISCARD = ("Discard Seed", None, None, "red")
 
         button_data = []
@@ -383,6 +421,7 @@ class SeedOptionsView(View):  # TODO: expire 2024-06-10, here should be probably
         else:
             button_data.append(SCAN_PSBT)
         
+        button_data.append(VIEW_ONLY_WALLET)
         button_data.append(BACKUP)
 
         if isinstance(self.seed, PolyseedSeed):
@@ -409,13 +448,30 @@ class SeedOptionsView(View):  # TODO: expire 2024-06-10, here should be probably
             from seedsigner.views.scan_views import ScanView
             return Destination(ScanView)
 
-        elif button_data[selected_menu_num] == VERIFY_ADDRESS:
+        if button_data[selected_menu_num] == VERIFY_ADDRESS:
             return Destination(SeedAddressVerificationView, view_args={"seed_num": self.seed_num})
 
-        elif button_data[selected_menu_num] == BACKUP:
+        if button_data[selected_menu_num] == BACKUP:
             return Destination(SeedBackupView, view_args={"seed_num": self.seed_num})
 
-        elif button_data[selected_menu_num] == DISCARD:
+        if button_data[selected_menu_num] == CONVERT_POOLYSEED:
+            if isinstance(self.seed, PolyseedSeed):
+                self.controller.replace_seed(self.seed_num, self.seed.to_monero_seed(None))
+                return Destination(SeedOptionsView, view_args={"seed_num": self.seed_num}, skip_current_view=True)
+            else:
+                DireWarningScreen(
+                    title='Not a Polyseed',
+                    status_headline='Error!',
+                    text="Can't convert to monero seed!",
+                    show_back_button=False,
+                    button_data=['OK'],
+                ).display()
+                return Destination(BackStackView, skip_current_view=True)
+
+        if button_data[selected_menu_num] == VIEW_ONLY_WALLET:
+            return Destination(WalletViewKeyQRView, view_args={'seed_num': self.seed_num})
+
+        if button_data[selected_menu_num] == DISCARD:
             return Destination(SeedDiscardView, view_args={"seed_num": self.seed_num})
 
 

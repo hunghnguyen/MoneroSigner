@@ -153,6 +153,13 @@ class Controller(Singleton):
         else:
             raise Exception(f"There is no seed_num {seed_num}; only {len(self.storage.seeds)} in memory.")
 
+    def replace_seed(self, seed_num: int, seed: Seed) -> None:
+        if seed_num < len(self.storage.seeds):
+            print(self.storage.seeds)
+            self.storage.seeds[seed_num] = seed
+            print(self.storage.seeds)
+        else:
+            raise Exception(f"There is no seed_num {seed_num}; only {len(self.storage.seeds)} in memory.")
 
     def discard_seed(self, seed_num: int):
         if seed_num < len(self.storage.seeds):

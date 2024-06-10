@@ -8,7 +8,7 @@ class WalletViewKeyQRView(View):
     def __init__(self, seed_num: int):
         super().__init__()
         self.seed_num: int = seed_num
-        self.seed = self.controller.get_seed(seed_num)
+        self.wallet = self.controller.get_seed(seed_num).get_wallet()
     
 
     def run(self):
