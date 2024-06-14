@@ -59,6 +59,7 @@
 - [ ] Modify [Monero GUI](https://github.com/DiosDelRayo/monero-gui)
 - [ ] tools/increment_version.py needs also to update the version in setup.py
 - [ ] setup.py needs further modification
+- [ ] not working as expcted, fix: tools/tag_version.py
 ---
 ## Considerations:
 - [?] Shoud feather wallet 14 words seed be offered to be imported?

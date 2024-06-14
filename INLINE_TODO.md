@@ -1,11 +1,10 @@
 # Inline Todo
 
-Total: 98
+Total: 123
 
 ## Index
 - [Urgent](#urgent)
 - [By File](#by-file)
-- [By Tags](#by-tags)
 - [External Todo](Todo.md)
 
 ## Urgent
@@ -35,9 +34,9 @@ Total: 98
   2024-06-10, remove: Xpub related
 - `src/seedsigner/helpers/polyseed_mnemonic_generation.py`:6
   expire 2024-06-10, I think should be moved/merged with mnemonic_generation somehow and somewhere else, think about it.
-- `src/seedsigner/models/decode_qr.py`:702
+- `src/seedsigner/models/decode_qr.py`:704
   2024-06-10, fix to monero (and polyseed?)
-- `src/seedsigner/models/encode_qr.py`:226
+- `src/seedsigner/models/encode_qr.py`:222
   2024-06-10, needs to return view only wallet URI
 - `src/seedsigner/models/settings_definition.py`:96
   remove comment before 2024-06-10 handle differences in wordlist languages in monero seed and polyseed, think should be handled in the wordlist implementations instead
@@ -58,10 +57,62 @@ Total: 98
 - `src/seedsigner/views/seed_views.py`:1194
   expire 2024-06-12, check if needed for monero, delete or modify
 
+### 2024-06-14
+- `src/seedsigner/models/decode_qr.py`:136
+  2024-06-14, needs to be adapted for monero
+- `src/seedsigner/models/decode_qr.py`:137
+  2024-06-14, needs to be adapted for monero
+- `src/seedsigner/models/decode_qr.py`:402
+  2024-06-14, adapt to monero
+- `src/seedsigner/models/decode_qr.py`:412
+  2024-06-14, adapt to monero
+- `src/seedsigner/models/decode_qr.py`:716
+  2024-06-14, modify to work with monero seed and polyseed
+- `src/seedsigner/models/decode_qr.py`:739
+  2024-06-14, adapt for monero seed AND polyseed
+- `src/seedsigner/models/decode_qr.py`:964
+  2024-06-14, validate
+- `src/seedsigner/models/encode_qr.py`:14
+  2024-06-14, used as quickfix to remove embit.psbt.PSBT! Adapt for monero
+- `src/seedsigner/models/psbt_parser.py`:9
+  2024-06-14, quick fix to remove embit.descriptor.Descriptor
+- `src/seedsigner/models/psbt_parser.py`:13
+  2024-06-14, quick fix to remove embit.psbt.PSBT
+- `src/seedsigner/models/psbt_parser.py`:64
+  2024-06-14 removed to remove embit.bip39, expect to be deleted all and write from ground up for monero
+- `src/seedsigner/models/psbt_parser.py`:124
+  2024-06-14, removed whole block to remove embit.script
+- `src/seedsigner/models/psbt_parser.py`:132
+  2024-06-14, removed whole block to remove embit.script
+- `src/seedsigner/models/psbt_parser.py`:149
+  2024-06-14 removed to remove embit.networks.NETWORKS
+- `src/seedsigner/models/psbt_parser.py`:157
+  2024-06-14 removed to remove embit.bip39, expect to be deleted all and write from ground up for monero
+- `src/seedsigner/models/psbt_parser.py`:167
+  2024-06-14 removed to remove embit.networks.NETWORKS
+- `src/seedsigner/models/psbt_parser.py`:178
+  2024-06-14, removed to remove embit.psbt.psbt
+- `src/seedsigner/models/psbt_parser.py`:282
+  2024-06-14, removed to remove embit.ec, probably needs to be removed and written from ground up for monero
+- `src/seedsigner/views/psbt_views.py`:20
+  2024-06-14, quick fix to remove embit.psbt.PSBT
+- `src/seedsigner/views/psbt_views.py`:358
+  2024-06-14, removed to get rid of embit.script
+- `src/seedsigner/views/psbt_views.py`:373
+  2024-06-14, removed to get rid of embit.script
+- `src/seedsigner/views/psbt_views.py`:376
+  2024-06-14, removed to get rid of embit.script
+- `src/seedsigner/views/psbt_views.py`:382
+  2024-06-14, removed to get rid of embit.network.NETWORKS
+- `src/seedsigner/views/scan_views.py`:76
+  2024-06-14, removed to get rid of embit.descriptor.Descriptor
+- `src/seedsigner/views/scan_views.py`:77
+  2024-06-14, removed to get rid of embit.descriptor.Descriptor
+
 ### 2024-06-15
-- `src/seedsigner/models/decode_qr.py`:336
+- `src/seedsigner/models/decode_qr.py`:338
   2024-06-15, handle Polyseed different from here? 52 decimals (13 words, 100 decimals (25 words), 16 polyseed words would be 64 decimals
-- `src/seedsigner/views/psbt_views.py`:494
+- `src/seedsigner/views/psbt_views.py`:495
   2024-06-15 remove coordinator
 - `src/seedsigner/views/seed_views.py`:1143
   expire 2024-06-15, what is that about??? Remove BTC stuff and make it for monero working. If not needed for monero, remove it
@@ -165,21 +216,21 @@ Total: 98
   Does this need to make a copy of p?
 - `src/seedsigner/helpers/ur2/fountain_encoder.py`:35
   Do something better with this check
-- `src/seedsigner/models/decode_qr.py`:109
+- `src/seedsigner/models/decode_qr.py`:110
   **#SEEDSIGNER** Convert the test suite rather than handle here?
-- `src/seedsigner/models/decode_qr.py`:309
+- `src/seedsigner/models/decode_qr.py`:311
   **#SEEDSIGNER** Convert the test suite rather than handle here?
-- `src/seedsigner/models/decode_qr.py`:733
+- `src/seedsigner/models/decode_qr.py`:735
   **#SEEDSIGNER** Pre-calculate this once on startup
-- `src/seedsigner/models/decode_qr.py`:768
+- `src/seedsigner/models/decode_qr.py`:770
   **#SEEDSIGNER** Refactor this to work with the new SettingsDefinition
-- `src/seedsigner/models/encode_qr.py`:30
+- `src/seedsigner/models/encode_qr.py`:26
   Refactor so that this is a base class with implementation classes for each
-- `src/seedsigner/models/encode_qr.py`:91
+- `src/seedsigner/models/encode_qr.py`:87
   Make these properties?
-- `src/seedsigner/models/psbt_parser.py`:194
+- `src/seedsigner/models/psbt_parser.py`:198
   Move this to Seed?
-- `src/seedsigner/models/psbt_parser.py`:200
+- `src/seedsigner/models/psbt_parser.py`:204
   Is this right?
 - `src/seedsigner/models/settings.py`:78
   **#SEEDSIGNER** If value is not in entry.selection_options...
@@ -197,15 +248,15 @@ Total: 98
   change to VISIBILITY__ADVANCED after implementing passwords for monero seeds, is hidden because this feature is posponed because of insane password derivation method in monero (CryptoNight, need to transpile to python, very propably other #rabbit-hole, be aware before starting!)
 - `src/seedsigner/models/settings_definition.py`:440
   **#SEEDSIGNER** No real Developer options needed yet. Disable for now.
-- `src/seedsigner/views/psbt_views.py`:45
+- `src/seedsigner/views/psbt_views.py`:44
   **#SEEDSIGNER** Include lock icon on right side of button
-- `src/seedsigner/views/psbt_views.py`:316
+- `src/seedsigner/views/psbt_views.py`:315
   **#SEEDSIGNER** Something is wrong with this psbt(?). Reroute to warning?
-- `src/seedsigner/views/psbt_views.py`:487
+- `src/seedsigner/views/psbt_views.py`:488
   **#SEEDSIGNER** Reserved for Nick. Are there different failure scenarios that we can detect?
-- `src/seedsigner/views/scan_views.py`:19
+- `src/seedsigner/views/scan_views.py`:17
   Does this belong in its own BaseThread?
-- `src/seedsigner/views/scan_views.py`:81
+- `src/seedsigner/views/scan_views.py`:80
   Handle single-sig descriptors?
 - `src/seedsigner/views/screensaver.py`:14
   This early code is now outdated vis-a-vis Screen vs View distinctions
@@ -327,32 +378,68 @@ Total: 98
   Do something better with this check
 
 ### `src/seedsigner/models/decode_qr.py`
-- Line 109: None **#SEEDSIGNER** 
+- Line 110: None **#SEEDSIGNER** 
   Convert the test suite rather than handle here?
-- Line 309: None **#SEEDSIGNER** 
+- Line 136: 2024-06-14 
+  2024-06-14, needs to be adapted for monero
+- Line 137: 2024-06-14 
+  2024-06-14, needs to be adapted for monero
+- Line 311: None **#SEEDSIGNER** 
   Convert the test suite rather than handle here?
-- Line 336: 2024-06-15 
+- Line 338: 2024-06-15 
   2024-06-15, handle Polyseed different from here? 52 decimals (13 words, 100 decimals (25 words), 16 polyseed words would be 64 decimals
-- Line 702: 2024-06-10 
+- Line 402: 2024-06-14 
+  2024-06-14, adapt to monero
+- Line 412: 2024-06-14 
+  2024-06-14, adapt to monero
+- Line 704: 2024-06-10 
   2024-06-10, fix to monero (and polyseed?)
-- Line 733: None **#SEEDSIGNER** 
+- Line 716: 2024-06-14 
+  2024-06-14, modify to work with monero seed and polyseed
+- Line 735: None **#SEEDSIGNER** 
   Pre-calculate this once on startup
-- Line 768: None **#SEEDSIGNER** 
+- Line 739: 2024-06-14 
+  2024-06-14, adapt for monero seed AND polyseed
+- Line 770: None **#SEEDSIGNER** 
   Refactor this to work with the new SettingsDefinition
+- Line 964: 2024-06-14 
+  2024-06-14, validate
 
 ### `src/seedsigner/models/encode_qr.py`
-- Line 30: None 
+- Line 14: 2024-06-14 
+  2024-06-14, used as quickfix to remove embit.psbt.PSBT! Adapt for monero
+- Line 26: None 
   Refactor so that this is a base class with implementation classes for each
-- Line 91: None 
+- Line 87: None 
   Make these properties?
-- Line 226: 2024-06-10 
+- Line 222: 2024-06-10 
   2024-06-10, needs to return view only wallet URI
 
 ### `src/seedsigner/models/psbt_parser.py`
-- Line 194: None 
+- Line 9: 2024-06-14 
+  2024-06-14, quick fix to remove embit.descriptor.Descriptor
+- Line 13: 2024-06-14 
+  2024-06-14, quick fix to remove embit.psbt.PSBT
+- Line 64: 2024-06-14 
+  2024-06-14 removed to remove embit.bip39, expect to be deleted all and write from ground up for monero
+- Line 124: 2024-06-14 
+  2024-06-14, removed whole block to remove embit.script
+- Line 132: 2024-06-14 
+  2024-06-14, removed whole block to remove embit.script
+- Line 149: 2024-06-14 
+  2024-06-14 removed to remove embit.networks.NETWORKS
+- Line 157: 2024-06-14 
+  2024-06-14 removed to remove embit.bip39, expect to be deleted all and write from ground up for monero
+- Line 167: 2024-06-14 
+  2024-06-14 removed to remove embit.networks.NETWORKS
+- Line 178: 2024-06-14 
+  2024-06-14, removed to remove embit.psbt.psbt
+- Line 198: None 
   Move this to Seed?
-- Line 200: None 
+- Line 204: None 
   Is this right?
+- Line 282: 2024-06-14 
+  2024-06-14, removed to remove embit.ec, probably needs to be removed and written from ground up for monero
 
 ### `src/seedsigner/models/settings.py`
 - Line 78: None **#SEEDSIGNER** 
@@ -379,19 +466,33 @@ Total: 98
   No real Developer options needed yet. Disable for now.
 
 ### `src/seedsigner/views/psbt_views.py`
-- Line 45: None **#SEEDSIGNER** 
+- Line 20: 2024-06-14 
+  2024-06-14, quick fix to remove embit.psbt.PSBT
+- Line 44: None **#SEEDSIGNER** 
   Include lock icon on right side of button
-- Line 316: None **#SEEDSIGNER** 
+- Line 315: None **#SEEDSIGNER** 
   Something is wrong with this psbt(?). Reroute to warning?
-- Line 487: None **#SEEDSIGNER** 
+- Line 358: 2024-06-14 
+  2024-06-14, removed to get rid of embit.script
+- Line 373: 2024-06-14 
+  2024-06-14, removed to get rid of embit.script
+- Line 376: 2024-06-14 
+  2024-06-14, removed to get rid of embit.script
+- Line 382: 2024-06-14 
+  2024-06-14, removed to get rid of embit.network.NETWORKS
+- Line 488: None **#SEEDSIGNER** 
   Reserved for Nick. Are there different failure scenarios that we can detect?
-- Line 494: 2024-06-15 
+- Line 495: 2024-06-15 
   2024-06-15 remove coordinator
 
 ### `src/seedsigner/views/scan_views.py`
-- Line 19: None 
+- Line 17: None 
   Does this belong in its own BaseThread?
-- Line 81: None 
+- Line 76: 2024-06-14 
+  2024-06-14, removed to get rid of embit.descriptor.Descriptor
+- Line 77: 2024-06-14 
+  2024-06-14, removed to get rid of embit.descriptor.Descriptor
+- Line 80: None 
   Handle single-sig descriptors?
 
 ### `src/seedsigner/views/screensaver.py`
@@ -471,91 +572,3 @@ Total: 98
 ### `src/seedsigner/views/view.py`
 - Line 54: None 
   Pull all rendering-related code out of Views and into gui.screens implementations
-
-## By Tags
-
-### **#SEEDSIGNER**
-- `src/seedsigner/controller.py`:56
-  Refactor these flow-related attrs that survive across multiple Screens.
-- `src/seedsigner/controller.py`:57
-  Should all in-memory flow-related attrs get wiped on MainMenuView?
-- `src/seedsigner/controller.py`:70
-  end refactor section
-- `src/seedsigner/controller.py`:121
-  Rename "storage" to something more indicative of its temp, in-memory state
-- `src/seedsigner/views/psbt_views.py`:45
-  Include lock icon on right side of button
-- `src/seedsigner/views/psbt_views.py`:316
-  Something is wrong with this psbt(?). Reroute to warning?
-- `src/seedsigner/views/psbt_views.py`:487
-  Reserved for Nick. Are there different failure scenarios that we can detect?
-- `src/seedsigner/views/seed_views.py`:428
-  How sure are we? Should disable this entirely if we're 100% sure?
-- `src/seedsigner/views/seed_views.py`:943
-  Does this belong in its own BaseThread?
-- `src/seedsigner/views/seed_views.py`:1025
-  detect single sig vs multisig or have to prompt?
-- `src/seedsigner/views/seed_views.py`:1098
-  Include lock icon on right side of button
-- `src/seedsigner/views/seed_views.py`:1283
-  Route properly when multisig brute-force addr verification is done
-- `src/seedsigner/views/settings_views.py`:81
-  Free-entry types (are there any?) will need their own SettingsEntryUpdateFreeEntryView(?).
-- `src/seedsigner/hardware/buttons.py`:52
-  Refactor to keep control in the Controller and not here
-- `src/seedsigner/hardware/buttons.py`:165
-  Implement `release_lock` functionality as a global somewhere. Mixes up design
-- `src/seedsigner/gui/renderer.py`:85
-  Remove all references
-- `src/seedsigner/gui/renderer.py`:143
-  Should probably move this to templates.py
-- `src/seedsigner/gui/renderer.py`:149
-  Should probably move this to templates.py
-- `src/seedsigner/gui/components.py`:18
-  Remove all pixel hard coding
-- `src/seedsigner/gui/components.py`:257
-  Implement autosize width?
-- `src/seedsigner/gui/components.py`:294
-  getbbox() seems to ignore "\n" so isn't properly factored into height
-- `src/seedsigner/gui/components.py`:376
-  Don't render blank lines as full height
-- `src/seedsigner/gui/components.py`:406
-  Store resulting super-sampled image as a member var in __post_init__ and 
-- `src/seedsigner/gui/components.py`:976
-  Rename the seedsigner.helpers.Buttons class (to Inputs?) to reduce confusion
-- `src/seedsigner/gui/components.py`:1038
-  Only apply screen_y at render
-- `src/seedsigner/gui/screens/screen.py`:78
-  Check self.scroll_y and only render visible elements
-- `src/seedsigner/gui/screens/screen.py`:296
-  Define an actual class for button_data?
-- `src/seedsigner/gui/screens/screen.py`:698
-  handle left as BACK
-- `src/seedsigner/gui/screens/psbt_screens.py`:124
-  Properly handle the ellipsis truncation in different languages
-- `src/seedsigner/gui/screens/psbt_screens.py`:498
-  Test rendering the numeric amounts without the supersampling
-- `src/seedsigner/gui/screens/scan_screens.py`:124
-  KEY_UP gives control to NavBar; use its back arrow to cancel
-- `src/seedsigner/gui/screens/seed_screens.py`:45
-  support other BIP39 languages/charsets
-- `src/seedsigner/models/settings.py`:78
-  If value is not in entry.selection_options...
-- `src/seedsigner/models/decode_qr.py`:109
-  Convert the test suite rather than handle here?
-- `src/seedsigner/models/decode_qr.py`:309
-  Convert the test suite rather than handle here?
-- `src/seedsigner/models/decode_qr.py`:733
-  Pre-calculate this once on startup
-- `src/seedsigner/models/decode_qr.py`:768
-  Refactor this to work with the new SettingsDefinition
-- `src/seedsigner/models/settings_definition.py`:172
-  Is there really a difference between ENABLED and PROMPT?
-- `src/seedsigner/models/settings_definition.py`:200
-  Handle multi-language `display_name` and `help_text`
-- `src/seedsigner/models/settings_definition.py`:328
-  Full babel multilanguage support! Until then, type == HIDDEN
-- `src/seedsigner/models/settings_definition.py`:337
-  Support other bip-39 wordlist languages! Until then, type == HIDDEN
-- `src/seedsigner/models/settings_definition.py`:440
-  No real Developer options needed yet. Disable for now.
