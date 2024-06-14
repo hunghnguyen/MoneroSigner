@@ -60,6 +60,7 @@ class PSBTParser():
 
 
     def _set_root(self):
+        pass
         # self.root = bip32.HDKey.from_seed(self.seed.seed_bytes, version=NETWORKS[SettingsConstants.network_name(self.network)]["xprv"])  # TODO: 2024-06-14 removed to remove embit.bip39, expect to be deleted all and write from ground up for monero
 
 
@@ -128,10 +129,10 @@ class PSBTParser():
                 #    sc = script.p2sh(script.p2wsh(out.witness_script))
 
                 # single-sig
-                elif "pkh" in self.policy["type"]:
-                    my_pubkey = None
+                #elif "pkh" in self.policy["type"]:  # TODO: 2024-06-14, removed whole block to remove embit.script
+                #    my_pubkey = None
                     # should be one or zero for single-key addresses
-                    # if len(out.bip32_derivations.values()) > 0:  # TODO: 2024-06-14, removed whole block to remove embit.script
+                    # if len(out.bip32_derivations.values()) > 0:
                     #     der = list(out.bip32_derivations.values())[0].derivation
                     #     my_pubkey = self.root.derive(der)
                     # if self.policy["type"] == "p2wpkh" and my_pubkey is not None:
@@ -139,8 +140,8 @@ class PSBTParser():
                     # elif self.policy["type"] == "p2sh-p2wpkh" and my_pubkey is not None:
                     #     sc = script.p2sh(script.p2wpkh(my_pubkey))
 
-                    if sc.data == self.psbt.tx.vout[i].script_pubkey.data:
-                        is_change = True
+                    #if sc.data == self.psbt.tx.vout[i].script_pubkey.data:
+                    #    is_change = True
 
                 if sc.data == self.psbt.tx.vout[i].script_pubkey.data:
                     is_change = True
