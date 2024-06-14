@@ -57,6 +57,7 @@
 - [ ] Implement UR [foundation-ur-py](https://github.com/DiosDelRayo/foundation-ur-py)
 - [ ] Create companion application
 - [ ] Modify [Monero GUI](https://github.com/DiosDelRayo/monero-gui)
+- [ ] tools/increment_version.py needs also to update the version in setup.py
 ---
 ## Considerations:
 - [?] Shoud feather wallet 14 words seed be offered to be imported?
