@@ -1,8 +1,6 @@
 import json
 import re
 
-from embit.descriptor import Descriptor
-
 from seedsigner.gui.screens.screen import RET_CODE__BACK_BUTTON
 from seedsigner.models import DecodeQR, Seed
 from seedsigner.models.settings import SettingsConstants
@@ -75,7 +73,8 @@ class ScanView(View):
                     print(repr(e))
                     descriptor_str = orig_descriptor_str
 
-                descriptor = Descriptor.from_string(descriptor_str)
+                # descriptor = Descriptor.from_string(descriptor_str)  # TODO: 2024-06-14, removed to get rid of embit.descriptor.Descriptor
+                descriptor = None  # TODO: 2024-06-14, removed to get rid of embit.descriptor.Descriptor
 
                 if not descriptor.is_basic_multisig:
                     # TODO: Handle single-sig descriptors?

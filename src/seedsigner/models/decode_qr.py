@@ -6,7 +6,6 @@ import re
 from binascii import a2b_base64, b2a_base64
 from monero.address import address as monero_address
 from enum import IntEnum
-from embit import psbt, bip39
 from pyzbar import pyzbar
 from pyzbar.pyzbar import ZBarSymbol
 from urtypes.crypto import PSBT as UR_PSBT
@@ -18,6 +17,8 @@ from seedsigner.models.psbt_parser import PSBTParser
 
 from . import QRType, Seed
 from .settings import SettingsConstants
+from monero.seed import Seed as MoneroSeed
+from binascii import hexlify
 
 
 logger = logging.getLogger(__name__)
@@ -132,7 +133,8 @@ class DecodeQR:
             data = self.get_data_psbt()
             if data != None:
                 try:
-                    return psbt.PSBT.parse(data)
+                    # return psbt.PSBT.parse(data)  # TODO: 2024-06-14, needs to be adapted for monero
+                    raise Exception('fixme')  # TODO: 2024-06-14, needs to be adapted for monero
                 except:
                     return None
         return None
@@ -397,7 +399,7 @@ class DecodeQR:
     def is_base64_psbt(s):
         try:
             if DecodeQR.is_base64(s):
-                psbt.PSBT.parse(a2b_base64(s))
+                # psbt.PSBT.parse(a2b_base64(s))  # TODO: 2024-06-14, adapt to monero
                 return True
         except Exception:
             return False
@@ -407,7 +409,7 @@ class DecodeQR:
     @staticmethod
     def is_base43_psbt(s):
         try:
-            psbt.PSBT.parse(DecodeQR.base43_decode(s))
+            # psbt.PSBT.parse(DecodeQR.base43_decode(s))  # TODO: 2024-06-14, adapt to monero
             return True
         except Exception:
             return False
@@ -699,7 +701,7 @@ class SeedQrDecoder(BaseSingleFrameQrDecoder):
 
         if qr_type == QRType.SEED__COMPACTSEEDQR:
             try:
-                self.seed_phrase = bip39.mnemonic_from_bytes(segment).split()  # TODO: 2024-06-10, fix to monero (and polyseed?)
+                self.seed_phrase = MoneroSeed(hexlify(segment)).phrase.split()  # TODO: 2024-06-10, fix to monero (and polyseed?)
                 self.complete = True
                 self.collected_segments = 1
                 return DecodeQRStatus.COMPLETE
@@ -711,7 +713,7 @@ class SeedQrDecoder(BaseSingleFrameQrDecoder):
             try:
                 seed_phrase_list = self.seed_phrase = segment.strip().split(" ")
 
-                # embit mnemonic code to validate
+                # TODO: 2024-06-14, modify to work with monero seed and polyseed
                 seed = Seed(seed_phrase_list, passphrase="", wordlist_language_code=self.wordlist_language_code)
                 if not seed:
                     # seed is not valid, return invalid
@@ -734,7 +736,7 @@ class SeedQrDecoder(BaseSingleFrameQrDecoder):
                     _4LETTER_WORDLIST = [word[:4].strip() for word in self.wordlist]
                     words.append(self.wordlist[_4LETTER_WORDLIST.index(s)])
 
-                # embit mnemonic code to validate
+                # TODO: 2024-06-14, adapt for monero seed AND polyseed
                 seed = Seed(words, passphrase="", wordlist_language_code=self.wordlist_language_code)
                 if not seed:
                     # seed is not valid, return invalid
@@ -958,10 +960,8 @@ class GenericWalletQrDecoder(BaseSingleFrameQrDecoder):
 
 
     def add(self, segment, qr_type=QRType.WALLET__GENERIC):
-        from embit.descriptor import Descriptor
         try:
-            # Validate via embit
-            Descriptor.from_string(segment)
+            # TODO: 2024-06-14, validate
             self.descriptor = segment
             self.complete = True
             return DecodeQRStatus.COMPLETE

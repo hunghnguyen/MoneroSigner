@@ -2,20 +2,16 @@ import math
 
 from monero.wallet import Wallet
 
-from embit import bip32
-from embit.networks import NETWORKS
 from binascii import b2a_base64, hexlify
 from dataclasses import dataclass
 from typing import List
-from embit import bip32
-from embit.networks import NETWORKS
-from embit.psbt import PSBT
 from seedsigner.helpers.ur2.ur_encoder import UREncoder
 from seedsigner.helpers.ur2.ur import UR
 from seedsigner.helpers.qr import QR
 from seedsigner.models import Seed, QRType
 
 from urtypes.crypto import PSBT as UR_PSBT
+from urtypes.crypto import PSBT  # TODO: 2024-06-14, used as quickfix to remove embit.psbt.PSBT! Adapt for monero
 from urtypes.crypto import Account, HDKey, Output, Keypath, PathComponent, SCRIPT_EXPRESSION_TAG_MAP
 
 from seedsigner.models.settings import SettingsConstants
@@ -129,7 +125,7 @@ class UrPsbtQrEncoder(BasePsbtQrEncoder):
         super().__init__(psbt)
         self.qr_max_fragment_size = 20
         
-        qr_ur_bytes = UR("crypto-psbt", UR_PSBT(self.psbt.serialize()).to_cbor())
+        qr_ur_bytes = UR('crypto-psbt', UR_PSBT(self.psbt.serialize()).to_cbor())
 
         if qr_density == SettingsConstants.DENSITY__LOW:
             self.qr_max_fragment_size = 10
@@ -184,6 +180,7 @@ class SeedQrEncoder(BaseQrEncoder):
 
 
 class CompactSeedQrEncoder(SeedQrEncoder):
+
     def next_part(self):
         # Output as binary data format
         binary_str = ""

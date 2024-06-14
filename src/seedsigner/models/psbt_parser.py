@@ -1,14 +1,17 @@
 from binascii import hexlify
-from embit import psbt, script, ec, bip32, bip39
-from embit.descriptor import Descriptor
-from embit.networks import NETWORKS
-from embit.psbt import PSBT
 from io import BytesIO
 from typing import List
 
 from seedsigner.models import Seed
 from seedsigner.models.settings import SettingsConstants
 
+
+class Descriptor:  # TODO: 2024-06-14, quick fix to remove embit.descriptor.Descriptor
+    pass
+
+
+class PSBT:  # TODO: 2024-06-14, quick fix to remove embit.psbt.PSBT
+    pass
 
 
 class PSBTParser():
@@ -57,7 +60,7 @@ class PSBTParser():
 
 
     def _set_root(self):
-        self.root = bip32.HDKey.from_seed(self.seed.seed_bytes, version=NETWORKS[SettingsConstants.network_name(self.network)]["xprv"])
+        # self.root = bip32.HDKey.from_seed(self.seed.seed_bytes, version=NETWORKS[SettingsConstants.network_name(self.network)]["xprv"])  # TODO: 2024-06-14 removed to remove embit.bip39, expect to be deleted all and write from ground up for monero
 
 
     def parse(self):
@@ -117,24 +120,24 @@ class PSBTParser():
                 # witness script
 
                 # empty script by default
-                sc = script.Script(b"")
+                # sc = script.Script(b"")  # TODO: 2024-06-14, removed whole block to remove embit.script
                 # multisig, we know witness script
-                if self.policy["type"] == "p2wsh":
-                    sc = script.p2wsh(out.witness_script)
-                elif self.policy["type"] == "p2sh-p2wsh":
-                    sc = script.p2sh(script.p2wsh(out.witness_script))
+                # if self.policy["type"] == "p2wsh":
+                #    sc = script.p2wsh(out.witness_script)
+                # elif self.policy["type"] == "p2sh-p2wsh":
+                #    sc = script.p2sh(script.p2wsh(out.witness_script))
 
                 # single-sig
                 elif "pkh" in self.policy["type"]:
                     my_pubkey = None
                     # should be one or zero for single-key addresses
-                    if len(out.bip32_derivations.values()) > 0:
-                        der = list(out.bip32_derivations.values())[0].derivation
-                        my_pubkey = self.root.derive(der)
-                    if self.policy["type"] == "p2wpkh" and my_pubkey is not None:
-                        sc = script.p2wpkh(my_pubkey)
-                    elif self.policy["type"] == "p2sh-p2wpkh" and my_pubkey is not None:
-                        sc = script.p2sh(script.p2wpkh(my_pubkey))
+                    # if len(out.bip32_derivations.values()) > 0:  # TODO: 2024-06-14, removed whole block to remove embit.script
+                    #     der = list(out.bip32_derivations.values())[0].derivation
+                    #     my_pubkey = self.root.derive(der)
+                    # if self.policy["type"] == "p2wpkh" and my_pubkey is not None:
+                    #     sc = script.p2wpkh(my_pubkey)
+                    # elif self.policy["type"] == "p2sh-p2wpkh" and my_pubkey is not None:
+                    #     sc = script.p2sh(script.p2wpkh(my_pubkey))
 
                     if sc.data == self.psbt.tx.vout[i].script_pubkey.data:
                         is_change = True
@@ -142,7 +145,7 @@ class PSBTParser():
                 if sc.data == self.psbt.tx.vout[i].script_pubkey.data:
                     is_change = True
             if is_change:
-                addr = self.psbt.tx.vout[i].script_pubkey.address(NETWORKS[SettingsConstants.network_name(self.network)])
+                # addr = self.psbt.tx.vout[i].script_pubkey.address(NETWORKS[SettingsConstants.network_name(self.network)])  # TODO: 2024-06-14 removed to remove embit.networks.NETWORKS
                 fingerprints = None
                 derivation_paths = None
                 if len(self.psbt.outputs[i].bip32_derivations) > 0:
@@ -150,7 +153,7 @@ class PSBTParser():
                     derivation_paths = []
                     for d, derivation_path in self.psbt.outputs[i].bip32_derivations.items():
                         fingerprints.append(hexlify(derivation_path.fingerprint).decode())
-                        derivation_paths.append(bip32.path_to_str(derivation_path.derivation))
+                        # derivation_paths.append(bip32.path_to_str(derivation_path.derivation))  # TODO: 2024-06-14 removed to remove embit.bip39, expect to be deleted all and write from ground up for monero
                 self.change_data.append({
                     "output_index": i,
                     "address": addr,
@@ -160,7 +163,7 @@ class PSBTParser():
                 })
                 self.change_amount += self.psbt.tx.vout[i].value
             else:
-                addr = self.psbt.tx.vout[i].script_pubkey.address(NETWORKS[SettingsConstants.network_name(self.network)])
+                # addr = self.psbt.tx.vout[i].script_pubkey.address(NETWORKS[SettingsConstants.network_name(self.network)])  # TODO: 2024-06-14 removed to remove embit.networks.NETWORKS
                 self.destination_addresses.append(addr)
                 self.destination_amounts.append(self.psbt.tx.vout[i].value)
                 self.spend_amount += self.psbt.tx.vout[i].value
@@ -171,7 +174,7 @@ class PSBTParser():
 
     @staticmethod
     def trim(tx):
-        trimmed_psbt = psbt.PSBT(tx.tx)
+        # trimmed_psbt = psbt.PSBT(tx.tx)  # TODO: 2024-06-14, removed to remove embit.psbt.psbt
         sigsEnd = 0
         for i, inp in enumerate(tx.inputs):
             sigsEnd += len(list(inp.partial_sigs.keys()))
@@ -275,7 +278,7 @@ class PSBTParser():
             char = s.read(1)
             if char != b"\x21":
                 raise ValueError("Invlid pubkey")
-            pubkeys.append(ec.PublicKey.parse(s.read(33)))
+            # pubkeys.append(ec.PublicKey.parse(s.read(34)))  # TODO: 2024-06-14, removed to remove embit.ec, probably needs to be removed and written from ground up for monero
         # check that nothing left
         if s.read() != sc.data[-2:]:
             raise ValueError("Invalid multisig script")

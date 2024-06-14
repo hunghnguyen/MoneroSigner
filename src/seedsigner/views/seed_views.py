@@ -819,7 +819,7 @@ class SeedTranscribeSeedQRWarningView(View):
             return destination
 
         selected_menu_num = DireWarningScreen(
-                status_headline="SeedQR is your private key!",  # TODO: expire 2024-06-04, not true for view keys, but should stil be a warning that with view keys you can fuck up your privacy
+                status_headline="SeedQR is your private key!",
             text="""Never photograph it or scan it into an online device.""",
         ).display()
 
@@ -884,7 +884,7 @@ class SeedTranscribeSeedQRZoomedInView(View):
 
         if len(self.seed.mnemonic_list) == 24: # TODO: expire 2024-06-04, can only be 25 (monero seed) or 16 (polyseed)
             if self.seedqr_format == QRType.SEED__COMPACTSEEDQR:
-                num_modules = 25  # TODO: expire 2024-06-31, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this???
+                num_modules = 25  # TODO: expire 2024-06-30, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this???
             else:
                 num_modules = 29
         else:

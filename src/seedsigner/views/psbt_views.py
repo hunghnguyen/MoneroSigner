@@ -1,9 +1,6 @@
 import logging
 from typing import List
 
-from embit.psbt import PSBT
-from embit import script
-from embit.networks import NETWORKS
 from seedsigner.controller import Controller
 
 from seedsigner.gui.components import FontAwesomeIconConstants, SeedSignerCustomIconConstants
@@ -20,6 +17,8 @@ from .view import BackStackView, MainMenuView, NotYetImplementedView, View, Dest
 logger = logging.getLogger(__name__)
 
 
+class PSBT:  # TODO: 2024-06-14, quick fix to remove embit.psbt.PSBT
+    pass
 
 class PSBTSelectSeedView(View):
     def run(self):
@@ -356,7 +355,7 @@ class PSXMRhangeDetailsView(View):
                 loading_screen.start()
 
                 # convert change address to script pubkey to get script type
-                pubkey = script.address_to_scriptpubkey(change_data["address"])
+                # pubkey = script.address_to_scriptpubkey(change_data["address"])  # TODO: 2024-06-14, removed to get rid of embit.script
                 script_type = pubkey.script_type()
                 
                 # extract derivation path to get wallet and change derivation
@@ -369,19 +368,21 @@ class PSXMRhangeDetailsView(View):
                 )
                 
                 # take script type and call script method to generate address from seed / derivation
-                xpub_key = xpub.derive(change_path).key
+                # xpub_key = xpub.derive(change_path).key
                 network = self.settings.get_value(SettingsConstants.SETTING__NETWORK)
-                scriptcall = getattr(script, script_type)
+                # scriptcall = getattr(script, script_type)  # TODO: 2024-06-14, removed to get rid of embit.script
                 if script_type == "p2sh":
                     # single sig only so p2sh is always p2sh-p2wpkh
-                    calc_address = script.p2sh(script.p2wpkh(xpub_key)).address(
-                        network=NETWORKS[SettingsConstants.network_name(network)]
-                    )
+                    # calc_address = script.p2sh(script.p2wpkh(xpub_key)).address(  # TODO: 2024-06-14, removed to get rid of embit.script
+                    #    network=NETWORKS[SettingsConstants.network_name(network)]
+                    #)
+                    pass
                 else:
                     # single sig so this handles p2wpkh and p2wpkh (and p2tr in the future)
-                    calc_address = scriptcall(xpub_key).address(
-                        network=NETWORKS[SettingsConstants.network_name(network)]
-                    )
+                    # calc_address = scriptcall(xpub_key).address(  # TODO: 2024-06-14, removed to get rid of embit.network.NETWORKS
+                    #    network=NETWORKS[SettingsConstants.network_name(network)]
+                    #)
+                    pass
 
                 if change_data["address"] == calc_address:
                     is_change_addr_verified = True

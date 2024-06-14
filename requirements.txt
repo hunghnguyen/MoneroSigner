@@ -1,6 +1,5 @@
 -e git+https://github.com/DiosDelRayo/monero-python.git#egg=monero
 -e git+https://github.com/DiosDelRayo/polyseed-python.git#egg=polyseed
-embit @ git+https://github.com/seedsigner/embit.git@03cba13e0add64b241972c67e2aa970cb2e3a5d2
 numpy==1.21.1
 picamera==1.13
 Pillow==8.2.0
