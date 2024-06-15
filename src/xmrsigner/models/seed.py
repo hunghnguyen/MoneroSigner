@@ -87,7 +87,7 @@ class Seed:
 
     @property
     def has_passphrase(self) -> bool:
-        return self._passphrase is not None and self._passphrase is not ''
+        return self._passphrase is not None and self._passphrase != ''
 
     def set_passphrase(self, passphrase: Optional[str] = None, regenerate_seed: bool = True):
         if passphrase and passphrase != '':

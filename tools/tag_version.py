@@ -19,8 +19,8 @@ class VersionTagger:
         version = self.current_version.copy()
         if version[2] == 0:
             del version[2]
-            v = [str(i) for i in version]
-        return f"v{'.'.join(v)}"
+        v = '.'.join([str(i) for i in version])
+        return f"v{v}"
 
     def exec(self, commit: bool, push: bool) -> None:
         # try:
