@@ -27,6 +27,7 @@ class VersionTagger:
         self.add()
         if commit:
             self.commit()
+        self.tag()
         if push:
             self.push()
         # except Exception as e:
@@ -40,6 +41,10 @@ class VersionTagger:
         version = [str(i) for i in self.current_version]
         msg = f"updated version in {self.file_path} to {'.'.join(version)}"
         cmd = f'git commit -m "{msg}"'
+        run(cmd, shell=True)
+
+    def tag(self) -> None:
+        cmd = f'git tag --force {self.version_short()}'
         run(cmd, shell=True)
 
     def push(self) -> None:

@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="MoneroSigner",
-    version="0.1.3",
+    version="0.2.0",
     author="MoneroSigner",
     author_email="author@example.com",
     description="Build an offline, airgapped Bitcoin signing device for less than $50!",
