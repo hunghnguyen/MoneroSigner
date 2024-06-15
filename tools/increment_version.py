@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser
-from re import search
+from re import search, sub
 
 class VersionUpdater:
 
@@ -34,7 +34,15 @@ class VersionUpdater:
             new_version = f'{major_num}.{minor_num}.{patch_num + 1}'
         
         self.update_version(new_version)
+        self.current_version = new_version
         print(f'Version updated to {new_version}')
+
+    def update_setup_py_version(self, file_path: str) -> None:
+        with open(file_path, 'r') as file:
+            file_data = file.read()
+        updated_data = sub(r'version=[\'"]\d\.\d\.\d[\'"]', f'version="{self.current_version}"', file_data)
+        with open(file_path, 'w') as file:
+            file.write(updated_data)
 
 def main():
     parser = ArgumentParser(description='Increment version in controller.py')
@@ -44,8 +52,9 @@ def main():
     
     args = parser.parse_args()
     
-    updater = VersionUpdater('src/seedsigner/controller.py')
+    updater = VersionUpdater('src/xmrsigner/controller.py')
     updater.increment_version(args.major, args.minor, args.patch)
+    updater.update_setup_py_version('setup.py')
 
 if __name__ == '__main__':
     main()

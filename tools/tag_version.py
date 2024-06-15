@@ -54,7 +54,7 @@ def main():
     
     args = parser.parse_args()
     
-    tagger = VersionTagger('src/seedsigner/controller.py')
+    tagger = VersionTagger('src/xmrsigner/controller.py')
     tagger.exec(args.commit, args.push)
 
 if __name__ == '__main__':
