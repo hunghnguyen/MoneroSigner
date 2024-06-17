@@ -57,9 +57,9 @@ class ToolsMenuView(View):
         EXPLORER = "Address Explorer"
         ADDRESS = "Verify address"
         if self.secure_only or self.settings.get_value(SettingsConstants.SEETING__LOW_SECURITY) == SettingsConstants.OPTION__DISABLED:
-            button_data = [IMAGE, DICE, EXPLORER, ADDRESS]
+            button_data = [IMAGE, DICE]  # , EXPLORER, ADDRESS]  # TODO: 2024-06-17, activate when it works
         else:
-            button_data = [IMAGE, DICE, KEYBOARD, EXPLORER, ADDRESS]
+            button_data = [IMAGE, DICE, KEYBOARD]  # , EXPLORER, ADDRESS]  # TODO: 2024-06-17, activate when it works
         selected_menu_num = self.run_screen(
             ButtonListScreen,
             title="Tools",
