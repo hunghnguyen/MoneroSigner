@@ -1,7 +1,8 @@
-import base64
-import json
-import logging
-import re
+from base64 import b64encode, b64decode
+from json import loads
+from json.decoder import JSONDecodeError
+from re import search, IGNORECASE
+from logging import getLogger
 
 from binascii import a2b_base64, b2a_base64
 from monero.address import address as monero_address
@@ -9,19 +10,19 @@ from enum import IntEnum
 from pyzbar import pyzbar
 from pyzbar.pyzbar import ZBarSymbol
 from urtypes.crypto import PSBT as UR_PSBT
-from urtypes.crypto import Account, HDKey, Output, Keypath, PathComponent, SCRIPT_EXPRESSION_TAG_MAP
+from urtypes.crypto import Account, Output
 from urtypes.bytes import Bytes
 
 from xmrsigner.helpers.ur2.ur_decoder import URDecoder
-from xmrsigner.models.psbt_parser import PSBTParser
 
-from . import QRType, Seed
-from .settings import SettingsConstants
+from xmrsigner.models.qr_type import QRType
+from xmrsigner.models.seed import Seed
+from xmrsigner.models.settings import SettingsConstants
 from monero.seed import Seed as MoneroSeed
 from binascii import hexlify
 
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 
@@ -83,6 +84,9 @@ class DecodeQR:
             elif self.qr_type == QRType.MONERO_ADDRESS:
                 self.decoder = MoneroAddressQrDecoder() # Single Segment monero address
 
+            elif self.qr_type == QRType.SIGN_MESSAGE:
+                self.decoder = SignMessageQrDecoder() # Single Segment sign message request
+
             elif self.qr_type == QRType.WALLET__GENERIC:
                 self.decoder = GenericWalletQrDecoder()
                 
@@ -127,7 +131,9 @@ class DecodeQR:
                 self.complete = True
             return rt
 
-
+    # TODO:SEEDSIGNER: Refactor all of these specific `get_` to just something generic like
+    #   `get_data` and let each QRDecoder class return whatever it needs to as a
+    #   str, tuple, dict, etc?
     def get_psbt(self):
         if self.complete:
             data = self.get_data_psbt()
@@ -152,7 +158,6 @@ class DecodeQR:
 
         return None
 
-
     def get_base64_psbt(self):
         if self.complete:
             data = self.get_data_psbt()
@@ -164,31 +169,29 @@ class DecodeQR:
             return b64_psbt.decode("utf-8")
         return None
 
-
     def get_seed_phrase(self):
         if self.is_seed:
             return self.decoder.get_seed_phrase()
 
-
     def get_settings_data(self):
         if self.is_settings:
-            return self.decoder.settings
-
-
-    def get_settings_config_name(self):
-        if self.is_settings:
-            return self.decoder.config_name
-
+            return self.decoder.data
 
     def get_address(self):
         if self.is_address:
             return self.decoder.get_address()
 
+    def get_qr_data(self) -> dict:
+        """
+        This provides a single access point for external code to retrieve the QR data,
+        regardless of which decoder is actually instantiated.
+        """
+        # TODO:SEEDSIGNER: Implement this approach across all decoders, COMMENT: probably unnecesary with a refactoring
+        return self.decoder.get_qr_data()
 
     def get_address_type(self):
         if self.is_address:
             return self.decoder.get_address_type()
-
 
     def get_wallet_descriptor(self):
         if self.is_wallet_descriptor:
@@ -206,7 +209,6 @@ class DecodeQR:
                 # All the other wallet output descriptor decoder types use the same method signature
                 return self.decoder.get_wallet_descriptor()
 
-
     def get_percent_complete(self) -> int:
         if not self.decoder:
             return 0
@@ -220,20 +222,20 @@ class DecodeQR:
                 return 100
             else:
                 return 0
-
         else:
             return 0
 
+    @property
+    def is_sign_message(self):
+        return self.qr_type == QRType.SIGN_MESSAGE
 
     @property
     def is_complete(self) -> bool:
         return self.complete
 
-
     @property
     def is_invalid(self) -> bool:
         return self.qr_type == QRType.INVALID
-
 
     @property
     def is_psbt(self) -> bool:
@@ -252,17 +254,14 @@ class DecodeQR:
             QRType.SEED__MNEMONIC, 
             QRType.SEED__FOUR_LETTER_MNEMONIC,
         ]
-    
 
     @property
     def is_json(self):
         return self.qr_type in [QRType.SETTINGS, QRType.JSON]
-        
 
     @property
     def is_address(self):
         return self.qr_type == QRType.MONERO_ADDRESS
-        
 
     @property
     def is_wallet_descriptor(self):
@@ -280,7 +279,6 @@ class DecodeQR:
     def is_settings(self):
         return self.qr_type == QRType.SETTINGS
 
-
     @staticmethod
     def extract_qr_data(image, is_binary:bool = False) -> str:
         if image is None:
@@ -295,7 +293,6 @@ class DecodeQR:
         for barcode in barcodes:
             # Only pull and return the first barcode
             return barcode.data
-
 
     @staticmethod
     def detect_segment_type(s, wordlist_language_code=None):
@@ -312,16 +309,16 @@ class DecodeQR:
                 s = s.decode('utf-8')
 
             # PSBT
-            if re.search("^UR:CRYPTO-PSBT/", s, re.IGNORECASE):
+            if search("^UR:CRYPTO-PSBT/", s, IGNORECASE):
                 return QRType.PSBT__UR2
                 
-            elif re.search("^UR:CRYPTO-OUTPUT/", s, re.IGNORECASE):
+            elif search("^UR:CRYPTO-OUTPUT/", s, IGNORECASE):
                 return QRType.OUTPUT__UR
                 
-            elif re.search("^UR:CRYPTO-ACCOUNT/", s, re.IGNORECASE):
+            elif search("^UR:CRYPTO-ACCOUNT/", s, IGNORECASE):
                 return QRType.ACCOUNT__UR
 
-            elif re.search("^UR:BYTES/", s, re.IGNORECASE):
+            elif search("^UR:BYTES/", s, IGNORECASE):
                 return QRType.BYTES__UR
 
             elif DecodeQR.is_base64_psbt(s):
@@ -335,15 +332,19 @@ class DecodeQR:
                 return QRType.WALLET__GENERIC
 
             # Seed
-            if re.search(r'\d{52,100}', s):  # TODO: 2024-06-15, handle Polyseed different from here? 52 decimals (13 words, 100 decimals (25 words), 16 polyseed words would be 64 decimals
+            if search(r'\d{52,100}', s):  # TODO: 2024-06-15, handle Polyseed different from here? 52 decimals (13 words, 100 decimals (25 words), 16 polyseed words would be 64 decimals
                 return QRType.SEED__SEEDQR
 
             # Monero Address
             elif DecodeQR.is_monero_address(s):
                 return QRType.MONERO_ADDRESS
+ 
+            # message signing
+            elif DecodeQR.is_sign_message(s):
+                return QRType.SIGN_MESSAGE
 
             # config data
-            if "type=settings" in s:
+            if s.startswith("settings::"):
                 return QRType.SETTINGS
 
             # Seed
@@ -386,14 +387,12 @@ class DecodeQR:
 
         return QRType.INVALID
 
-
     @staticmethod   
     def is_base64(s):
         try:
-            return base64.b64encode(base64.b64decode(s)) == s.encode('ascii')
+            return b64encode(b64decode(s)) == s.encode('ascii')
         except Exception:
             return False
-
 
     @staticmethod   
     def is_base64_psbt(s):
@@ -405,7 +404,6 @@ class DecodeQR:
             return False
         return False
 
-
     @staticmethod
     def is_base43_psbt(s):
         try:
@@ -413,7 +411,6 @@ class DecodeQR:
             return True
         except Exception:
             return False
-
 
     @staticmethod
     def base43_decode(s):
@@ -460,7 +457,11 @@ class DecodeQR:
             return True
         except:
             return False
-    
+
+    @staticmethod
+    def is_sign_message(s):
+        return type(s) == str and s.startswith("signmessage")
+
     @staticmethod
     def multisig_setup_file_to_descriptor(text) -> str:
         # sample text file, parse the contents and create descriptor
@@ -506,7 +507,7 @@ class DecodeQR:
         
             if label == 'policy':
                 try:
-                    match = re.search(r'(\d+)\D*(\d+)', value)
+                    match = search(r'(\d+)\D*(\d+)', value)
                     m = int(match.group(1))
                     n = int(match.group(2))
                 except:
@@ -569,13 +570,15 @@ class BaseQrDecoder:
     def add(self, segment, qr_type):
         raise Exception("Not implemented in child class")
 
+    def get_qr_data(self) -> dict:
+        # TODO:SEEDSIGNER: standardize this approach across all decoders (example: SignMessageQrDecoder)
+        raise Exception("get_qr_data must be implemented in decoder child class")
 
 
 class BaseSingleFrameQrDecoder(BaseQrDecoder):
     def __init__(self):
         super().__init__()
         self.total_segments = 1
-
 
 
 class BaseAnimatedQrDecoder(BaseQrDecoder):
@@ -767,92 +770,63 @@ class SeedQrDecoder(BaseSingleFrameQrDecoder):
 
 
 
-# TODO:SEEDSIGNER: Refactor this to work with the new SettingsDefinition
 class SettingsQrDecoder(BaseSingleFrameQrDecoder):
     def __init__(self):
         super().__init__()
-        self.settings = {}
-        self.config_name = None
+        self.data = None
 
 
     def add(self, segment, qr_type=QRType.SETTINGS):
-        # print(f"SettingsQR:\n{segment}")
-        try:
-            self.settings = {}
+        """
+            * Ignores unrecognized settings options.
+            * Raises an Exception if a settings value is invalid.
 
-            # QR Settings format is space-separated key/value pairs, but should also
-            # parse \n-separated keys.
-            for entry in segment.split():
-                key = entry.split("=")[0].strip()
-                value = entry.split("=")[1].strip()
-                self.settings[key] = value
+            See `Settings.update()` for info on settings validation, especially for
+            missing settings.
+        """
+        if not segment.startswith("settings::"):
+            raise Exception("Invalid SettingsQR data")
+        
+        # Leave any other parsing or validation up to the Settings class itself.
+        # SettingsQR are just ascii data to hand it over as-is.
+        self.data = segment
 
-            # Remove values only needed for import
-            self.settings.pop("type", None)
-            version = self.settings.pop("version", None)
-            if not version or int(version) != 1:
-                raise Exception(f"Settings QR version {version} not supported")
+        self.complete = True
+        self.collected_segments = 1
+        return DecodeQRStatus.COMPLETE
 
-            self.config_name = self.settings.pop("name", None)
-            if self.config_name:
-                self.config_name = self.config_name.replace("_", " ")
-            
-            # Have to translate the abbreviated settings into the human-readable values
-            # used in the normal Settings.
-            map_abbreviated_enable = {
-                "0": SettingsConstants.OPTION__DISABLED,
-                "1": SettingsConstants.OPTION__ENABLED,
-                "2": SettingsConstants.OPTION__PROMPT,
-            }
-            map_abbreviated_sig_types = {
-                "s": SettingsConstants.SINGLE_SIG,
-                "m": SettingsConstants.MULTISIG,
-            }
 
-            def convert_abbreviated_value(category, key, abbreviation_map, is_list=False, new_key_name=None):
-                try:
-                    if key not in self.settings:
-                        print(f"'{key}' not found in settings")
-                        return
-                    value = self.settings[key]
+class SignMessageQrDecoder(BaseSingleFrameQrDecoder):
+    def __init__(self):
+        super().__init__()
+        self.message = None
+        self.derivation_path = None
 
-                    if not is_list:
-                        new_value = abbreviation_map.get(value)
-                        if not new_value:
-                            logger.error(f"No abbreviation map value for \"{value}\" for setting {key}")
-                            return
-                    else:
-                        # `value` is a comma-separated list; yields list of map matches
-                        values = value.split(",")
-                        new_value = []
-                        for v in values:
-                            mapped_value = abbreviation_map.get(v)
-                            if not mapped_value:
-                                logger.error(f"No abbreviation map value for \"{v}\" for setting {key}")
-                                return
-                            new_value.append(mapped_value)
-                    del self.settings[key]
-                    if new_key_name:
-                        key = new_key_name
-                    if category not in self.settings:
-                        self.settings[category] = {}
-                    self.settings[category][key] = new_value
-                except Exception as e:
-                    logger.exception(e)
-                    return
 
-            convert_abbreviated_value("features", "sigs", map_abbreviated_sig_types, is_list=True, new_key_name="sig_types")
-            convert_abbreviated_value("features", "passphrase", map_abbreviated_enable)
-            convert_abbreviated_value("features", "priv_warn", map_abbreviated_enable, new_key_name="show_privacy_warnings")
-            convert_abbreviated_value("features", "dire_warn", map_abbreviated_enable, new_key_name="show_dire_warnings")
+    def add(self, segment, qr_type=QRType.SIGN_MESSAGE):
+        """
+            Expected QR data format:
 
-            self.complete = True
-            self.collected_segments = 1
-            return DecodeQRStatus.COMPLETE
-        except Exception as e:
-            logger.exception(e)
+            signmessage {derivation_path} ascii:{message}
+        """
+        parts = segment.split()
+        self.derivation_path = parts[1].replace("h", "'")
+        fmt = parts[2].split(":")[0]
+        self.message = segment.split(f"{fmt}:")[1]
+
+        # TODO:SEEDSIGNER: support formats other than ascii?
+        if fmt != "ascii":
+            print(f"Sign message: Unsupported format: {fmt}")
             return DecodeQRStatus.INVALID
+ 
+        self.complete = True
+        self.collected_segments = 1
 
+        return DecodeQRStatus.COMPLETE
+
+
+    def get_qr_data(self) -> dict:
+        return dict(derivation_path=self.derivation_path, message=self.message)
 
 
 class MoneroAddressQrDecoder(BaseSingleFrameQrDecoder):
@@ -866,7 +840,7 @@ class MoneroAddressQrDecoder(BaseSingleFrameQrDecoder):
 
 
     def add(self, segment, qr_type=QRType.MONERO_ADDRESS):
-        r = re.search(r'\b[1-9A-HJ-NP-Za-km-z]{95}\b|[1-9A-HJ-NP-Za-km-z]{106}', segment)
+        r = search(r'\b[1-9A-HJ-NP-Za-km-z]{95}\b|[1-9A-HJ-NP-Za-km-z]{106}', segment)
         if r != None:
             try:
                 a = monero_address(r.group(1))
@@ -903,8 +877,8 @@ class SpecterWalletQrDecoder(BaseAnimatedQrDecoder):
     def validate_json(self) -> str:
         try:
             j = "".join(self.segments)
-            json.loads(j)
-        except json.decoder.JSONDecodeError:
+            loads(j)
+        except JSONDecodeError:
             return False
         return True
 
@@ -913,7 +887,7 @@ class SpecterWalletQrDecoder(BaseAnimatedQrDecoder):
     def is_valid(self):
         if self.validate_json():
             j = "".join(self.segments)
-            data = json.loads(j)
+            data = loads(j)
             if "descriptor" in data:
                 return True
             return False
@@ -922,7 +896,7 @@ class SpecterWalletQrDecoder(BaseAnimatedQrDecoder):
     def get_wallet_descriptor(self) -> str:
         if self.is_valid:
             j = "".join(self.segments)
-            data = json.loads(j)
+            data = loads(j)
             return data['descriptor']
         return None
 
@@ -932,22 +906,22 @@ class SpecterWalletQrDecoder(BaseAnimatedQrDecoder):
 
 
     def current_segment_num(self, segment) -> int:
-        if re.search(r'^p(\d+)of(\d+) ', segment, re.IGNORECASE) != None:
-            return int(re.search(r'^p(\d+)of(\d+) ', segment, re.IGNORECASE).group(1))
+        if search(r'^p(\d+)of(\d+) ', segment, IGNORECASE) != None:
+            return int(search(r'^p(\d+)of(\d+) ', segment, IGNORECASE).group(1))
         else:
             return 1
 
 
     def total_segment_nums(self, segment) -> int:
-        if re.search(r'^p(\d+)of(\d+) ', segment, re.IGNORECASE) != None:
-            return int(re.search(r'^p(\d+)of(\d+) ', segment, re.IGNORECASE).group(2))
+        if search(r'^p(\d+)of(\d+) ', segment, IGNORECASE) != None:
+            return int(search(r'^p(\d+)of(\d+) ', segment, IGNORECASE).group(2))
         else:
             return 1
 
 
     def parse_segment(self, segment) -> str:
         try:
-            return re.search(r'^p(\d+)of(\d+) (.+$)', segment, re.IGNORECASE).group(3)
+            return search(r'^p(\d+)of(\d+) (.+$)', segment, IGNORECASE).group(3)
         except:
             return segment
 

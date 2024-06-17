@@ -1,7 +1,5 @@
-import os
-import random
-import time
-
+from random import uniform, randrange
+from time import time, sleep
 from PIL import Image
 
 from xmrsigner.gui.components import Fonts, GUIConstants, load_image
@@ -28,7 +26,7 @@ class LogoScreen(BaseScreen):
 
 
     def get_random_partner(self) -> str:
-        return self.partners[random.randrange(len(self.partners))]
+        return self.partners[randrange(len(self.partners))]
 
 
 
@@ -64,7 +62,7 @@ class OpeningSplashScreen(LogoScreen):
 
         if show_partner_logos:
             # Hold on the version num for a moment
-            time.sleep(1)
+            sleep(1)
 
             # Set up the partner logo
             partner_logo: Image.Image = self.partner_logos[self.get_random_partner()]
@@ -85,7 +83,7 @@ class OpeningSplashScreen(LogoScreen):
 
             self.renderer.show_image()
 
-        time.sleep(2)
+        sleep(2)
 
 
 
@@ -120,8 +118,8 @@ class ScreensaverScreen(LogoScreen):
     def rand_increment(self):
         max_increment = 10.0
         min_increment = 1.0
-        increment = random.uniform(min_increment, max_increment)
-        if random.uniform(-1.0, 1.0) < 0.0:
+        increment = uniform(min_increment, max_increment)
+        if uniform(-1.0, 1.0) < 0.0:
             return -1.0 * increment
         return increment
 
@@ -135,16 +133,15 @@ class ScreensaverScreen(LogoScreen):
         # Store the current screen in order to restore it later
         self.last_screen = self.renderer.canvas.copy()
 
-        screensaver_start = int(time.time() * 1000)
+        screensaver_start = int(time() * 1000)
 
         # Screensaver must block any attempts to use the Renderer in another thread so it
         # never gives up the lock until it returns.
         with self.renderer.lock:
             try:
-                while True:
-                    if self.buttons.has_any_input():
-                        return self.stop()
-
+                while self._is_running:
+                    if self.buttons.has_any_input() or self.buttons.override_ind:
+                        break
                     # Must crop the image to the exact display size
                     crop = self.image.crop((
                         self.cur_x, self.cur_y,
@@ -179,17 +176,13 @@ class ScreensaverScreen(LogoScreen):
             except KeyboardInterrupt as e:
                 # Exit triggered; close gracefully
                 print("Shutting down Screensaver")
-                self.stop()
 
                 # Have to let the interrupt bubble up to exit the main app
                 raise e
-
-
+            finally:
+                self._is_running = False
+                # Restore the original screen
+                self.renderer.show_image(self.last_screen)
 
     def stop(self):
-        # Restore the original screen
-        self.renderer.show_image(self.last_screen)
-
         self._is_running = False
-
-

@@ -40,6 +40,12 @@ class Keyboard:
         "font": COMPACT_KEY_FONT,
         "size": 1,
     }
+    KEY_SPACE_2 = {
+        "code": "SPACE",
+        "letter": "space",
+        "font": COMPACT_KEY_FONT,
+        "size": 2,
+    }
     KEY_SPACE_3 = {
         "code": "SPACE",
         "letter": "space",
@@ -126,11 +132,11 @@ class Keyboard:
                 font_color = "black"
             else:
                 if self.is_additional_key:
-                    # rect_color = "#111"
-                    rect_color = self.keyboard.background_color
+                    rect_color = "#000"  #TODO: 2024-06-20, WTF, why a html color instead of a constant, change to constant
+                    font_color = "#999"  #TODO: 2024-06-20, WTF, why a html color instead of a constant, change to constant
                 else:
                     rect_color = self.keyboard.background_color
-                font_color = "#e8e8e8"
+                    font_color = "#e8e8e8"  #TODO: 2024-06-20, WTF, why a html color instead of a constant, change to constant
 
             self.keyboard.draw.rounded_rectangle(
                 (
@@ -187,6 +193,7 @@ class Keyboard:
         self.auto_wrap = auto_wrap
         self.background_color = GUIConstants.BUTTON_BACKGROUND_COLOR
         self.deactivated_background_color = GUIConstants.BACKGROUND_COLOR
+        self.additional_key_deactivated_background_color = GUIConstants.BACKGROUND_COLOR
         self.highlight_color = highlight_color
 
         # Does the specified layout work?

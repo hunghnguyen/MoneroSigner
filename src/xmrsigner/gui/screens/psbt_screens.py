@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from lzma import is_check_supported
 from PIL import Image, ImageDraw, ImageFilter
 from xmrsigner.helpers.pillow import get_font_size
 from typing import List
@@ -8,9 +7,20 @@ from xmrsigner.gui.renderer import Renderer
 from xmrsigner.models.threads import BaseThread
 
 from .screen import ButtonListScreen, WarningScreen
-from ..components import (XmrAmount, Button, Icon, FontAwesomeIconConstants, IconTextLine, FormattedAddress, GUIConstants, Fonts, SeedSignerCustomIconConstants, TextArea,
-    calc_bezier_curve, linear_interp)
-
+from ..components import (
+    XmrAmount,
+    Button,
+    Icon,
+    FontAwesomeIconConstants,
+    IconTextLine,
+    FormattedAddress,
+    GUIConstants,
+    Fonts,
+    IconConstants,
+    TextArea,
+    calc_bezier_curve,
+    linear_interp
+)
 
 
 @dataclass
@@ -440,7 +450,7 @@ class PSBTOverviewScreen(ButtonListScreen):
                     self.renderer.show_image()
 
                 # No need to CPU limit when running in its own thread?
-                # time.sleep(0.02)
+                time.sleep(0.02)
 
 
 
@@ -656,8 +666,8 @@ class PSXMRhangeDetailsScreen(ButtonListScreen):
             # Adjust the vertical spacing
             screen_y -= GUIConstants.COMPONENT_PADDING
         self.components.append(IconTextLine(
-            icon_name=SeedSignerCustomIconConstants.FINGERPRINT,
-            icon_color="blue",
+            icon_name=IconConstants.FINGERPRINT,
+            icon_color=GUIConstants.INFO_COLOR,  # TODO: 2024-06-20, probably should change to purple if polyseed?
             value_text=f"""{"Multisig" if self.is_multisig else self.fingerprint}: {"Change" if self.is_change_derivation_path else "Addr"} #{self.derivation_path_addr_index}""",
             is_text_centered=False,
             screen_x=GUIConstants.EDGE_PADDING,
@@ -666,8 +676,8 @@ class PSXMRhangeDetailsScreen(ButtonListScreen):
 
         if self.is_change_addr_verified:
             self.components.append(IconTextLine(
-                icon_name=SeedSignerCustomIconConstants.CIRCLE_CHECK,
-                icon_color="#00dd00",
+                icon_name=IconConstants.SUCCESS,
+                icon_color=GUIConstants.SUCCESS_COLOR,
                 value_text="Address verified!",
                 is_text_centered=False,
                 screen_x=GUIConstants.EDGE_PADDING,
@@ -686,7 +696,7 @@ class PSBTFinalizeScreen(ButtonListScreen):
 
         icon = Icon(
             icon_name=FontAwesomeIconConstants.PAPER_PLANE,
-            icon_color=GUIConstants.SUCCESS_COLOR,
+            icon_color=GUIConstants.INFO_COLOR,
             icon_size=GUIConstants.ICON_LARGE_BUTTON_SIZE,
             screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING
         )
@@ -696,20 +706,4 @@ class PSBTFinalizeScreen(ButtonListScreen):
         self.components.append(TextArea(
             text="Click to authorize this transaction",
             screen_y=icon.screen_y + icon.height + GUIConstants.COMPONENT_PADDING
-        ))
-
-
-
-@dataclass
-class PSBTSelectCoordinatorScreen(ButtonListScreen):
-    def __post_init__(self):
-        # Customize defaults
-        self.title = "Signed PSBT"
-        self.is_bottom_list = True
-        super().__post_init__()
-
-        self.components.append(TextArea(
-            text="Export as a QR code for:",
-            is_text_centered=True,
-            screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING,
         ))

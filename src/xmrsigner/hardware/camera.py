@@ -1,11 +1,9 @@
-import io
-import numpy
-
+from io import BytesIO
 from picamera import PiCamera
 from PIL import Image
-from xmrsigner.models import Singleton
 from xmrsigner.hardware.pivideostream import PiVideoStream
-from xmrsigner.models.settings import SettingsConstants
+from xmrsigner.models.settings import Settings, SettingsConstants
+from xmrsigner.models.singleton import Singleton
 
 
 
@@ -17,7 +15,6 @@ class Camera(Singleton):
     @classmethod
     def get_instance(cls):
         # This is the only way to access the one and only Controller
-        from xmrsigner.models import Settings
         if cls._instance is None:
             cls._instance = cls.__new__(cls)
         cls._instance._camera_rotation = int(Settings.get_instance().get_value(SettingsConstants.SETTING__CAMERA_ROTATION))
@@ -71,7 +68,7 @@ class Camera(Singleton):
         self._picamera.awb_mode = 'off'
         self._picamera.awb_gains = g
 
-        stream = io.BytesIO()
+        stream = BytesIO()
         self._picamera.capture(stream, format='jpeg')
 
         # "Rewind" the stream to the beginning so we can read its content

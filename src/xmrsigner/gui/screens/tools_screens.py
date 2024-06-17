@@ -1,12 +1,24 @@
+from time import sleep
+from typing import Any
 from dataclasses import dataclass
 from PIL.Image import Image
-from xmrsigner.gui.keyboard import Keyboard, TextEntryDisplay
 from xmrsigner.hardware.camera import Camera
-from xmrsigner.gui.components import FontAwesomeIconConstants, Fonts, GUIConstants, IconTextLine, SeedSignerCustomIconConstants, TextArea
+from xmrsigner.gui.components import (
+    FontAwesomeIconConstants,
+    Fonts,
+    GUIConstants,
+    IconTextLine,
+    IconConstants,
+    TextArea
+)
 
-from xmrsigner.gui.screens.screen import RET_CODE__BACK_BUTTON, BaseScreen, BaseTopNavScreen, ButtonListScreen, KeyboardScreen
+from xmrsigner.gui.screens.screen import (
+    RET_CODE__BACK_BUTTON,
+    BaseScreen,
+    ButtonListScreen,
+    KeyboardScreen
+)
 from xmrsigner.hardware.buttons import HardwareButtonsConstants
-
 
 
 @dataclass
@@ -19,8 +31,7 @@ class ToolsImageEntropyLivePreviewScreen(BaseScreen):
         super().__post_init__()
 
         self.camera = Camera.get_instance()
-        self.camera.start_video_stream_mode(resolution=(240, 240), framerate=24, format="rgb")
-
+        self.camera.start_video_stream_mode(resolution=(self.canvas_width, self.canvas_height), framerate=24, format="rgb")
 
     def _run(self):
         # save preview image frames to use as additional entropy below
@@ -29,27 +40,7 @@ class ToolsImageEntropyLivePreviewScreen(BaseScreen):
         instructions_font = Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BUTTON_FONT_SIZE)
 
         while True:
-            frame = self.camera.read_video_stream(as_image=True)
-            if frame is not None:
-                self.renderer.canvas.paste(frame)
-
-                self.renderer.draw.text(
-                    xy=(
-                        int(self.renderer.canvas_width/2),
-                        self.renderer.canvas_height - GUIConstants.EDGE_PADDING
-                    ),
-                    text="< back  |  click joystick",
-                    fill=GUIConstants.BODY_FONT_COLOR,
-                    font=instructions_font,
-                    stroke_width=4,
-                    stroke_fill=GUIConstants.BACKGROUND_COLOR,
-                    anchor="ms"
-                )
-                self.renderer.show_image()
-
-                if len(preview_images) < max_entropy_frames:
-                    preview_images.append(frame)
-
+            # Check for BACK button press
             if self.hw_inputs.check_for_low(HardwareButtonsConstants.KEY_LEFT):
                 # Have to manually update last input time since we're not in a wait_for loop
                 self.hw_inputs.update_last_input_time()
@@ -57,7 +48,15 @@ class ToolsImageEntropyLivePreviewScreen(BaseScreen):
                 self.camera.stop_video_stream_mode()
                 return RET_CODE__BACK_BUTTON
 
-            elif self.hw_inputs.check_for_low(HardwareButtonsConstants.KEY_PRESS):
+            frame = self.camera.read_video_stream(as_image=True)
+
+            if frame is None:
+                # Camera probably isn't ready yet
+                sleep(0.01)
+                continue
+
+            # Check for joystick click to take final entropy image
+            if self.hw_inputs.check_for_low(HardwareButtonsConstants.KEY_PRESS):
                 # Have to manually update last input time since we're not in a wait_for loop
                 self.hw_inputs.update_last_input_time()
                 self.camera.stop_video_stream_mode()
@@ -79,7 +78,28 @@ class ToolsImageEntropyLivePreviewScreen(BaseScreen):
                 self.renderer.show_image()
 
                 return preview_images
+            # If we're still here, it's just another preview frame loop
+            self.renderer.canvas.paste(frame)
 
+            self.renderer.draw.text(
+                xy=(
+                    int(self.renderer.canvas_width/2),
+                    self.renderer.canvas_height - GUIConstants.EDGE_PADDING
+                ),
+                text="< back  |  click joystick",
+                fill=GUIConstants.BODY_FONT_COLOR,
+                font=instructions_font,
+                stroke_width=4,
+                stroke_fill=GUIConstants.BACKGROUND_COLOR,
+                anchor="ms"
+            )
+            self.renderer.show_image()
+
+            if len(preview_images) == max_entropy_frames:
+                # Keep a moving window of the last n preview frames; pop the oldest
+                # before we add the currest frame.
+                preview_images.pop(0)
+            preview_images.append(frame)
 
 
 @dataclass
@@ -163,9 +183,8 @@ class ToolsCalcFinalWordFinalizePromptScreen(ButtonListScreen):
 
         self.components.append(TextArea(
             text=f"The {self.mnemonic_length}th word is built from {self.num_entropy_bits} more entropy bits plus auto-calculated checksum.",
-            screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING,
+            screen_y=self.top_nav.height + int(GUIConstants.COMPONENT_PADDING / 2),
         ))
-
 
 
 @dataclass
@@ -236,25 +255,27 @@ class ToolsCalcFinalWordScreen(ButtonListScreen):
             discard_selected_bits = "_" * (len(self.checksum_bits))
 
         self.components.append(TextArea(
-            text=f"""Your input: \"{selection_text}\"""",
+            text=f'Your input: "{selection_text}"',
             screen_y=self.top_nav.height,
         ))
 
         # ...and that entropy's associated 11 bits
-        screen_y=self.components[-1].screen_y + self.components[-1].height + GUIConstants.COMPONENT_PADDING
-        self.components.append(TextArea(
+        screen_y = self.components[-1].screen_y + self.components[-1].height + GUIConstants.COMPONENT_PADDING
+        first_bits_line = TextArea(
             text=keeper_selected_bits,
             font_name=GUIConstants.FIXED_WIDTH_EMPHASIS_FONT_NAME,
             font_size=bit_font_size,
             edge_padding=0,
             screen_x=bit_display_x,
             screen_y=screen_y,
-            height=bit_font_height,
             is_text_centered=False,
-        ))
+        )
+        self.components.append(first_bits_line)
 
         # Render the least significant bits that will be replaced by the checksum in a
         # de-emphasized font color.
+        if '_' in discard_selected_bits:
+            screen_y += int(first_bits_line.height / 2)  # center the underscores vertically like hypens
         self.components.append(TextArea(
             text=discard_selected_bits,
             font_name=GUIConstants.FIXED_WIDTH_EMPHASIS_FONT_NAME,
@@ -263,7 +284,6 @@ class ToolsCalcFinalWordScreen(ButtonListScreen):
             edge_padding=0,
             screen_x=checksum_x,
             screen_y=screen_y,
-            height=bit_font_height,
             is_text_centered=False,
         ))
 
@@ -271,7 +291,7 @@ class ToolsCalcFinalWordScreen(ButtonListScreen):
         self.components.append(TextArea(
             text="Checksum",
             edge_padding=0,
-            screen_y=self.components[-1].screen_y + self.components[-1].height + 2*GUIConstants.COMPONENT_PADDING,
+            screen_y=first_bits_line.screen_y + first_bits_line.height + 2 * GUIConstants.COMPONENT_PADDING,
         ))
 
         # ...and its actual bits. Prepend spacers to keep vertical alignment
@@ -287,8 +307,7 @@ class ToolsCalcFinalWordScreen(ButtonListScreen):
             font_size=bit_font_size,
             edge_padding=0,
             screen_x=bit_display_x,
-            screen_y=screen_y,
-            height=bit_font_height,
+            screen_y=screen_y + int(first_bits_line.height / 2),  # center the underscores vertically like hypens
             is_text_centered=False,
         ))
 
@@ -306,8 +325,9 @@ class ToolsCalcFinalWordScreen(ButtonListScreen):
 
         # And now the *actual* final word after merging the bit data
         self.components.append(TextArea(
-            text=f"""Final Word: \"{self.actual_final_word}\"""",
+            text=f'Final Word: "{self.actual_final_word}"',
             screen_y=self.components[-1].screen_y + self.components[-1].height + 2*GUIConstants.COMPONENT_PADDING,
+            height_ignores_below_baseline=True,  # Keep the next line (bits display) snugged up, regardless of text rendering below the baseline
         ))
 
         # Once again show the bits that came from the user's entropy...
@@ -352,17 +372,66 @@ class ToolsCalcFinalWordDoneScreen(ButtonListScreen):
         super().__post_init__()
 
         self.components.append(TextArea(
-            text=f"""\"{self.final_word}\"""",
+            text=f'"{self.final_word}"',
             font_size=GUIConstants.TOP_NAV_TITLE_FONT_SIZE + 6,
             is_text_centered=True,
             screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING,
         ))
 
         self.components.append(IconTextLine(
-            icon_name=SeedSignerCustomIconConstants.FINGERPRINT,
-            icon_color="blue",
+            icon_name=IconConstants.FINGERPRINT,
+            icon_color=GUIConstants.FINGERPRINT_MONERO_SEED_COLOR,
             label_text="fingerprint",
             value_text=self.fingerprint,
             is_text_centered=True,
             screen_y=self.components[-1].screen_y + self.components[-1].height + 3*GUIConstants.COMPONENT_PADDING,
         ))
+
+
+@dataclass
+class ToolsAddressExplorerAddressTypeScreen(ButtonListScreen):  # TODO: 2024-06-17, added with rebase from main to 0.7.0 of seedsigner, lot of work to do
+    fingerprint: str = None
+    wallet_descriptor_display_name: Any = None
+    script_type: str = None
+    custom_derivation_path: str = None
+
+    def __post_init__(self):
+        self.title = "Address Explorer"
+        self.is_bottom_list = True
+        super().__post_init__()
+
+        if self.fingerprint:
+            self.components.append(IconTextLine(
+                icon_name=SeedSignerIconConstants.FINGERPRINT,
+                icon_color=GUIConstants.INFO_COLOR,
+                label_text="Fingerprint",
+                value_text=self.fingerprint,
+                screen_x=GUIConstants.EDGE_PADDING,
+                screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING,
+            ))
+
+            if self.script_type != SettingsConstants.CUSTOM_DERIVATION:
+                self.components.append(IconTextLine(
+                    icon_name=SeedSignerIconConstants.DERIVATION,
+                    label_text="Derivation",
+                    value_text=SettingsDefinition.get_settings_entry(attr_name=SettingsConstants.SETTING__SCRIPT_TYPES).get_selection_option_display_name_by_value(value=self.script_type),
+                    screen_x=GUIConstants.EDGE_PADDING,
+                    screen_y=self.components[-1].screen_y + self.components[-1].height + 2*GUIConstants.COMPONENT_PADDING,
+                ))
+            else:
+                self.components.append(IconTextLine(
+                    icon_name=SeedSignerIconConstants.DERIVATION,
+                    label_text="Derivation",
+                    value_text=self.custom_derivation_path,
+                    screen_x=GUIConstants.EDGE_PADDING,
+                    screen_y=self.components[-1].screen_y + self.components[-1].height + 2*GUIConstants.COMPONENT_PADDING,
+                ))
+
+        else:
+            self.components.append(IconTextLine(
+                label_text="Wallet descriptor",
+                value_text=self.wallet_descriptor_display_name,
+                is_text_centered=True,
+                screen_x=GUIConstants.EDGE_PADDING,
+                screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING,
+            ))

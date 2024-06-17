@@ -2,7 +2,7 @@ from binascii import hexlify
 from io import BytesIO
 from typing import List
 
-from xmrsigner.models import Seed
+from xmrsigner.models.seed import Seed
 from xmrsigner.models.settings import SettingsConstants
 
 

@@ -5,11 +5,18 @@ from PIL.Image import Image
 from typing import List
 
 from xmrsigner.gui.renderer import Renderer
-from xmrsigner.hardware.buttons import HardwareButtons
-from xmrsigner.views.screensaver import ScreensaverScreen
+from xmrsigner.hardware.buttons import HardwareButtons  # TODO: 2024-06-20, don't like faster code paying with ugly code, search better solution
+from xmrsigner.views.screensaver import ScreensaverScreen  # TODO: 2024-06-20, don't like faster code paying with ugly code, search better solution
 from xmrsigner.views.view import Destination, NotYetImplementedView, UnhandledExceptionView
 
-from .models import Seed, SeedStorage, Settings, Singleton, PSBTParser
+from xmrsigner.models.seed import Seed
+from xmrsigner.models.seed_storage import SeedStorage
+from xmrsigner.models.settings import Settings
+from xmrsigner.models.singleton import Singleton
+from xmrsigner.models.psbt_parser import PSBTParser
+
+
+MICROSECONDS_PER_MINUTE = 60 * 1000
 
 
 logger = logging.getLogger(__name__)
@@ -44,10 +51,8 @@ class Controller(Singleton):
         rather than at the top in order avoid circular imports.
     """
 
-    VERSION = "0.2.2"
+    VERSION = "0.3.0"
 
-    # Declare class member vars with type hints to enable richer IDE support throughout
-    # the code.
     buttons: HardwareButtons = None
     storage: SeedStorage = None
     settings: Settings = None
@@ -55,7 +60,7 @@ class Controller(Singleton):
 
     # TODO:SEEDSIGNER: Refactor these flow-related attrs that survive across multiple Screens.
     # TODO:SEEDSIGNER: Should all in-memory flow-related attrs get wiped on MainMenuView?
-    # psbt: PSBT = None
+    # psbt: PSBT = None  # TODO: 2024-06-15 removed with empit.psbt.psbt
     psbt = None
     psbt_seed: Seed = None
     psbt_parser: PSBTParser = None
@@ -75,6 +80,8 @@ class Controller(Singleton):
     FLOW__PSBT = "psbt"
     FLOW__VERIFY_MULTISIG_ADDR = "multisig_addr"
     FLOW__VERIFY_SINGLESIG_ADDR = "singlesig_addr"
+    FLOW__ADDRESS_EXPLORER = "address_explorer"
+    FLOW__SIGN_MESSAGE = "sign_message"
     resume_main_flow: str = None
 
     back_stack: BackStack = None
@@ -103,6 +110,9 @@ class Controller(Singleton):
 
             each time you try to re-initialize a Controller.
         """
+        # from xmrsigner.gui.renderer import Renderer  # TODO: 2024-06-17 @see up import statement
+        from xmrsigner.hardware.microsd import MicroSD
+
         # Must be called before the first get_instance() call
         if cls._instance:
             raise Exception("Instance already configured")
@@ -118,9 +128,10 @@ class Controller(Singleton):
             controller.buttons = HardwareButtons.get_instance()
 
         # models
-        # TODO:SEEDSIGNER: Rename "storage" to something more indicative of its temp, in-memory state
-        controller.storage = SeedStorage()
+        controller.storage = SeedStorage()  # TODO:SEEDSIGNER: Rename "storage" to something more indicative of its temp, in-memory state
         controller.settings = Settings.get_instance()
+        controller.microsd = MicroSD.get_instance()
+        controller.microsd.start_detection()
 
         # Store one working psbt in memory
         controller.psbt = None
@@ -129,12 +140,12 @@ class Controller(Singleton):
         # Configure the Renderer
         Renderer.configure_instance()
 
-        controller.screensaver = ScreensaverScreen(controller.buttons)
+        # controller.screensaver = ScreensaverScreen(controller.buttons)  # TODO: 2024-06-20, don't like faster code on the expense of ugly code, search a better solution
 
         controller.back_stack = BackStack()
 
         # Other behavior constants
-        controller.screensaver_activation_ms = 120 * 1000
+        controller.screensaver_activation_ms = 2 * MICROSECONDS_PER_MINUTE
     
         return cls._instance
 
@@ -144,7 +155,6 @@ class Controller(Singleton):
         from .hardware.camera import Camera
         return Camera.get_instance()
 
-
     def get_seed(self, seed_num: int) -> Seed:
         if seed_num < len(self.storage.seeds):
             return self.storage.seeds[seed_num]
@@ -153,9 +163,7 @@ class Controller(Singleton):
 
     def replace_seed(self, seed_num: int, seed: Seed) -> None:
         if seed_num < len(self.storage.seeds):
-            print(self.storage.seeds)
             self.storage.seeds[seed_num] = seed
-            print(self.storage.seeds)
         else:
             raise Exception(f"There is no seed_num {seed_num}; only {len(self.storage.seeds)} in memory.")
 
@@ -165,9 +173,7 @@ class Controller(Singleton):
         else:
             raise Exception(f"There is no seed_num {seed_num}; only {len(self.storage.seeds)} in memory.")
 
-
     def pop_prev_from_back_stack(self):
-        from .views import Destination
         if len(self.back_stack) > 0:
             # Pop the top View (which is the current View_cls)
             self.back_stack.pop()
@@ -181,13 +187,14 @@ class Controller(Singleton):
     def clear_back_stack(self):
         self.back_stack = BackStack()
 
-
     def start(self) -> None:
-        from .views import MainMenuView, BackStackView
-        from .views.screensaver import OpeningSplashScreen
+        """
+            The main loop of the application.
+        """
+        from xmrsigner.views.view import MainMenuView, BackStackView
+        from xmrsigner.views.screensaver import OpeningSplashScreen
 
-        opening_splash = OpeningSplashScreen()
-        opening_splash.start()
+        OpeningSplashScreen().start()
 
         """ Class references can be stored as variables in python!
 
@@ -202,7 +209,7 @@ class Controller(Singleton):
                     def run(self, some_arg, other_arg):
                         print(other_arg)
 
-                class OtherView():
+                class OtherView(View):
                     def run(self):
                         return (MyView, {"some_arg": 1, "other_arg": "hello"})
 
@@ -225,11 +232,14 @@ class Controller(Singleton):
                     # Home always wipes the back_stack
                     self.clear_back_stack()
                     
-                    # Clear other temp vars
+                    # Home always wipes the back_stack/state of temp vars
                     self.resume_main_flow = None
                     self.multisig_wallet_descriptor = None
                     self.unverified_address = None
-
+                    self.address_explorer_data = None
+                    self.psbt = None
+                    self.psbt_parser = None
+                    self.psbt_seed = None
                 
                 print(f"back_stack: {self.back_stack}")
 
@@ -281,10 +291,22 @@ class Controller(Singleton):
             print("Clearing screen, exiting")
             Renderer.get_instance().display_blank_screen()
 
+    @property
+    def is_screensaver_running(self):
+        return self.screensaver is not None and self.screensaver.is_running
+
 
     def start_screensaver(self):
-        self.screensaver.start()
+        print("Controller: Starting screensaver")
+        if not self.screensaver:
+            # Do a lazy/late import and instantiation to reduce Controller initial startup time
+            # from xmrsigner.views.screensaver import ScreensaverScreen  # TODO: 2024-06-15, don't like speed over ugly code, there must be a better solution
+            # from xmrsigner.hardware.buttons import HardwareButtons  # TODO: 2024-06-20, maybe this should not be imported here, check
+            self.screensaver = ScreensaverScreen(HardwareButtons.get_instance())
 
+        # Start the screensaver, but it will block until it can acquire the Renderer.lock.
+        self.screensaver.start()
+        print("Controller: Screensaver started")
 
     def handle_exception(self, e) -> Destination:
         """

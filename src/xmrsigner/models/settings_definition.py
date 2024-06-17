@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, List
+from typing import Any, List, Tuple, Union
 from monero.const import NET_MAIN, NET_TEST, NET_STAGE, NETS
 
 
@@ -12,6 +12,9 @@ class SettingsConstants:
     OPTION__REQUIRED = "R"
     OPTIONS__ENABLED_DISABLED = [
         (OPTION__ENABLED, "Enabled"),
+        (OPTION__DISABLED, "Disabled"),
+    ]
+    OPTIONS__ONLY_DISABLED = [
         (OPTION__DISABLED, "Disabled"),
     ]
     OPTIONS__PROMPT_REQUIRED_DISABLED = [
@@ -39,10 +42,10 @@ class SettingsConstants:
     XMR_DENOMINATION__THRESHOLD = "thr"
     XMR_DENOMINATION__XMRATOMICUNITSHYBRID = "hyb"
     ALL_XMR_DENOMINATIONS = [
-        (XMR_DENOMINATION__XMR, "Xmr-only"),
+        (XMR_DENOMINATION__XMR, "XMR-only"),
         (XMR_DENOMINATION__ATOMICUNITS, "AtomicUnits-only"),
         (XMR_DENOMINATION__THRESHOLD, "Threshold at 0.01"),
-        (XMR_DENOMINATION__XMRATOMICUNITSHYBRID, "Xmr | AtomicUnits hybrid"),
+        (XMR_DENOMINATION__XMRATOMICUNITSHYBRID, "XMR | AtomicUnits hybrid"),
     ]
 
     CAMERA_ROTATION__0 = 0
@@ -55,6 +58,9 @@ class SettingsConstants:
         (CAMERA_ROTATION__180, "180°"),
         (CAMERA_ROTATION__270, "270°"),
     ]
+
+    PERSISTENT_SETTINGS__SD_INSERTED__HELP_TEXT = "Store Settings on SD card"
+    PERSISTENT_SETTINGS__SD_REMOVED__HELP_TEXT = "Insert SD card to enable"
 
     # QR code constants
     DENSITY__LOW = "L"
@@ -147,8 +153,10 @@ class SettingsConstants:
     SETTING__POLYSEED_PASSPHRASE = "polyseed_passphrase"
     SETTING__CAMERA_ROTATION = "camera_rotation"
     SETTING__COMPACT_SEEDQR = "compact_seedqr"
+    SETTING__MESSAGE_SIGNING = "message_signing"
     SETTING__PRIVACY_WARNINGS = "privacy_warnings"
     SETTING__DIRE_WARNINGS = "dire_warnings"
+    SETTING__QR_BRIGHTNESS_TIPS = "qr_brightness_tips"
     SETTING__PARTNER_LOGOS = "partner_logos"
 
     SETTING__DEBUG = "debug"
@@ -166,7 +174,6 @@ class SettingsConstants:
 
     VISIBILITY__GENERAL = "general"
     VISIBILITY__ADVANCED = "advanced"
-    VISIBILITY__DEVELOPER = "developer"
     VISIBILITY__HIDDEN = "hidden"   # For data-only (e.g. custom_derivation), not configurable by the user
 
     # TODO:SEEDSIGNER: Is there really a difference between ENABLED and PROMPT?
@@ -201,12 +208,11 @@ class SettingsEntry:
     category: str
     attr_name: str
     display_name: str
-    verbose_name: str = None
     abbreviated_name: str = None
     visibility: str = SettingsConstants.VISIBILITY__GENERAL
     type: str = SettingsConstants.TYPE__ENABLED_DISABLED
     help_text: str = None
-    selection_options: List[str] = None
+    selection_options: List[Union[Tuple[Union[str, int]], str]] = None
     default_value: Any = None
 
     def __post_init__(self):
@@ -217,7 +223,7 @@ class SettingsEntry:
             self.selection_options = SettingsConstants.OPTIONS__ENABLED_DISABLED_PROMPT
 
         elif self.type == SettingsConstants.TYPE__ENABLED_DISABLED_PROMPT_REQUIRED:
-            self.selection_options = [SettingsConstants.ALL_OPTIONS]
+            self.selection_options = SettingsConstants.ALL_OPTIONS
 
         # Account for List[tuple] and tuple formats as default_value        
         if type(self.default_value) == list and type(self.default_value[0]) == tuple:
@@ -235,19 +241,14 @@ class SettingsEntry:
             return list(self.selection_options)
 
 
-    def get_selection_option_value(self, i: int):
+    def get_selection_option_value(self, i: int) -> Union[str, int, None]:
+        """ Returns the value of the selection option at index `i` """
+        if i >= len(self.selection_options):
+            return None
         value = self.selection_options[i]
         if type(value) == tuple:
             value = value[0]
         return value
-
-
-    def get_selection_option_display_name(self, i: int) -> str:
-        value = self.selection_options[i]
-        if type(value) == tuple:
-            value = value[1]
-        return value
-    
     
     def get_selection_option_display_name_by_value(self, value) -> str:
         for option in self.selection_options:
@@ -260,7 +261,6 @@ class SettingsEntry:
             if option_value == value:
                 return display_name
 
-
     def get_selection_option_value_by_display_name(self, display_name: str):
         for option in self.selection_options:
             if type(option) == tuple:
@@ -271,7 +271,6 @@ class SettingsEntry:
                 option_display_name = option
             if option_display_name == display_name:
                 return option_value
-
 
     def to_dict(self) -> dict:
         if self.selection_options:
@@ -293,9 +292,8 @@ class SettingsEntry:
         return {
             "category": self.category,
             "attr_name": self.attr_name,
-            "display_name": self.display_name,
-            "verbose_name": self.verbose_name,
             "abbreviated_name": self.abbreviated_name,
+            "display_name": self.display_name,
             "visibility": self.visibility,
             "type": self.type,
             "help_text": self.help_text,
@@ -328,6 +326,7 @@ class SettingsDefinition:
         # TODO:SEEDSIGNER: Full babel multilanguage support! Until then, type == HIDDEN
         SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
                       attr_name=SettingsConstants.SETTING__LANGUAGE,
+                      abbreviated_name="lang",
                       display_name="Language",
                       type=SettingsConstants.TYPE__SELECT_1,
                       visibility=SettingsConstants.VISIBILITY__HIDDEN,
@@ -337,6 +336,7 @@ class SettingsDefinition:
         # TODO:SEEDSIGNER: Support other bip-39 wordlist languages! Until then, type == HIDDEN
         SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
                       attr_name=SettingsConstants.SETTING__WORDLIST_LANGUAGE,
+                      abbreviated_name="wordlist_lang",
                       display_name="Mnemonic language",
                       type=SettingsConstants.TYPE__SELECT_1,
                       visibility=SettingsConstants.VISIBILITY__HIDDEN,
@@ -345,17 +345,18 @@ class SettingsDefinition:
 
         SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
                       attr_name=SettingsConstants.SETTING__PERSISTENT_SETTINGS,
+                      abbreviated_name="persistent",
                       display_name="Persistent settings",
-                      help_text="Store Settings on SD card.",
+                      help_text=SettingsConstants.PERSISTENT_SETTINGS__SD_INSERTED__HELP_TEXT,
                       default_value=SettingsConstants.OPTION__DISABLED),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
                       attr_name=SettingsConstants.SETTING__XMR_DENOMINATION,
                       display_name="Denomination display",
+                      abbreviated_name="denom",
                       type=SettingsConstants.TYPE__SELECT_1,
                       selection_options=SettingsConstants.ALL_XMR_DENOMINATIONS,
                       default_value=SettingsConstants.XMR_DENOMINATION__THRESHOLD),
-     
 
         # Advanced options
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
@@ -376,6 +377,7 @@ class SettingsDefinition:
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
                       attr_name=SettingsConstants.SETTING__SIG_TYPES,
+                      abbreviated_name="sigs",
                       display_name="Sig types",
                       type=SettingsConstants.TYPE__MULTISELECT,
                       visibility=SettingsConstants.VISIBILITY__ADVANCED,
@@ -400,11 +402,12 @@ class SettingsDefinition:
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
                       attr_name=SettingsConstants.SETTING__CAMERA_ROTATION,
+                      abbreviated_name="camera",
                       display_name="Camera rotation",
                       type=SettingsConstants.TYPE__SELECT_1,
                       visibility=SettingsConstants.VISIBILITY__ADVANCED,
                       selection_options=SettingsConstants.ALL_CAMERA_ROTATIONS,
-                      default_value=SettingsConstants.CAMERA_ROTATION__0),
+                      default_value=SettingsConstants.CAMERA_ROTATION__180),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
                       attr_name=SettingsConstants.SETTING__COMPACT_SEEDQR,
@@ -413,55 +416,71 @@ class SettingsDefinition:
                       default_value=SettingsConstants.OPTION__DISABLED),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
+                      attr_name=SettingsConstants.SETTING__MESSAGE_SIGNING,
+                      display_name="Message signing",
+                      visibility=SettingsConstants.VISIBILITY__ADVANCED,
+                      default_value=SettingsConstants.OPTION__DISABLED),
+
+        SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
                       attr_name=SettingsConstants.SETTING__PRIVACY_WARNINGS,
+                      abbreviated_name="priv_warn",
                       display_name="Show privacy warnings",
                       visibility=SettingsConstants.VISIBILITY__ADVANCED,
                       default_value=SettingsConstants.OPTION__ENABLED),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
                       attr_name=SettingsConstants.SEETING__LOW_SECURITY ,
+                      abbreviated_name="low_sec",
                       display_name="Low security",
                       visibility=SettingsConstants.VISIBILITY__ADVANCED,
                       default_value=SettingsConstants.OPTION__DISABLED),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
                       attr_name=SettingsConstants.SETTING__DIRE_WARNINGS,
+                      abbreviated_name="dire_warn",
                       display_name="Show dire warnings",
+                      visibility=SettingsConstants.VISIBILITY__ADVANCED,
+                      default_value=SettingsConstants.OPTION__ENABLED),
+ 
+        SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
+                      attr_name=SettingsConstants.SETTING__QR_BRIGHTNESS_TIPS,
+                      display_name="Show QR brightness tips",
                       visibility=SettingsConstants.VISIBILITY__ADVANCED,
                       default_value=SettingsConstants.OPTION__ENABLED),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
                       attr_name=SettingsConstants.SETTING__PARTNER_LOGOS,
+                      abbreviated_name="partners",
                       display_name="Show partner logos",
                       visibility=SettingsConstants.VISIBILITY__ADVANCED,
                       default_value=SettingsConstants.OPTION__DISABLED),
-
-        # Developer options TODO: well, would prefer to not include developer options into the code base for security reasons, but rather modify the code on the fly on making an image WITH HUGE WARNINGS EVERYWHERE: not for production purposes, so I think how it was anyway not used, remove this entirely before 2024-04-10
-        # TODO:SEEDSIGNER: No real Developer options needed yet. Disable for now.
-        # SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
-        #               attr_name=SettingsConstants.SETTING__DEBUG,
-        #               display_name="Debug",
-        #               visibility=SettingsConstants.VISIBILITY__DEVELOPER,
-        #               default_value=SettingsConstants.OPTION__DISABLED),
         
         # "Hidden" settings with no UI interaction
         SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
                       attr_name=SettingsConstants.SETTING__QR_BRIGHTNESS,
+                      abbreviated_name="qr_brightness",
                       display_name="QR background color",
                       type=SettingsConstants.TYPE__FREE_ENTRY,
                       visibility=SettingsConstants.VISIBILITY__HIDDEN,
-                      default_value=189),
+                      default_value=62),
     ]
 
 
     @classmethod
-    def get_settings_entries(cls, visibiilty: str = SettingsConstants.VISIBILITY__GENERAL) -> List[SettingsEntry]:
+    def get_settings_entries(cls, visibility: str = SettingsConstants.VISIBILITY__GENERAL) -> List[SettingsEntry]:
         entries = []
         for entry in cls.settings_entries:
-            if entry.visibility == visibiilty:
+            if entry.visibility == visibility:
                 entries.append(entry)
         return entries
-    
+
+
+    @classmethod
+    def get_settings_entry_by_abbreviated_name(cls, abbreviated_name: str) -> SettingsEntry:
+        for entry in cls.settings_entries:
+            if abbreviated_name in [entry.abbreviated_name, entry.attr_name]:
+                return entry
+
 
     @classmethod
     def get_settings_entry(cls, attr_name) -> SettingsEntry:
@@ -496,8 +515,13 @@ class SettingsDefinition:
 
 
 if __name__ == "__main__":
-    import json
+    from json import dump
+    from os import uname
 
-    output_file = "settings_definition.json"
+    hostname = uname()[1]
+    if hostname == "seedsigner-os":
+        output_file = "/mnt/microsd/settings_definition.json"
+    else:
+        output_file = "settings_definition.json"
     with open(output_file, 'w') as json_file:
-        json.dump(SettingsDefinition.to_dict(), json_file, indent=4)
+        dump(SettingsDefinition.to_dict(), json_file, indent=4)

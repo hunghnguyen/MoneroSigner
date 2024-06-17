@@ -8,7 +8,8 @@ from typing import List
 from xmrsigner.helpers.ur2.ur_encoder import UREncoder
 from xmrsigner.helpers.ur2.ur import UR
 from xmrsigner.helpers.qr import QR
-from xmrsigner.models import Seed, QRType
+from xmrsigner.models.qr_type import QRType
+from xmrsigner.models.seed import Seed
 
 from urtypes.crypto import PSBT as UR_PSBT
 from urtypes.crypto import PSBT  # TODO: 2024-06-14, used as quickfix to remove embit.psbt.PSBT! Adapt for monero
@@ -59,7 +60,12 @@ class EncodeQR:
         elif self.qr_type == QRType.SEED__COMPACTSEEDQR:
             self.encoder = CompactSeedQrEncoder(seed_phrase=self.seed_phrase,
                                                 wordlist_language_code=self.wordlist_language_code)
+        # Misc formats
+        elif self.qr_type == QRType.MONERO_ADDRESS:  # TODO: 2024-06-20, do we need that? For what purpose? Added with rebase from main to 0.7.0 from seedsigner
+            self.encoder = MoneroAddressEncoder(address=self.monero_address)
 
+        elif self.qr_type == QRType.SIGN_MESSAGE:
+            self.encoder = SignedMessageEncoder(signed_message=self.signed_message)
         else:
             raise Exception('QR Type not supported')
 
@@ -97,8 +103,8 @@ class EncodeQR:
         return self.qr_type
 
 
-
 class BaseQrEncoder:
+
     def seq_len(self):
         raise Exception("Not implemented in child class")
 
@@ -113,14 +119,24 @@ class BaseQrEncoder:
         raise Exception("Not implemented in child class")
 
 
+class BaseStaticQrEncoder(BaseQrEncoder):
+
+    def seq_len(self):
+        return 1
+
+    @property
+    def is_complete(self):
+        return True
+
 
 class BasePsbtQrEncoder(BaseQrEncoder):
+
     def __init__(self, psbt: PSBT):
         self.psbt = psbt
 
 
-
 class UrPsbtQrEncoder(BasePsbtQrEncoder):
+
     def __init__(self, psbt, qr_density):
         super().__init__(psbt)
         self.qr_max_fragment_size = 20
@@ -136,21 +152,18 @@ class UrPsbtQrEncoder(BasePsbtQrEncoder):
 
         self.ur2_encode = UREncoder(ur=qr_ur_bytes, max_fragment_len=self.qr_max_fragment_size)
 
-
     def seq_len(self):
         return self.ur2_encode.fountain_encoder.seq_len()
 
-
     def next_part(self) -> str:
         return self.ur2_encode.next_part().upper()
-
 
     @property
     def is_complete(self):
         return self.ur2_encode.is_complete()
 
 
-class SeedQrEncoder(BaseQrEncoder):
+class SeedQrEncoder(BaseStaticQrEncoder):
 
     def __init__(self, seed_phrase: List[str], wordlist_language_code: str):
         super().__init__()
@@ -160,11 +173,6 @@ class SeedQrEncoder(BaseQrEncoder):
         if self.wordlist == None:
             raise Exception('Wordlist Required')
 
-
-    def seq_len(self):
-        return 1
-
-
     def next_part(self):
         data = ""
         # Output as Numeric data format
@@ -172,11 +180,6 @@ class SeedQrEncoder(BaseQrEncoder):
             index = self.wordlist.index(word)
             data += str("%04d" % index)
         return data
-
-
-    @property
-    def is_complete(self):
-        return True
 
 
 class CompactSeedQrEncoder(SeedQrEncoder):
@@ -209,19 +212,33 @@ class CompactSeedQrEncoder(SeedQrEncoder):
         return bytes(as_bytes)
 
 
-class ViewOnlyWalletQrEncoder(BaseQrEncoder):
+class ViewOnlyWalletQrEncoder(BaseStaticQrEncoder):
 
     def __init__(self, wallet: Wallet):
         super().__init__()
         self.wallet: Wallet = wallet
 
-    def seq_len(self):
-        return 1
-
     def next_part(self):
         return ''  # TODO: 2024-06-10, needs to return view only wallet URI
 
+ 
+class MoneroAddressEncoder(BaseStaticQrEncoder):
 
-    @property
-    def is_complete(self):
-        return True
+    def __init__(self, address: str):
+        super().__init__()
+        self.address = address
+
+    def next_part(self):
+        return self.address
+
+
+class SignedMessageEncoder(BaseStaticQrEncoder):
+    """
+    Assumes that a signed message will fit in a single-frame QR
+    """ # TODO: 2024-06-20, I don't know yet, but I belief it will not be the case for Monero!
+    def __init__(self, signed_message: str):
+        super().__init__()
+        self.signed_message = signed_message
+
+    def next_part(self):
+        return self.signed_message

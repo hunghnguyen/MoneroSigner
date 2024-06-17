@@ -15,6 +15,7 @@ class QRType:
     SETTINGS = 'settings'
 
     MONERO_ADDRESS = 'monero_address'
+    SIGN_MESSAGE = "sign_message"
 
     WALLET_VIEW_ONLY = 'wallet__view__only'
     WALLET__UR = 'wallet__ur'
