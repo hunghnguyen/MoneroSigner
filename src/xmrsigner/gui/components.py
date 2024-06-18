@@ -138,25 +138,6 @@ class FontAwesomeIconConstantsV2:  # TODO: 2024-06-20, at the moment only an ano
     X = "\u0058"
 
 
-class SeedSignerCustomIconConstants:  # TODO: 2024-06-20, refactor, uses stil old font (ICON_FONT_NAME__SEEDSIGNER)
-
-    LARGE_CHEVRON_LEFT = "\ue900"
-    SMALL_CHEVRON_RIGHT = "\ue901"
-    PAGE_UP = "\ue903"
-    PAGE_DOWN = "\ue902"
-    PLUS = "\ue904"
-    CIRCLE_CHECK = "\ue907"
-    CIRCLE_EXCLAMATION = "\ue908"
-    CIRCLE_X = "\ue909"
-    FINGERPRINT = "\ue90a"
-    PATH = "\ue90b"
-    MONERO_LOGO_STRAIGHT = "\ue90c"  # TODO: 2024-06-20, still the BTC symbol, need to check how the font is done
-    MONERO_LOGO_TILTED = "\ue90d"  # TODO: 2024-06-20, still the BTC symbol, need to check how the font is done
-
-    MIN_VALUE = LARGE_CHEVRON_LEFT
-    MAX_VALUE = MONERO_LOGO_TILTED
-
-
 class IconConstants:
     # Menu icons
     SCAN = "\ue900"

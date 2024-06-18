@@ -131,7 +131,7 @@ Total: 162
   2024-06-15, remove all the cluster fuck here, we can verify easy if a address belongs to a wallet in monero
 
 ### 2024-06-16
-- `src/xmrsigner/gui/components.py`:1465
+- `src/xmrsigner/gui/components.py`:1446
   2024-06-16, seems like not needed, check and remove
 - `src/xmrsigner/hardware/microsd.py`:11
   2024-06-16, move to SettingsConstants
@@ -157,6 +157,12 @@ Total: 162
   2024-06-17 @see up import statement
 - `src/xmrsigner/gui/screens/tools_screens.py`:392
   2024-06-17, added with rebase from main to 0.7.0 of seedsigner, lot of work to do
+- `src/xmrsigner/views/settings_views.py`:49
+  2024-06-17, display until we know what to do about
+- `src/xmrsigner/views/tools_views.py`:60
+  2024-06-17, activate when it works
+- `src/xmrsigner/views/tools_views.py`:62
+  2024-06-17, activate when it works
 - `src/xmrsigner/views/tools_views.py`:548
   2024-06-17, holy clusterfuck, added with rebase from main to 0.7.0 of seedsigner, lot of work to do
 
@@ -173,12 +179,6 @@ Total: 162
   2024-06-20, rename constant
 - `src/xmrsigner/gui/components.py`:116
   2024-06-20, at the moment only an anotation from refactoring, see how to resolve the clusterfuck :D
-- `src/xmrsigner/gui/components.py`:141
-  2024-06-20, refactor, uses stil old font (ICON_FONT_NAME__SEEDSIGNER)
-- `src/xmrsigner/gui/components.py`:153
-  2024-06-20, still the BTC symbol, need to check how the font is done
-- `src/xmrsigner/gui/components.py`:154
-  2024-06-20, still the BTC symbol, need to check how the font is done
 - `src/xmrsigner/gui/screens/psbt_screens.py`:670
   2024-06-20, probably should change to purple if polyseed?
 - `src/xmrsigner/gui/screens/scan_screens.py`:118
@@ -257,17 +257,17 @@ Total: 162
   **#SEEDSIGNER** Rename "storage" to something more indicative of its temp, in-memory state
 - `src/xmrsigner/gui/components.py`:20
   **#SEEDSIGNER** Remove all pixel hard coding
-- `src/xmrsigner/gui/components.py`:197
+- `src/xmrsigner/gui/components.py`:178
   don't need BTC, need XMR glyph is still Bitcoin
-- `src/xmrsigner/gui/components.py`:198
+- `src/xmrsigner/gui/components.py`:179
   don't need BTC, need XMR glyph is still Bitcoin
-- `src/xmrsigner/gui/components.py`:335
+- `src/xmrsigner/gui/components.py`:316
   **#SEEDSIGNER** Implement autosize width?
-- `src/xmrsigner/gui/components.py`:843
+- `src/xmrsigner/gui/components.py`:824
   change to Monero icon
-- `src/xmrsigner/gui/components.py`:1030
+- `src/xmrsigner/gui/components.py`:1011
   **#SEEDSIGNER** Rename the xmrsigner.helpers.Buttons class (to Inputs?) to reduce confusion
-- `src/xmrsigner/gui/components.py`:1094
+- `src/xmrsigner/gui/components.py`:1075
   **#SEEDSIGNER** Only apply screen_y at render
 - `src/xmrsigner/gui/screens/psbt_screens.py`:134
   **#SEEDSIGNER** Properly handle the ellipsis truncation in different languages
@@ -393,25 +393,19 @@ Total: 162
   2024-06-20, rename constant
 - Line 116: 2024-06-20 
   2024-06-20, at the moment only an anotation from refactoring, see how to resolve the clusterfuck :D
-- Line 141: 2024-06-20 
-  2024-06-20, refactor, uses stil old font (ICON_FONT_NAME__SEEDSIGNER)
-- Line 153: 2024-06-20 
-  2024-06-20, still the BTC symbol, need to check how the font is done
-- Line 154: 2024-06-20 
-  2024-06-20, still the BTC symbol, need to check how the font is done
-- Line 197: None 
+- Line 178: None 
   don't need BTC, need XMR glyph is still Bitcoin
-- Line 198: None 
+- Line 179: None 
   don't need BTC, need XMR glyph is still Bitcoin
-- Line 335: None **#SEEDSIGNER** 
+- Line 316: None **#SEEDSIGNER** 
   Implement autosize width?
-- Line 843: None 
+- Line 824: None 
   change to Monero icon
-- Line 1030: None **#SEEDSIGNER** 
+- Line 1011: None **#SEEDSIGNER** 
   Rename the xmrsigner.helpers.Buttons class (to Inputs?) to reduce confusion
-- Line 1094: None **#SEEDSIGNER** 
+- Line 1075: None **#SEEDSIGNER** 
   Only apply screen_y at render
-- Line 1465: 2024-06-16 
+- Line 1446: 2024-06-16 
   2024-06-16, seems like not needed, check and remove
 
 ### `src/xmrsigner/gui/screens/psbt_screens.py`
@@ -703,12 +697,18 @@ Total: 162
   2024-06-16
 
 ### `src/xmrsigner/views/settings_views.py`
+- Line 49: 2024-06-17 
+  2024-06-17, display until we know what to do about
 - Line 84: None **#SEEDSIGNER** 
   Free-entry types (are there any?) will need their own SettingsEntryUpdateFreeEntryView(?).
 
 ### `src/xmrsigner/views/tools_views.py`
 - Line 56: 2024-06-21 
   expire 2024-06-21, I think there should be a warning that this way most probale will lead to low entropy, should only be used if user is really knowing what he is doing... Maybe an alternative would be to use it as input entropy with pseudo entropy to generate a new "now magically random" (of course not, but at least with less probability of user picking the most prefered words out of the list and shootig himself in the foot.
+- Line 60: 2024-06-17 
+  2024-06-17, activate when it works
+- Line 62: 2024-06-17 
+  2024-06-17, activate when it works
 - Line 182: 2024-06-04 
   expire 2024-06-04 should be merged with ToolsImagePolyseedView, same code and be outsid of views...
 - Line 213: 2024-07-31 
@@ -775,11 +775,11 @@ Total: 162
   Implement `release_lock` functionality as a global somewhere. Mixes up design
 - `src/xmrsigner/gui/components.py`:20
   Remove all pixel hard coding
-- `src/xmrsigner/gui/components.py`:335
+- `src/xmrsigner/gui/components.py`:316
   Implement autosize width?
-- `src/xmrsigner/gui/components.py`:1030
+- `src/xmrsigner/gui/components.py`:1011
   Rename the xmrsigner.helpers.Buttons class (to Inputs?) to reduce confusion
-- `src/xmrsigner/gui/components.py`:1094
+- `src/xmrsigner/gui/components.py`:1075
   Only apply screen_y at render
 - `src/xmrsigner/gui/screens/screen.py`:88
   Check self.scroll_y and only render visible elements
