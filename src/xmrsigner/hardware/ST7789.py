@@ -1,6 +1,6 @@
-import spidev
+from spidev import SpiDev
 import RPi.GPIO as GPIO
-import time
+from time import sleep
 from array import array
 
 
@@ -25,7 +25,7 @@ class ST7789(object):
         GPIO.output(self._bl, GPIO.HIGH)
 
         #Initialize SPI
-        self._spi = spidev.SpiDev(0, 0)
+        self._spi = SpiDev(0, 0)
         self._spi.max_speed_hz = 40000000
 
         self.init()
@@ -123,38 +123,38 @@ class ST7789(object):
     def reset(self):
         """Reset the display"""
         GPIO.output(self._rst,GPIO.HIGH)
-        time.sleep(0.01)
+        sleep(0.01)
         GPIO.output(self._rst,GPIO.LOW)
-        time.sleep(0.01)
+        sleep(0.01)
         GPIO.output(self._rst,GPIO.HIGH)
-        time.sleep(0.01)
+        sleep(0.01)
         
-    def SetWindows(self, Xstart, Ystart, Xend, Yend):
+    def SetWindows(self, x_start, y_start, x_end, y_end):
         #set the X coordinates
         self.command(0x2A)
         self.data(0x00)               #Set the horizontal starting point to the high octet
-        self.data(Xstart & 0xff)      #Set the horizontal starting point to the low octet
+        self.data(x_start & 0xff)      #Set the horizontal starting point to the low octet
         self.data(0x00)               #Set the horizontal end to the high octet
-        self.data((Xend - 1) & 0xff) #Set the horizontal end to the low octet 
+        self.data((x_end - 1) & 0xff) #Set the horizontal end to the low octet 
         
         #set the Y coordinates
         self.command(0x2B)
         self.data(0x00)
-        self.data((Ystart & 0xff))
+        self.data((y_start & 0xff))
         self.data(0x00)
-        self.data((Yend - 1) & 0xff )
+        self.data((y_end - 1) & 0xff )
 
         self.command(0x2C)    
     
-    def ShowImage(self,Image,Xstart,Ystart):
+    def ShowImage(self,image: Image,x_start,y_start):
         """Set buffer to value of Python Imaging Library image."""
         """Write display buffer to physical display"""
-        imwidth, imheight = Image.size
+        imwidth, imheight = image.size
         if imwidth != self.width or imheight != self.height:
             raise ValueError('Image must be same dimensions as display \
                 ({0}x{1}).' .format(self.width, self.height))
         # convert 24-bit RGB-8:8:8 to gBRG-3:5:5:3; then per-pixel byteswap to 16-bit RGB-5:6:5^M
-        arr = array("H", Image.convert("BGR;16").tobytes())
+        arr = array("H", image.convert("BGR;16").tobytes())
         arr.byteswap()
         pix = arr.tobytes()
         self.SetWindows ( 0, 0, self.width, self.height)
