@@ -39,7 +39,7 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
 - [x] Temporarily store up to 3 seed phrases while device is powered
 - [ ] ~~Monero passphrase support~~, posponed, possible #rabbit-hole (>48h work to implement in python)
 - [x] Polyseed passphrase support
-- [ ] __Unclear: Multisig support__
+- [ ] ~~Multisig support~~: later
 - [ ] Scan and parse transaction data from animated QR codes using [UR](https://www.blockchaincommons.com/specifications/Blockchain-Commons-URs-Support-Airgapped-PSBTs/)
 - [ ] Sign transactions & (__check: transfer Xmultisig datai__) using animated QR codes ~~[(demo video here)](https://youtu.be/LPqvdQ2gSzs)~~
 - [x] Live preview during photo-to-seed and QR scanning UX
@@ -118,9 +118,9 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
  |   |   | |              |                   |              /- 2024-07-24 Milestone 4
  |   |   | |              |                   |              |
 (S)==|===|(1)============(2)=================(3)============(4)=====>
-                 A
-                 |
-                 \------ Today: 2024-06-10
+                          A
+                          |
+                          \------ Today: 2024-06-10
 ```
 ---------------
 

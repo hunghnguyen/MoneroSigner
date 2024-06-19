@@ -58,8 +58,10 @@
 - [ ] Create companion application
 - [ ] Modify [Monero GUI](https://github.com/DiosDelRayo/monero-gui)
 - [ ] tools/increment_version.py needs also to update the version in setup.py
-- [ ] setup.py needs further modification
-- [ ] not working as expcted, fix: tools/tag_version.py
+- [x] setup.py needs further modification
+- [x] not working as expcted, fix: tools/tag_version.py
+- [ ] remove old font if unused
+- [ ] check how to generate font to include monero logo
 ---
 ## Considerations:
 - [?] Shoud feather wallet 14 words seed be offered to be imported?
@@ -69,4 +71,4 @@ see also: [Inline Todo](INLINE_TODO.md)
 ## SECURITY RELATED!
 - [ ] study: [monero burning bug](https://www.getmonero.org/2018/09/25/a-post-mortum-of-the-burning-bug.html)
 - [ ] study: [public key be used for more-than one payment](https://monero.stackexchange.com/questions/4163/can-a-one-time-public-key-be-used-for-more-than-one-payment)
-- [ ] consult `jeffro256` about security issues on MoneroSigner in-/outside (Monero-GUI modification, monero-python, Companion Application), `rucknium` referd me to him.
+- [x] consult `jeffro256` about security issues on MoneroSigner in-/outside (Monero-GUI modification, monero-python, Companion Application), `rucknium` referd me to him. => [@see chat](chat-monero-community.txt), but mostly the result is checking if camera digesting is enriched with /dev/urandom and second all the rest seems good.
