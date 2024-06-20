@@ -2,6 +2,7 @@ from spidev import SpiDev
 import RPi.GPIO as GPIO
 from time import sleep
 from array import array
+from PIL import Image
 
 
 

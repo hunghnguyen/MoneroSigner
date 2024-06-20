@@ -35,6 +35,7 @@ class VersionTagger:
 
     def add(self) -> None:
         cmd = f'git add {self.file_path}'
+        # TODO: 2024-06-20, setup.py needs to be added, too!
         run(cmd, shell=True)
 
     def commit(self) -> None:

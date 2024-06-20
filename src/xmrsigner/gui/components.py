@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from xmrsigner.helpers.pillow import get_font_size
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 from xmrsigner.models.settings import Settings
 from xmrsigner.models.settings_definition import SettingsConstants
@@ -1364,7 +1364,7 @@ def reflow_text_for_width(text: str,
                           width: int,
                           font_name=GUIConstants.BODY_FONT_NAME,
                           font_size=GUIConstants.BODY_FONT_SIZE,
-                          allow_text_overflow: bool=False) -> list[dict]:
+                          allow_text_overflow: bool=False) -> List[Dict]:
     """
     Reflows text to fit within `width` by breaking long lines up.
 
@@ -1450,7 +1450,7 @@ def reflow_text_into_pages(text: str,
                            font_name=GUIConstants.BODY_FONT_NAME,
                            font_size=GUIConstants.BODY_FONT_SIZE,
                            line_spacer: int = GUIConstants.BODY_LINE_SPACING,
-                           allow_text_overflow: bool=False) -> list[str]:
+                           allow_text_overflow: bool=False) -> List[str]:
     """
     Invokes `reflow_text_for_width` above to convert long text into width-limited
     individual text lines and then calculates how many lines will fit on a "page"and groups the output accordingly.

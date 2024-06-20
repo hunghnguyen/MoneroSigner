@@ -284,7 +284,7 @@ class Controller(Singleton):
                 print("-" * 30)
 
         finally:
-            if self.screensaver.is_running:
+            if self.is_screensaver_running:
                 self.screensaver.stop()
 
             # Clear the screen when exiting

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Type, List, Dict
+from typing import Type, List, Dict, Union
 
 from xmrsigner.gui.components import FontAwesomeIconConstants, IconConstants
 from xmrsigner.gui.screens.screen import (
@@ -105,7 +105,7 @@ class View:
     def get_redirect(self) -> 'Destination':
         return self._redirect
 
-    def run_screen(self, Screen_cls: Type[BaseScreen], **kwargs) -> int | str:
+    def run_screen(self, Screen_cls: Type[BaseScreen], **kwargs) -> Union[int, str]:
         """
             Instantiates the provided Screen_cls and runs its interactive display.
             Returns the user's input upon completion.
@@ -345,7 +345,7 @@ class NotYetImplementedView(View):
 @dataclass
 class UnhandledExceptionView(View):
 
-    error: list[str]
+    error: List[str]
 
     def run(self) -> None:
         self.run_screen(

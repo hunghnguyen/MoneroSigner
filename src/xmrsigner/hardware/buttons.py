@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 from time import time, sleep
+from typing import List
 
 from xmrsigner.models.singleton import Singleton
 

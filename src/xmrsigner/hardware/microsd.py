@@ -43,14 +43,13 @@ class MicroSD(Singleton, BaseThread):
 
 
     def run(self):
-        from seedsigner.controller import Controller
-        from seedsigner.gui.toast import SDCardStateChangeToastManagerThread
+        from xmrsigner.controller import Controller
         action = ""
         
         action = ""
         
         # explicitly only microsd add/remove detection in seedsigner-os
-        if Settings.HOSTNAME == Settings.SEEDSIGNER_OS:
+        if Settings.HOSTNAME == Settings.XMRSIGNER_OS:
 
             # at start-up, get current status and inform Settings
             Settings.handle_microsd_state_change(
@@ -68,6 +67,5 @@ class MicroSD(Singleton, BaseThread):
                     print(f"fifo message: {action}")
 
                     Settings.handle_microsd_state_change(action=action)
-                    Controller.get_instance().activate_toast(SDCardStateChangeToastManagerThread(action=action))
 
                 sleep(0.1)
