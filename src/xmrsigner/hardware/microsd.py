@@ -31,7 +31,7 @@ class MicroSD(Singleton, BaseThread):
 
     @property
     def is_inserted(self):
-        if Settings.HOSTNAME == Settings.MONEROSIGNER_OS:
+        if Settings.HOSTNAME == Settings.XMRSIGNER_OS:
             return path.exists(MicroSD.MOUNT_POINT)
         else:
             # Always True for Raspi OS

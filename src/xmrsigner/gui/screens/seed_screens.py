@@ -1355,7 +1355,7 @@ class SeedSignMessageConfirmMessageScreen(ButtonListScreen):  # TODO: 2024-06-15
     page_num: int = None
 
     def __post_init__(self):
-        from seedsigner.controller import Controller
+        from xmrsigner.controller import Controller
         renderer = Renderer.get_instance()
         start_y = GUIConstants.TOP_NAV_HEIGHT + GUIConstants.COMPONENT_PADDING
         end_y = renderer.canvas_height - GUIConstants.EDGE_PADDING - GUIConstants.BUTTON_HEIGHT - GUIConstants.COMPONENT_PADDING
@@ -1404,7 +1404,7 @@ class SeedSignMessageConfirmAddressScreen(ButtonListScreen):  # TODO: 2024-06-15
         super().__post_init__()
 
         derivation_path_display = IconTextLine(
-            icon_name=SeedSignerIconConstants.DERIVATION,
+            icon_name=IconConstants.DERIVATION,
             icon_color=GUIConstants.INFO_COLOR,
             label_text="derivation path",
             value_text=self.derivation_path,

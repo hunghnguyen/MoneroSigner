@@ -402,7 +402,7 @@ class ToolsAddressExplorerAddressTypeScreen(ButtonListScreen):  # TODO: 2024-06-
 
         if self.fingerprint:
             self.components.append(IconTextLine(
-                icon_name=SeedSignerIconConstants.FINGERPRINT,
+                icon_name=IconConstants.FINGERPRINT,
                 icon_color=GUIConstants.INFO_COLOR,
                 label_text="Fingerprint",
                 value_text=self.fingerprint,
@@ -412,7 +412,7 @@ class ToolsAddressExplorerAddressTypeScreen(ButtonListScreen):  # TODO: 2024-06-
 
             if self.script_type != SettingsConstants.CUSTOM_DERIVATION:
                 self.components.append(IconTextLine(
-                    icon_name=SeedSignerIconConstants.DERIVATION,
+                    icon_name=IconConstants.DERIVATION,
                     label_text="Derivation",
                     value_text=SettingsDefinition.get_settings_entry(attr_name=SettingsConstants.SETTING__SCRIPT_TYPES).get_selection_option_display_name_by_value(value=self.script_type),
                     screen_x=GUIConstants.EDGE_PADDING,
@@ -420,7 +420,7 @@ class ToolsAddressExplorerAddressTypeScreen(ButtonListScreen):  # TODO: 2024-06-
                 ))
             else:
                 self.components.append(IconTextLine(
-                    icon_name=SeedSignerIconConstants.DERIVATION,
+                    icon_name=IconConstants.DERIVATION,
                     label_text="Derivation",
                     value_text=self.custom_derivation_path,
                     screen_x=GUIConstants.EDGE_PADDING,

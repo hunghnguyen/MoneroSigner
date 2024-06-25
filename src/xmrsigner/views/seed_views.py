@@ -130,12 +130,15 @@ class SeedSelectSeedView(View):  # TODO: 2024-06-16, added with rebase from main
 
         button_data = []
         for seed in seeds:
-            button_str = seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK))
-            
-            if seed.passphrase is not None:
-                # TODO:SEEDSIGNER: Include lock icon on right side of button
-                pass
-            button_data.append((button_str, IconConstants.FINGERPRINT, "blue"))
+            button_data.append(
+                (
+                    seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK)),
+                    IconConstants.FINGERPRINT,
+                    'purple' if isinstance(seed, PolyseedSeed) else 'blue' if not seed.is_my_monero else 'red',
+                    None,
+                    FontAwesomeIconConstants.LOCK if seed.has_passphrase else None
+                )
+            )
         
         button_data.append(self.SCAN_SEED)
         button_data.append(self.TYPE_13WORD)
@@ -645,11 +648,11 @@ class SeedWordsWarningView(View):
             view_args={"seed_num": self.seed_num, "page_index": 0},
             skip_current_view=True,  # Prevent going BACK to WarningViews
         )
-        if self.settings.get_value(SettingsConstants.SETTING__DIRE_WARNINGS) == SettingsConstants.OPTION__DISABLED:  # TODO: no warning or different warning for view keys, adapt before 2024-06-10
+        if self.settings.get_value(SettingsConstants.SETTING__DIRE_WARNINGS) == SettingsConstants.OPTION__DISABLED:
             # Forward straight to showing the words
             return destination
 
-        selected_menu_num = DireWarningScreen(  # TODO: see todo above, adapt text to master key and view keys before 2024-06-10
+        selected_menu_num = DireWarningScreen(
             text="""You must keep your seed words private & away from all online devices.""",
         ).display()
 
@@ -858,7 +861,7 @@ class SeedWordsBackupTestSuccessView(View):
 """****************************************************************************
     Export as SeedQR
 ****************************************************************************"""
-class SeedTranscribeSeedQRFormatView(View): # TODO: expire 2024-06-04: adapt to polyseed, monero seed and view keys - we don't supportMyMonero keys for export. Wait, need to check again, seems that is meant to draw your QR codes on paper, so it would not really make sense for view keys, not? Would it? Think again about before taking decision!
+class SeedTranscribeSeedQRFormatView(View): # TODO: expire 2024-06-04: adapt to polyseed and monero seed
     def __init__(self, seed_num: int):
         super().__init__()
         self.seed_num = seed_num
@@ -1020,7 +1023,6 @@ class SeedTranscribeSeedQRZoomedInView(View):
         ).display()
 
         return Destination(SeedTranscribeSeedQRConfirmQRPromptView, view_args={"seed_num": self.seed_num})
-
 
 
 class SeedTranscribeSeedQRConfirmQRPromptView(View):
@@ -1213,12 +1215,15 @@ class SeedSingleSigAddressVerificationSelectSeedView(View):
         text = "Load the seed to verify"
 
         for seed in seeds:
-            button_str = seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK))
-            
-            if seed.passphrase is not None:
-                # TODO:SEEDSIGNER: Include lock icon on right side of button
-                pass
-            button_data.append((button_str, IconConstants.FINGERPRINT, "blue"))
+            button_data.append(
+                (
+                    seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK)),
+                    IconConstants.FINGERPRINT,
+                    'purple' if isinstance(seed, PolyseedSeed) else 'blue' if not seed.is_my_monero else 'red',
+                    None,
+                    FontAwesomeIconConstants.LOCK if seed.has_passphrase else None
+                )
+            )
 
             text = "Select seed to verify"
 

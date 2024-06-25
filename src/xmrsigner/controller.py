@@ -35,7 +35,7 @@ class BackStack(List[Destination]):
 
 class Controller(Singleton):
     """
-        The Controller is a globally available singleton that maintains SeedSigner state.
+        The Controller is a globally available singleton that maintains XmrSigner state.
 
         It only makes sense to ever have a single Controller instance so it is
         implemented here as a singleton. One departure from the typical singleton pattern

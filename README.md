@@ -85,6 +85,8 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
     - [ ] All missing Monero signer functionality
     - [ ] ~~PortableMoneroQR stable~~
     - [ ] UR's implemented
+    - [X] first xmrsigner image build
+    - [ ] xmrsigner image build chain
 
 
 3. Cleanup and production ready (45 days from now)
@@ -118,9 +120,9 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
  |   |   | |              |                   |              /- 2024-07-24 Milestone 4
  |   |   | |              |                   |              |
 (S)==|===|(1)============(2)=================(3)============(4)=====>
-                          A
-                          |
-                          \------ Today: 2024-06-10
+                                        A
+                                        |
+                                        \------ Today: 2024-06-24
 ```
 ---------------
 

@@ -285,7 +285,7 @@ class DonateScreen(BaseTopNavScreen):
         super().__post_init__()
 
         self.components.append(TextArea(  # TODO
-            text="SeedSigner is 100% free & open source, funded solely by the Bitcoin community.\n\nDonate onchain or LN at:",
+            text="XmrSigner is 100% free & open source, funded solely by the Monero community.\n\nDonate onchain or LN at: xmrsigner.org/donate",
             screen_y=self.top_nav.height + 3*GUIConstants.COMPONENT_PADDING,
         ))
 

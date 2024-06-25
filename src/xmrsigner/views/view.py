@@ -257,7 +257,7 @@ class RestartView(View):
 
             # Kill the SeedSigner process; Running the process again.
             # `.*` is a wildcard to detect either `python`` or `python3`.
-            if Settings.HOSTNAME == Settings.MONEROSIGNER_OS:  # TODO: 2024-06-16, why all this drama and not simply `from sys import exit` and `exit(0)`???
+            if Settings.HOSTNAME == Settings.XMRSIGNER_OS:  # TODO: 2024-06-16, why all this drama and not simply `from sys import exit` and `exit(0)`???
                 call("kill $(pidof python*) & python /opt/src/main.py", shell=True)
             else:
                 call("kill $(ps aux | grep '[p]ython.*main.py' | awk '{print $2}')", shell=True)
@@ -266,7 +266,7 @@ class RestartView(View):
 class PowerOffView(View):
 
     def run(self):
-        if Settings.HOSTNAME == Settings.MONEROSIGNER_OS:
+        if Settings.HOSTNAME == Settings.XMRSIGNER_OS:
             self.run_screen(PowerOffNotRequiredScreen)
             return Destination(BackStackView)
         else:

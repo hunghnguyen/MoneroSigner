@@ -466,7 +466,7 @@ class DecodeQR:
     def multisig_setup_file_to_descriptor(text) -> str:
         # sample text file, parse the contents and create descriptor
         """
-        Name: SeedSigner Dev Funds
+        Name: SeeedSigner Dev Funds
         Policy: 4 of 6
         Derivation: m/48'/0'/0'/2'
         Format: P2WSH
@@ -669,8 +669,8 @@ class Base43PsbtQrDecoder(BaseSingleFrameQrDecoder):
 class SeedQrDecoder(BaseSingleFrameQrDecoder):
     """
         Decodes single frame representing a seed.
-        Supports SeedSigner SeedQR numeric (wordlist indices) representation of a seed.
-        Supports SeedSigner CompactSeedQR entropy byte representation of a seed.
+        Supports XmrSigner SeedQR numeric (wordlist indices) representation of a seed.
+        Supports XmrSigner CompactSeedQR entropy byte representation of a seed.
         Supports mnemonic seed phrase string data.
     """
     def __init__(self, wordlist_language_code):

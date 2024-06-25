@@ -519,7 +519,7 @@ if __name__ == "__main__":
     from os import uname
 
     hostname = uname()[1]
-    if hostname == "seedsigner-os":
+    if hostname == "xmrsigner-os":
         output_file = "/mnt/microsd/settings_definition.json"
     else:
         output_file = "settings_definition.json"

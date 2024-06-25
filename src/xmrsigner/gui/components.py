@@ -33,7 +33,6 @@ class GUIConstants:
     INFO_COLOR = '#0000FF'
 
     ICON_FONT_NAME__FONT_AWESOME = "Font_Awesome_6_Free-Solid-900"
-    ICON_FONT_NAME__SEEDSIGNER = "xmrsigner-glyphs"  # TODO: 2024-06-20, rename constant
     ICON_FONT_NAME__XMRSIGNER = "xmrsigner-icons"
     ICON_FONT_SIZE = 22
     ICON_INLINE_FONT_SIZE = 24
@@ -246,7 +245,7 @@ class Fonts(Singleton):
         if font_name not in cls.fonts:
             cls.fonts[font_name] = {}
         
-        if font_name in [GUIConstants.ICON_FONT_NAME__FONT_AWESOME, GUIConstants.ICON_FONT_NAME__SEEDSIGNER]:
+        if font_name in [GUIConstants.ICON_FONT_NAME__FONT_AWESOME, GUIConstants.ICON_FONT_NAME__XMRSIGNER]:
             file_extension = "otf"
         
         if size not in cls.fonts[font_name]:
@@ -825,7 +824,7 @@ class XmrAmount(BaseComponent):
         xmr_icon = Icon(
             image_draw=draw,
             canvas=self.paste_image,
-            icon_name=SeedSignerIconConstants.MONERO_ALT,
+            icon_name=IconConstants.MONERO_ALT,
             icon_color=xmr_color,
             icon_size=self.icon_size,
             screen_x=0,

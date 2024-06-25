@@ -14,8 +14,8 @@ class InvalidSettingsQRData(Exception):
 class Settings(Singleton):
 
     HOSTNAME = uname()[1]  # TODO: 2024-06-30 don't know what will uname return on win32, check
-    MONEROSIGNER_OS = "monerosigner-os"
-    SETTINGS_FILENAME = "/mnt/microsd/settings.json" if HOSTNAME == MONEROSIGNER_OS else "settings.json"
+    XMRSIGNER_OS = "xmrsigner-os"
+    SETTINGS_FILENAME = "/mnt/microsd/settings.json" if HOSTNAME == XMRSIGNER_OS else "settings.json"
 
     @classmethod
     def get_instance(cls):
@@ -232,7 +232,7 @@ class Settings(Singleton):
         """
         from xmrsigner.hardware.microsd import MicroSD
 
-        if Settings.HOSTNAME == Settings.MONEROSIGNER_OS:
+        if Settings.HOSTNAME == Settings.XMRSIGNER_OS:
             if action == MicroSD.ACTION__INSERTED:
                 # SD card was just inserted.
                 # Restore persistent settings back to defaults

@@ -757,7 +757,7 @@ class QRDisplayScreen(BaseScreen):
 
 
         def run(self):
-            from seedsigner.models.settings import Settings  # TODO: 2024-06-20, WTF, anyway on import of SettingsConstants the whole file will be parsed, for what to make this pointless acrobatic?
+            from xmrsigner.models.settings import Settings  # TODO: 2024-06-20, WTF, anyway on import of SettingsConstants the whole file will be parsed, for what to make this pointless acrobatic?
             settings = Settings.get_instance()
             cur_brightness_setting = settings.get_value(SettingsConstants.SETTING__QR_BRIGHTNESS_TIPS)
             show_brightness_tips = cur_brightness_setting == SettingsConstants.OPTION__ENABLED
@@ -798,7 +798,7 @@ class QRDisplayScreen(BaseScreen):
         ))
 
     def _run(self):
-        from seedsigner.models.settings import Settings  # TODO: 2024-06-20, WTF, anyway on import of SettingsConstants the whole file will be parsed, for what to make this pointless acrobatic?
+        from xmrsigner.models.settings import Settings  # TODO: 2024-06-20, WTF, anyway on import of SettingsConstants the whole file will be parsed, for what to make this pointless acrobatic?
         while True:
             user_input = self.hw_inputs.wait_for(
                 [
@@ -982,7 +982,7 @@ class ResetScreen(BaseTopNavScreen):
         super().__post_init__()
 
         self.components.append(TextArea(
-            text="SeedSigner is restarting.\n\nAll in-memory data will be wiped.",
+            text="XmrSigner is restarting.\n\nAll in-memory data will be wiped.",
             screen_y=self.top_nav.height,
             height=self.canvas_height - self.top_nav.height,
         ))

@@ -1,6 +1,6 @@
 # Inline Todo
 
-Total: 162
+Total: 157
 
 ## Index
 - [Urgent](#urgent)
@@ -11,13 +11,13 @@ Total: 162
 ## Urgent
 
 ### 2024-06-04
-- `src/xmrsigner/views/seed_views.py`:861
-  expire 2024-06-04: adapt to polyseed, monero seed and view keys - we don't supportMyMonero keys for export. Wait, need to check again, seems that is meant to draw your QR codes on paper, so it would not really make sense for view keys, not? Would it? Think again about before taking decision!
-- `src/xmrsigner/views/seed_views.py`:1006
+- `src/xmrsigner/views/seed_views.py`:864
+  expire 2024-06-04: adapt to polyseed and monero seed
+- `src/xmrsigner/views/seed_views.py`:1009
   expire 2024-06-04, can only be 25 (monero seed) or 16 (polyseed)
-- `src/xmrsigner/views/seed_views.py`:1112
+- `src/xmrsigner/views/seed_views.py`:1114
   expire 2024-06-04, remove BTC related stuff, make it work for monero
-- `src/xmrsigner/views/seed_views.py`:1162
+- `src/xmrsigner/views/seed_views.py`:1164
   expire 2024-06-04, remove BTC stuff, make monero work
 - `src/xmrsigner/views/tools_views.py`:182
   expire 2024-06-04 should be merged with ToolsImagePolyseedView, same code and be outsid of views...
@@ -41,19 +41,15 @@ Total: 162
   remove comment before 2024-06-10 handle differences in wordlist languages in monero seed and polyseed, think should be handled in the wordlist implementations instead
 - `src/xmrsigner/models/settings_definition.py`:144
   remove after 2024-06-10, maybe there should be SETTING__WORDLIST_LANGUAGE_MONERO and SETTING__WORDLIST_LANGUAGE_POLYSEED? Makes this even sense, should it not be more dynamic letting the responsibility to the monero, polyseed implementation to have it more future proof?
-- `src/xmrsigner/views/seed_views.py`:598
+- `src/xmrsigner/views/seed_views.py`:601
   2024-06-10: finish implementation
-- `src/xmrsigner/views/seed_views.py`:648
-  no warning or different warning for view keys, adapt before 2024-06-10
-- `src/xmrsigner/views/seed_views.py`:652
-  see todo above, adapt text to master key and view keys before 2024-06-10
-- `src/xmrsigner/views/seed_views.py`:1343
+- `src/xmrsigner/views/seed_views.py`:1348
   expire 2024-06-10, adapt to monero
-- `src/xmrsigner/views/seed_views.py`:1364
+- `src/xmrsigner/views/seed_views.py`:1369
   expire 2024-06-10, adapt to monero
 
 ### 2024-06-12
-- `src/xmrsigner/views/seed_views.py`:1315
+- `src/xmrsigner/views/seed_views.py`:1320
   expire 2024-06-12, check if needed for monero, delete or modify
 
 ### 2024-06-14
@@ -123,15 +119,15 @@ Total: 162
   2024-06-15, not sure if we need it, added from rebase from main to 0.7.0 from SeedSigner
 - `src/xmrsigner/models/decode_qr.py`:335
   2024-06-15, handle Polyseed different from here? 52 decimals (13 words, 100 decimals (25 words), 16 polyseed words would be 64 decimals
-- `src/xmrsigner/views/seed_views.py`:1264
+- `src/xmrsigner/views/seed_views.py`:1269
   expire 2024-06-15, what is that about??? Remove BTC stuff and make it for monero working. If not needed for monero, remove it
-- `src/xmrsigner/views/seed_views.py`:1292
+- `src/xmrsigner/views/seed_views.py`:1297
   2024-06-15, nonsense for us
-- `src/xmrsigner/views/seed_views.py`:1296
+- `src/xmrsigner/views/seed_views.py`:1301
   2024-06-15, remove all the cluster fuck here, we can verify easy if a address belongs to a wallet in monero
 
 ### 2024-06-16
-- `src/xmrsigner/gui/components.py`:1446
+- `src/xmrsigner/gui/components.py`:1445
   2024-06-16, seems like not needed, check and remove
 - `src/xmrsigner/hardware/microsd.py`:11
   2024-06-16, move to SettingsConstants
@@ -143,9 +139,9 @@ Total: 162
   2024-06-16, added from rebase main to 0.7.0, check if we really need it
 - `src/xmrsigner/views/seed_views.py`:97
   2024-06-16, added with rebase from main to 0.7.0 of seedsigner, check if we need it
-- `src/xmrsigner/views/seed_views.py`:1525
+- `src/xmrsigner/views/seed_views.py`:1530
   2024-06-16
-- `src/xmrsigner/views/seed_views.py`:1557
+- `src/xmrsigner/views/seed_views.py`:1562
   2024-06-16
 - `src/xmrsigner/views/view.py`:260
   2024-06-16, why all this drama and not simply `from sys import exit` and `exit(0)`???
@@ -175,9 +171,7 @@ Total: 162
   2024-06-20, don't like faster code on the expense of ugly code, search a better solution
 - `src/xmrsigner/controller.py`:304
   2024-06-20, maybe this should not be imported here, check
-- `src/xmrsigner/gui/components.py`:36
-  2024-06-20, rename constant
-- `src/xmrsigner/gui/components.py`:116
+- `src/xmrsigner/gui/components.py`:115
   2024-06-20, at the moment only an anotation from refactoring, see how to resolve the clusterfuck :D
 - `src/xmrsigner/gui/screens/psbt_screens.py`:670
   2024-06-20, probably should change to purple if polyseed?
@@ -205,7 +199,7 @@ Total: 162
   2024-06-20, I don't know yet, but I belief it will not be the case for Monero!
 - `src/xmrsigner/views/scan_views.py`:80
   2024-06-20, what about polyseeds?
-- `src/xmrsigner/views/seed_views.py`:1429
+- `src/xmrsigner/views/seed_views.py`:1434
   2024-06-20
 
 ### 2024-06-21
@@ -217,11 +211,11 @@ Total: 162
   2024-06-30, WTF, why not in python?
 - `src/xmrsigner/models/settings.py`:16
   2024-06-30 don't know what will uname return on win32, check
-- `src/xmrsigner/views/seed_views.py`:256
+- `src/xmrsigner/views/seed_views.py`:259
   2024-06-30, clean up, this code is now functional but uggly as fuck!
-- `src/xmrsigner/views/seed_views.py`:260
+- `src/xmrsigner/views/seed_views.py`:263
   expire 2024-06-30, lean it up
-- `src/xmrsigner/views/seed_views.py`:1008
+- `src/xmrsigner/views/seed_views.py`:1011
   expire 2024-06-30, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this???
 - `src/xmrsigner/views/tools_views.py`:302
   expire 2024-06-30, offer only 25 words if not low security is set in settings
@@ -257,17 +251,17 @@ Total: 162
   **#SEEDSIGNER** Rename "storage" to something more indicative of its temp, in-memory state
 - `src/xmrsigner/gui/components.py`:20
   **#SEEDSIGNER** Remove all pixel hard coding
+- `src/xmrsigner/gui/components.py`:177
+  don't need BTC, need XMR glyph is still Bitcoin
 - `src/xmrsigner/gui/components.py`:178
   don't need BTC, need XMR glyph is still Bitcoin
-- `src/xmrsigner/gui/components.py`:179
-  don't need BTC, need XMR glyph is still Bitcoin
-- `src/xmrsigner/gui/components.py`:316
+- `src/xmrsigner/gui/components.py`:315
   **#SEEDSIGNER** Implement autosize width?
-- `src/xmrsigner/gui/components.py`:824
+- `src/xmrsigner/gui/components.py`:823
   change to Monero icon
-- `src/xmrsigner/gui/components.py`:1011
+- `src/xmrsigner/gui/components.py`:1010
   **#SEEDSIGNER** Rename the xmrsigner.helpers.Buttons class (to Inputs?) to reduce confusion
-- `src/xmrsigner/gui/components.py`:1075
+- `src/xmrsigner/gui/components.py`:1074
   **#SEEDSIGNER** Only apply screen_y at render
 - `src/xmrsigner/gui/screens/psbt_screens.py`:134
   **#SEEDSIGNER** Properly handle the ellipsis truncation in different languages
@@ -285,9 +279,9 @@ Total: 162
   **#SEEDSIGNER** Refactor ToastOverlay to support two lines of icon + text and use
 - `src/xmrsigner/gui/screens/seed_screens.py`:61
   **#SEEDSIGNER** support other BIP39 languages/charsets
-- `src/xmrsigner/hardware/buttons.py`:65
+- `src/xmrsigner/hardware/buttons.py`:66
   **#SEEDSIGNER** Refactor to keep control in the Controller and not here
-- `src/xmrsigner/hardware/buttons.py`:178
+- `src/xmrsigner/hardware/buttons.py`:179
   **#SEEDSIGNER** Implement `release_lock` functionality as a global somewhere. Mixes up design
 - `src/xmrsigner/helpers/ur2/cbor_lite.py`:246
   Check that this is the right way -- do we need to use struct.unpack()?
@@ -341,15 +335,11 @@ Total: 162
   Handle single-sig descriptors?
 - `src/xmrsigner/views/screensaver.py`:12
   This early code is now outdated vis-a-vis Screen vs View distinctions
-- `src/xmrsigner/views/seed_views.py`:136
-  **#SEEDSIGNER** Include lock icon on right side of button
-- `src/xmrsigner/views/seed_views.py`:1064
+- `src/xmrsigner/views/seed_views.py`:1066
   **#SEEDSIGNER** Does this belong in its own BaseThread?
-- `src/xmrsigner/views/seed_views.py`:1146
+- `src/xmrsigner/views/seed_views.py`:1148
   **#SEEDSIGNER** detect single sig vs multisig or have to prompt?
-- `src/xmrsigner/views/seed_views.py`:1219
-  **#SEEDSIGNER** Include lock icon on right side of button
-- `src/xmrsigner/views/seed_views.py`:1404
+- `src/xmrsigner/views/seed_views.py`:1409
   **#SEEDSIGNER** Route properly when multisig brute-force addr verification is done
 - `src/xmrsigner/views/settings_views.py`:84
   **#SEEDSIGNER** Free-entry types (are there any?) will need their own SettingsEntryUpdateFreeEntryView(?).
@@ -389,23 +379,21 @@ Total: 162
 ### `src/xmrsigner/gui/components.py`
 - Line 20: None **#SEEDSIGNER** 
   Remove all pixel hard coding
-- Line 36: 2024-06-20 
-  2024-06-20, rename constant
-- Line 116: 2024-06-20 
+- Line 115: 2024-06-20 
   2024-06-20, at the moment only an anotation from refactoring, see how to resolve the clusterfuck :D
+- Line 177: None 
+  don't need BTC, need XMR glyph is still Bitcoin
 - Line 178: None 
   don't need BTC, need XMR glyph is still Bitcoin
-- Line 179: None 
-  don't need BTC, need XMR glyph is still Bitcoin
-- Line 316: None **#SEEDSIGNER** 
+- Line 315: None **#SEEDSIGNER** 
   Implement autosize width?
-- Line 824: None 
+- Line 823: None 
   change to Monero icon
-- Line 1011: None **#SEEDSIGNER** 
+- Line 1010: None **#SEEDSIGNER** 
   Rename the xmrsigner.helpers.Buttons class (to Inputs?) to reduce confusion
-- Line 1075: None **#SEEDSIGNER** 
+- Line 1074: None **#SEEDSIGNER** 
   Only apply screen_y at render
-- Line 1446: 2024-06-16 
+- Line 1445: 2024-06-16 
   2024-06-16, seems like not needed, check and remove
 
 ### `src/xmrsigner/gui/screens/psbt_screens.py`
@@ -471,9 +459,9 @@ Total: 162
   2024-06-17, added with rebase from main to 0.7.0 of seedsigner, lot of work to do
 
 ### `src/xmrsigner/hardware/buttons.py`
-- Line 65: None **#SEEDSIGNER** 
+- Line 66: None **#SEEDSIGNER** 
   Refactor to keep control in the Controller and not here
-- Line 178: None **#SEEDSIGNER** 
+- Line 179: None **#SEEDSIGNER** 
   Implement `release_lock` functionality as a global somewhere. Mixes up design
 
 ### `src/xmrsigner/hardware/microsd.py`
@@ -647,53 +635,45 @@ Total: 162
 ### `src/xmrsigner/views/seed_views.py`
 - Line 97: 2024-06-16 
   2024-06-16, added with rebase from main to 0.7.0 of seedsigner, check if we need it
-- Line 136: None **#SEEDSIGNER** 
-  Include lock icon on right side of button
-- Line 256: 2024-06-30 
+- Line 259: 2024-06-30 
   2024-06-30, clean up, this code is now functional but uggly as fuck!
-- Line 260: 2024-06-30 
+- Line 263: 2024-06-30 
   expire 2024-06-30, lean it up
-- Line 598: 2024-06-10 
+- Line 601: 2024-06-10 
   2024-06-10: finish implementation
-- Line 648: 2024-06-10 
-  no warning or different warning for view keys, adapt before 2024-06-10
-- Line 652: 2024-06-10 
-  see todo above, adapt text to master key and view keys before 2024-06-10
-- Line 861: 2024-06-04 
-  expire 2024-06-04: adapt to polyseed, monero seed and view keys - we don't supportMyMonero keys for export. Wait, need to check again, seems that is meant to draw your QR codes on paper, so it would not really make sense for view keys, not? Would it? Think again about before taking decision!
-- Line 1006: 2024-06-04 
+- Line 864: 2024-06-04 
+  expire 2024-06-04: adapt to polyseed and monero seed
+- Line 1009: 2024-06-04 
   expire 2024-06-04, can only be 25 (monero seed) or 16 (polyseed)
-- Line 1008: 2024-06-30 
+- Line 1011: 2024-06-30 
   expire 2024-06-30, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this???
-- Line 1064: None **#SEEDSIGNER** 
+- Line 1066: None **#SEEDSIGNER** 
   Does this belong in its own BaseThread?
-- Line 1112: 2024-06-04 
+- Line 1114: 2024-06-04 
   expire 2024-06-04, remove BTC related stuff, make it work for monero
-- Line 1146: None **#SEEDSIGNER** 
+- Line 1148: None **#SEEDSIGNER** 
   detect single sig vs multisig or have to prompt?
-- Line 1162: 2024-06-04 
+- Line 1164: 2024-06-04 
   expire 2024-06-04, remove BTC stuff, make monero work
-- Line 1219: None **#SEEDSIGNER** 
-  Include lock icon on right side of button
-- Line 1264: 2024-06-15 
+- Line 1269: 2024-06-15 
   expire 2024-06-15, what is that about??? Remove BTC stuff and make it for monero working. If not needed for monero, remove it
-- Line 1292: 2024-06-15 
+- Line 1297: 2024-06-15 
   2024-06-15, nonsense for us
-- Line 1296: 2024-06-15 
+- Line 1301: 2024-06-15 
   2024-06-15, remove all the cluster fuck here, we can verify easy if a address belongs to a wallet in monero
-- Line 1315: 2024-06-12 
+- Line 1320: 2024-06-12 
   expire 2024-06-12, check if needed for monero, delete or modify
-- Line 1343: 2024-06-10 
+- Line 1348: 2024-06-10 
   expire 2024-06-10, adapt to monero
-- Line 1364: 2024-06-10 
+- Line 1369: 2024-06-10 
   expire 2024-06-10, adapt to monero
-- Line 1404: None **#SEEDSIGNER** 
+- Line 1409: None **#SEEDSIGNER** 
   Route properly when multisig brute-force addr verification is done
-- Line 1429: 2024-06-20 
+- Line 1434: 2024-06-20 
   2024-06-20
-- Line 1525: 2024-06-16 
+- Line 1530: 2024-06-16 
   2024-06-16
-- Line 1557: 2024-06-16 
+- Line 1562: 2024-06-16 
   2024-06-16
 
 ### `src/xmrsigner/views/settings_views.py`
@@ -757,29 +737,25 @@ Total: 162
   Something is wrong with this psbt(?). Reroute to warning?
 - `src/xmrsigner/views/view.py`:69
   Pull all rendering-related code out of Views and into gui.screens implementations
-- `src/xmrsigner/views/seed_views.py`:136
-  Include lock icon on right side of button
-- `src/xmrsigner/views/seed_views.py`:1064
+- `src/xmrsigner/views/seed_views.py`:1066
   Does this belong in its own BaseThread?
-- `src/xmrsigner/views/seed_views.py`:1146
+- `src/xmrsigner/views/seed_views.py`:1148
   detect single sig vs multisig or have to prompt?
-- `src/xmrsigner/views/seed_views.py`:1219
-  Include lock icon on right side of button
-- `src/xmrsigner/views/seed_views.py`:1404
+- `src/xmrsigner/views/seed_views.py`:1409
   Route properly when multisig brute-force addr verification is done
 - `src/xmrsigner/views/settings_views.py`:84
   Free-entry types (are there any?) will need their own SettingsEntryUpdateFreeEntryView(?).
-- `src/xmrsigner/hardware/buttons.py`:65
+- `src/xmrsigner/hardware/buttons.py`:66
   Refactor to keep control in the Controller and not here
-- `src/xmrsigner/hardware/buttons.py`:178
+- `src/xmrsigner/hardware/buttons.py`:179
   Implement `release_lock` functionality as a global somewhere. Mixes up design
 - `src/xmrsigner/gui/components.py`:20
   Remove all pixel hard coding
-- `src/xmrsigner/gui/components.py`:316
+- `src/xmrsigner/gui/components.py`:315
   Implement autosize width?
-- `src/xmrsigner/gui/components.py`:1011
+- `src/xmrsigner/gui/components.py`:1010
   Rename the xmrsigner.helpers.Buttons class (to Inputs?) to reduce confusion
-- `src/xmrsigner/gui/components.py`:1075
+- `src/xmrsigner/gui/components.py`:1074
   Only apply screen_y at render
 - `src/xmrsigner/gui/screens/screen.py`:88
   Check self.scroll_y and only render visible elements
