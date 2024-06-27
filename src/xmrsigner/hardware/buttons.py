@@ -6,7 +6,7 @@ from xmrsigner.models.singleton import Singleton
 
 
 class HardwareButtons(Singleton):
-    if GPIO.RPI_INFO['P1_REVISION'] == 3: #This indicates that we have revision 3 GPIO
+    if GPIO.RPI_INFO['P1_REVISION'] == 3: # This indicates that we have revision 3 GPIO
         print("Detected 40pin GPIO (Rasbperry Pi 2 and above)")
         KEY_UP_PIN = 31
         KEY_DOWN_PIN = 35
@@ -73,7 +73,7 @@ class HardwareButtons(Singleton):
 
         while True:
             cur_time = int(time() * 1000)
-            if cur_time - self.last_input_time > controller.screensaver_activation_ms and not controller.is_screensaver_running:
+            if cur_time - self.last_input_time > controller.screensaver_activation_ms and (not controller.screensaver or not controller.screensaver.is_running):
                 # Start the screensaver. Will block execution until input detected.
                 controller.start_screensaver()
 
@@ -179,7 +179,7 @@ class HardwareButtons(Singleton):
 # TODO:SEEDSIGNER: Implement `release_lock` functionality as a global somewhere. Mixes up design
 #   patterns to have a static constants class plus a settable global value.
 class HardwareButtonsConstants:
-    if GPIO.RPI_INFO['P1_REVISION'] == 3: #This indicates that we have revision 3 GPIO
+    if GPIO.RPI_INFO['P1_REVISION'] == 3: # This indicates that we have revision 3 GPIO
         KEY_UP = 31
         KEY_DOWN = 35
         KEY_LEFT = 29

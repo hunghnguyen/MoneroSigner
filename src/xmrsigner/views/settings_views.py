@@ -46,7 +46,7 @@ class SettingsMenuView(View):
             next_destination = Destination(SettingsMenuView, view_args={"visibility": SettingsConstants.VISIBILITY__ADVANCED})
  
             button_data.append(self.IO_TEST)
-            # button_data.append(self.DONATE)  # TODO: 2024-06-17, display until we know what to do about
+            # button_data.append(self.DONATE)  # TODO: 2024-06-27, don't display until we know what to do about
 
         elif self.visibility == SettingsConstants.VISIBILITY__ADVANCED:
             title = "Advanced"
