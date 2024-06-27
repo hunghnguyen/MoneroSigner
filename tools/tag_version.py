@@ -2,11 +2,13 @@
 from argparse import ArgumentParser
 from re import search
 from subprocess import run
+from typing import Optional
 
 class VersionTagger:
 
-    def __init__(self, file_path):
-        self.file_path = file_path
+    def __init__(self, file_path: str, setup_file_path: Optional[str] = None):
+        self.file_path: str = file_path
+        self.setup_file_path: Optional[str] = setup_file_path
         self.current_version: List[int] = [int(v) for v in self.get_current_version().split('.')]
 
     def get_current_version(self) -> None:
@@ -34,9 +36,11 @@ class VersionTagger:
         #    print(e)
 
     def add(self) -> None:
-        cmd = f'git add {self.file_path}'
-        # TODO: 2024-06-20, setup.py needs to be added, too!
-        run(cmd, shell=True)
+        files = [ self.file_path ]
+        if self.setup_file_path:
+            files.append(self.setup_file_path)
+        for file in files:
+            run(f'git add {file}', shell=True)
 
     def commit(self) -> None:
         version = [str(i) for i in self.current_version]
@@ -60,7 +64,7 @@ def main():
     
     args = parser.parse_args()
     
-    tagger = VersionTagger('src/xmrsigner/controller.py')
+    tagger = VersionTagger('src/xmrsigner/controller.py', 'setup.py')
     tagger.exec(args.commit, args.push)
 
 if __name__ == '__main__':
