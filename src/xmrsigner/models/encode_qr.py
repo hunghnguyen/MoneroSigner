@@ -4,7 +4,7 @@ from monero.wallet import Wallet
 
 from binascii import b2a_base64, hexlify
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 from xmrsigner.helpers.ur2.ur_encoder import UREncoder
 from xmrsigner.helpers.ur2.ur import UR
 from xmrsigner.helpers.qr import QR
@@ -30,12 +30,15 @@ class EncodeQR:
     # Dataclass input vars on __init__()
     psbt: PSBT = None
     seed_phrase: List[str] = None
-    passphrase: str = None
+    passphrase: Optional[str] = None
     derivation: str = None
     network: str = SettingsConstants.MAINNET
+    wallet: Wallet = None
+    height: int = 0
     qr_type: str = None
     qr_density: str = SettingsConstants.DENSITY__MEDIUM
     wordlist_language_code: str = SettingsConstants.WORDLIST_LANGUAGE__ENGLISH
+    wordlist: List[str] = None
 
     def __post_init__(self):
         self.qr = QR()
@@ -54,12 +57,21 @@ class EncodeQR:
 
         # SeedQR formats
         elif self.qr_type == QRType.SEED__SEEDQR:
-            self.encoder = SeedQrEncoder(seed_phrase=self.seed_phrase,
-                                         wordlist_language_code=self.wordlist_language_code)
+            self.encoder = SeedQrEncoder(
+                                seed_phrase=self.seed_phrase,
+                                wordlist=self.wordlist
+                            )
 
         elif self.qr_type == QRType.SEED__COMPACTSEEDQR:
-            self.encoder = CompactSeedQrEncoder(seed_phrase=self.seed_phrase,
-                                                wordlist_language_code=self.wordlist_language_code)
+            self.encoder = CompactSeedQrEncoder(
+                                seed_phrase=self.seed_phrase,
+                                wordlist=self.wordlist
+                            )
+        elif self.qr_type == QRType.WALLET_VIEW_ONLY:
+            self.encoder = ViewOnlyWalletQrEncoder(
+                                wallet=self.wallet,
+                                height=self.height
+                            )
         # Misc formats
         elif self.qr_type == QRType.MONERO_ADDRESS:  # TODO: 2024-06-20, do we need that? For what purpose? Added with rebase from main to 0.7.0 from seedsigner
             self.encoder = MoneroAddressEncoder(address=self.monero_address)
@@ -165,10 +177,10 @@ class UrPsbtQrEncoder(BasePsbtQrEncoder):
 
 class SeedQrEncoder(BaseStaticQrEncoder):
 
-    def __init__(self, seed_phrase: List[str], wordlist_language_code: str):
+    def __init__(self, seed_phrase: List[str], wordlist: List[str]):
         super().__init__()
         self.seed_phrase = seed_phrase
-        self.wordlist = Seed.get_wordlist(wordlist_language_code)
+        self.wordlist = wordlist
         
         if self.wordlist == None:
             raise Exception('Wordlist Required')
@@ -214,12 +226,13 @@ class CompactSeedQrEncoder(SeedQrEncoder):
 
 class ViewOnlyWalletQrEncoder(BaseStaticQrEncoder):
 
-    def __init__(self, wallet: Wallet):
+    def __init__(self, wallet: Wallet, height: int = 0):
         super().__init__()
         self.wallet: Wallet = wallet
+        self.height: int = height
 
     def next_part(self):
-        return ''  # TODO: 2024-06-10, needs to return view only wallet URI
+        return f'monero_wallet:{self.wallet.address()}?view_key={self.wallet.view_key()}&height={self.height}'
 
  
 class MoneroAddressEncoder(BaseStaticQrEncoder):

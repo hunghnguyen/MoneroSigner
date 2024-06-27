@@ -319,11 +319,11 @@ class NetworkMismatchErrorView(ErrorView):
     def __post_init__(self):
         super().__post_init__()
         if not self.text:
-            self.text = f"Current network setting ({self.settings.get_value_display_name(SettingsConstants.SETTING__NETWORK)}) doesn't match current action."
+            self.text = f"Current network setting ({self.settings.get_value_display_name(SettingsConstants.SETTING__NETWORKS)[0]}) doesn't match current action."  # TODO: 2024-06-26, solve multi network issue
 
         if not self.next_destination:
             from xmrsigner.views.settings_views import SettingsEntryUpdateSelectionView
-            self.next_destination = Destination(SettingsEntryUpdateSelectionView, view_args=dict(attr_name=SettingsConstants.SETTING__NETWORK), clear_history=True)
+            self.next_destination = Destination(SettingsEntryUpdateSelectionView, view_args=dict(attr_name=SettingsConstants.SETTING__NETWORKS)[0], clear_history=True)  # TODO: 2024-06-26, solve multi network issue
 
 
 class NotYetImplementedView(View):

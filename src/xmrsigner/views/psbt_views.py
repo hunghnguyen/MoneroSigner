@@ -42,7 +42,7 @@ class PSBTSelectSeedView(View):
             raise Exception("No PSBT currently loaded")
         
         if self.controller.psbt_seed:  # TODO: 2024-06-16, added from rebase main to 0.7.0, check if we really need it
-             if PSBTParser.has_matching_input_fingerprint(psbt=self.controller.psbt, seed=self.controller.psbt_seed, network=self.settings.get_value(SettingsConstants.SETTING__NETWORK)):
+             if PSBTParser.has_matching_input_fingerprint(psbt=self.controller.psbt, seed=self.controller.psbt_seed, network=self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]):  #T TODO: 2024-06-26, fix multinetwork issue
                  # skip the seed prompt if a seed was previous selected and has matching input fingerprint
                  return Destination(PSBTOverviewView)
 
@@ -50,8 +50,8 @@ class PSBTSelectSeedView(View):
 
         button_data = []
         for seed in seeds:
-            button_str = seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK))
-            if not PSBTParser.has_matching_input_fingerprint(psbt=self.controller.psbt, seed=seed, network=self.settings.get_value(SettingsConstants.SETTING__NETWORK)):
+            button_str = seed.fingerprint
+            if not PSBTParser.has_matching_input_fingerprint(psbt=self.controller.psbt, seed=seed, network=self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]):  #T TODO: 2024-06-26, fix multinetwork issue
                 # Doesn't look like this seed can sign the current PSBT
                 button_str += " (?)"
             
@@ -114,7 +114,7 @@ class PSBTOverviewView(View):
                 self.controller.psbt_parser = PSBTParser(
                     self.controller.psbt,
                     seed=self.controller.psbt_seed,
-                    network=self.settings.get_value(SettingsConstants.SETTING__NETWORK)
+                    network=self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]  # TODO: 2024-06-26, solve multi network issue
                 )
             except Exception as e:
                 self.loading_screen.stop()
@@ -328,7 +328,7 @@ class PSXMRhangeDetailsView(View):
 
         # Single-sig verification is easy. We expect to find a single fingerprint
         # and derivation path.
-        seed_fingerprint = self.controller.psbt_seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK))
+        seed_fingerprint = self.controller.psbt_seed.fingerprint
 
         if seed_fingerprint not in change_data.get("fingerprint"):
             # TODO:SEEDSIGNER: Something is wrong with this psbt(?). Reroute to warning?
@@ -381,12 +381,12 @@ class PSXMRhangeDetailsView(View):
                 
                 xpub = self.controller.psbt_seed.get_xpub(
                     wallet_path=wallet_path,
-                    network=self.settings.get_value(SettingsConstants.SETTING__NETWORK)
+                    network=self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]  # TODO: 2024-06-26, solve multi network issue
                 )
                 
                 # take script type and call script method to generate address from seed / derivation
                 # xpub_key = xpub.derive(change_path).key
-                network = self.settings.get_value(SettingsConstants.SETTING__NETWORK)
+                network = self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]  # TODO: 2024-06-26, solve multi network issue
                 # scriptcall = getattr(script, script_type)  # TODO: 2024-06-14, removed to get rid of embit.script
                 if script_type == "p2sh":
                     # single sig only so p2sh is always p2sh-p2wpkh

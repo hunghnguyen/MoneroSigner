@@ -35,6 +35,7 @@ RET_CODE__POWER_BUTTON = 1001
 
 @dataclass
 class BaseScreen(BaseComponent):
+
     def __post_init__(self):
         super().__post_init__()
         
@@ -264,6 +265,7 @@ class BaseTopNavScreen(BaseScreen):
 
 @dataclass
 class ButtonListScreen(BaseTopNavScreen):
+
     button_data: list = None                  # list can be a mix of str or tuple(label: str, icon_name: str)
     selected_button: int = 0
     is_button_text_centered: bool = True
@@ -305,7 +307,7 @@ class ButtonListScreen(BaseTopNavScreen):
             right_icon_name = None
             button_label_color = None
 
-            # TODO:SEEDSIGNER: Define an actual class for button_data?
+            # TODO: 2024-08-01, Define an actual class for button_data
             if type(button_label) == tuple:
                 if len(button_label) == 2:
                     (button_label, icon_name) = button_label
@@ -515,6 +517,21 @@ class ButtonListScreen(BaseTopNavScreen):
                 # Write the screen updates
                 self.renderer.show_image()
 
+
+@dataclass
+class SelectNetworkScreen(ButtonListScreen):
+    text: str = 'Select Network'
+
+    def __post_init__(self):
+        settings = Settings.get_instance()
+        networks = settings.get_value(SettingsConstants.SETTING__NETWORKS)
+        self.button_data = [network for network in networks]
+        super().__post_init__()
+
+        self.components.append(TextArea(
+            text=self.text,
+            screen_y=self.top_nav.height,
+        ))
 
 
 @dataclass
@@ -757,7 +774,6 @@ class QRDisplayScreen(BaseScreen):
 
 
         def run(self):
-            from xmrsigner.models.settings import Settings  # TODO: 2024-06-20, WTF, anyway on import of SettingsConstants the whole file will be parsed, for what to make this pointless acrobatic?
             settings = Settings.get_instance()
             cur_brightness_setting = settings.get_value(SettingsConstants.SETTING__QR_BRIGHTNESS_TIPS)
             show_brightness_tips = cur_brightness_setting == SettingsConstants.OPTION__ENABLED
@@ -781,8 +797,6 @@ class QRDisplayScreen(BaseScreen):
                 time.sleep(5 / 30.0)
 
     def __post_init__(self):
-        from xmrsigner.models.settings import Settings  # TODO: 2024-06-20, WTF, anyway on import of SettingsConstants the whole file will be parsed, for what to make this pointless acrobatic?
-
         super().__post_init__()
         # Shared coordination var so the display thread can detect success
         settings = Settings.get_instance()
@@ -798,7 +812,6 @@ class QRDisplayScreen(BaseScreen):
         ))
 
     def _run(self):
-        from xmrsigner.models.settings import Settings  # TODO: 2024-06-20, WTF, anyway on import of SettingsConstants the whole file will be parsed, for what to make this pointless acrobatic?
         while True:
             user_input = self.hw_inputs.wait_for(
                 [

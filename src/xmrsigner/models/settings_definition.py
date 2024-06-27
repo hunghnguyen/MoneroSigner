@@ -146,7 +146,7 @@ class SettingsConstants:
     SETTING__XMR_DENOMINATION = "denomination"
 
     SEETING__LOW_SECURITY = 'low_security'
-    SETTING__NETWORK = "network"
+    SETTING__NETWORKS = "networks"
     SETTING__QR_DENSITY = "qr_density"
     SETTING__SIG_TYPES = "sig_types"
     SETTING__MONERO_SEED_PASSPHRASE = "monero_seed_passphrase"
@@ -166,7 +166,7 @@ class SettingsConstants:
 
 
     # Structural constants
-    # TODO: Not using these for display purposes yet (ever?)
+    # TODO:SEEDSIGNER: Not using these for display purposes yet (ever?)
     CATEGORY__SYSTEM = "system"
     CATEGORY__DISPLAY = "display"
     CATEGORY__WALLET = "wallet"
@@ -333,7 +333,7 @@ class SettingsDefinition:
                       selection_options=SettingsConstants.ALL_LANGUAGES,
                       default_value=SettingsConstants.LANGUAGE__ENGLISH),
 
-        # TODO:SEEDSIGNER: Support other bip-39 wordlist languages! Until then, type == HIDDEN
+        # TODO:SEEDSIGNER: Support wordlist languages! Until then, type == HIDDEN
         SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
                       attr_name=SettingsConstants.SETTING__WORDLIST_LANGUAGE,
                       abbreviated_name="wordlist_lang",
@@ -360,12 +360,12 @@ class SettingsDefinition:
 
         # Advanced options
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
-                      attr_name=SettingsConstants.SETTING__NETWORK,
-                      display_name="Monero network",
-                      type=SettingsConstants.TYPE__SELECT_1,
+                      attr_name=SettingsConstants.SETTING__NETWORKS,
+                      display_name="Monero networks",
+                      type=SettingsConstants.TYPE__MULTISELECT,
                       visibility=SettingsConstants.VISIBILITY__ADVANCED,
                       selection_options=SettingsConstants.ALL_NETWORKS,
-                      default_value=SettingsConstants.MAINNET),
+                      default_value=SettingsConstants.ALL_NETWORKS[:1]),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
                       attr_name=SettingsConstants.SETTING__QR_DENSITY,
@@ -380,15 +380,15 @@ class SettingsDefinition:
                       abbreviated_name="sigs",
                       display_name="Sig types",
                       type=SettingsConstants.TYPE__MULTISELECT,
-                      visibility=SettingsConstants.VISIBILITY__ADVANCED,
+                      visibility=SettingsConstants.VISIBILITY__HIDDEN,
                       selection_options=SettingsConstants.ALL_SIG_TYPES,
-                      default_value=SettingsConstants.ALL_SIG_TYPES),
+                      default_value=SettingsConstants.ALL_SIG_TYPES[:1]),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
                       attr_name=SettingsConstants.SETTING__MONERO_SEED_PASSPHRASE,
                       display_name="Monero seed passphrase",
                       type=SettingsConstants.TYPE__SELECT_1,
-                      visibility=SettingsConstants.VISIBILITY__HIDDEN,  # TODO: change to VISIBILITY__ADVANCED after implementing passwords for monero seeds, is hidden because this feature is posponed because of insane password derivation method in monero (CryptoNight, need to transpile to python, very propably other #rabbit-hole, be aware before starting!)
+                      visibility=SettingsConstants.VISIBILITY__HIDDEN,  # TODO: 2024-12-01, change to VISIBILITY__ADVANCED after implementing passwords for monero seeds, is hidden because this feature is posponed because of insane password derivation method in monero (CryptoNight, need to transpile to python, very propably other #rabbit-hole, be aware before starting!)
                       selection_options=SettingsConstants.OPTIONS__ENABLED_DISABLED_REQUIRED,
                       default_value=SettingsConstants.OPTION__DISABLED),
 

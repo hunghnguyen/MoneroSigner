@@ -19,14 +19,15 @@
 
 ---------------
 
+ MoneroSigner is in the process of rebranding to be not confused to an abandoned project called MoneroSigner.
+
+---------------
+
 # Project Summary
 
- MoneroSigner is a fork from [SeedSingner](https://github.com/SeedSigner/seedsigner), Bitcoin signing device. It builds on the same hardware and actually you could you the same device for Monero and Bitcoin with two different microSD cards. MoneroSigner offers anyone the opportunity to build a verifiably air-gapped, stateless Monero signing device using inexpensive, publicly available hardware components (usually < $50).
+ XmrSigner is a fork from [SeedSigner](https://github.com/SeedSigner/seedsigner), Bitcoin signing device. It builds on the same hardware and actually you could use the same device for Monero and Bitcoin with two different microSD cards. MoneroSigner offers anyone the opportunity to build a verifiably air-gapped, stateless Monero signing device using inexpensive, publicly available hardware components (usually < $50).
 
-Additional information about the [SeedSigner you can find there](https://seedsigner.com).
-
-
-How Monero is no direct decendent from Bitcoin a lot of things are different...
+How Monero is not a direct decendent from Bitcoin a lot of things are different...
 
 
 ### Features
@@ -41,11 +42,10 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
 - [x] Polyseed passphrase support
 - [ ] ~~Multisig support~~: later
 - [ ] Scan and parse transaction data from animated QR codes using [UR](https://www.blockchaincommons.com/specifications/Blockchain-Commons-URs-Support-Airgapped-PSBTs/)
-- [ ] Sign transactions & (__check: transfer Xmultisig datai__) using animated QR codes ~~[(demo video here)](https://youtu.be/LPqvdQ2gSzs)~~
+- [ ] Sign transactions
 - [x] Live preview during photo-to-seed and QR scanning UX
 - [x] Optimized seed word entry interface
 - [ ] Support for Monero Mainnet, Stagenet & Testnet
-- [ ] On-demand receive address verification (__check__)
 - [ ] User-configurable QR code display density (__check: UR documentation about viability__)
 
 ### Considerations:
@@ -53,7 +53,7 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
 * Device takes up to 60 seconds to boot before menu appears (be patient!)
 * Always test your setup before transfering larger amounts of bitcoin (try testnet first!)
 * Slightly rotating the screen clockwise or counter-clockwise should resolve lighting/glare issues
-* If you think MoneroSigner adds value to the Monero ecosystem, please help us spread the word! (tweets, pics, videos, etc.)
+* If you think XmrSigner adds value to the Monero ecosystem, please help us spread the word! (tweets, pics, videos, etc.)
 
 ### Related Repositories
 * [This one(MoneroSigner](https://github.com/DiosDelRayo/MoneroSigner)
@@ -80,10 +80,14 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
     - [-] ~~Build script to generate executable macOS~~ Not supported: use Docker
 
 
-2. Monero Signer working with companion Application (25 days from now)
+2. XmrSigner working with companion Application (25 days from now)
     - [ ] Monero signer companion Application finished
-    - [ ] All missing Monero signer functionality
-    - [ ] ~~PortableMoneroQR stable~~
+    - [ ] All missing XmrSigner functionality
+        - [x] Show View Only Wallet QR code
+        - [ ] Export key images
+        - [ ] import outputs
+        - [ ] sign transaction
+        - [ ] export signed transaction
     - [ ] UR's implemented
     - [X] first xmrsigner image build
     - [ ] xmrsigner image build chain
@@ -95,7 +99,6 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
     - [ ] Documentation final version
     - [ ] Final cleanup Monero Signer
     - [ ] Final cleanup companion Application
-    - [ ] ~~Final cleanup PortableMoneroQR~~
 
 
 4. Monero-GUI integration (60 days from now from, until PR)
@@ -120,9 +123,9 @@ How Monero is no direct decendent from Bitcoin a lot of things are different...
  |   |   | |              |                   |              /- 2024-07-24 Milestone 4
  |   |   | |              |                   |              |
 (S)==|===|(1)============(2)=================(3)============(4)=====>
-                                        A
-                                        |
-                                        \------ Today: 2024-06-24
+                                          A
+                                          |
+                                          \------ Today: 2024-06-26
 ```
 ---------------
 

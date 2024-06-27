@@ -23,7 +23,7 @@ class GUIConstants:
     COMPONENT_PADDING = 8
     LIST_ITEM_PADDING = 4
 
-    BACKGROUND_COLOR = "black"
+    BACKGROUND_COLOR = "#000000"
     WARNING_COLOR = "#FFD60A"
     DIRE_WARNING_COLOR = "#FF453A"
     SUCCESS_COLOR = "#30D158"
@@ -31,6 +31,7 @@ class GUIConstants:
     TESTNET_COLOR = "#00F100"
     STAGENET_COLOR = "#00CAF1"
     INFO_COLOR = '#0000FF'
+    VERSION_COLOR = ACCENT_COLOR
 
     ICON_FONT_NAME__FONT_AWESOME = "Font_Awesome_6_Free-Solid-900"
     ICON_FONT_NAME__XMRSIGNER = "xmrsigner-icons"
@@ -781,10 +782,10 @@ class FormattedAddress(BaseComponent):
 class XmrAmount(BaseComponent):
     """
         Display xmr value based on the SETTING__XMR_DENOMINATION Setting:
-        * xmr: "B" icon + 8-decimal amount + "xmr" (can truncate zero decimals to .0 or .09)
-        * atomic_units: "B" icon + comma-separated amount + "atomic_units"
+        * xmr: "M" icon + 8-decimal amount + "xmr" (can truncate zero decimals to .0 or .09)
+        * atomic_units: "M" icon + comma-separated amount + "atomic_units"
         * threshold: xmr display at or above 0.01 xmr; otherwise atomic_units
-        * xmratomic_unitshybrd: "B" icon + 2-decimal amount + "|" + up to 6-digit, comma-separated atomic_units + "atomic_units"
+        * xmratomic_unitshybrd: "M" icon + 2-decimal amount + "|" + up to 6-digit, comma-separated atomic_units + "atomic_units"
     """
     total_atomic_units: int = None
     icon_size: int = 34
@@ -799,7 +800,7 @@ class XmrAmount(BaseComponent):
         self.paste_image: Image.Image = None
         self.paste_coords = None
         denomination = Settings.get_instance().get_value(SettingsConstants.SETTING__XMR_DENOMINATION)
-        network = Settings.get_instance().get_value(SettingsConstants.SETTING__NETWORK)
+        network = Settings.get_instance().get_value(SettingsConstants.SETTING__NETWORKS)[0]  # TODO: 2024-06-30, fix using network from parameter instead believing there can be only on network used at a time...
 
         xmr_unit = "XMR"
         atomic_units_unit = "pXMR"

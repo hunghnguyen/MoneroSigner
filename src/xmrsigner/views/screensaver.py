@@ -45,7 +45,7 @@ class OpeningSplashScreen(LogoScreen):
         # Fade in alpha
         for i in range(250, -1, -25):
             self.logo.putalpha(255 - i)
-            background = Image.new("RGBA", size=self.logo.size, color="black")
+            background = Image.new("RGBA", size=self.logo.size, color=GUIConstants.BACKGROUND_COLOR)
             self.renderer.canvas.paste(Image.alpha_composite(background, self.logo), (0, logo_offset_y))
             self.renderer.show_image()
 
@@ -55,9 +55,9 @@ class OpeningSplashScreen(LogoScreen):
         (left, top, version_tw, version_th) = font.getbbox(version, anchor="lt")
 
         # The logo png is 240x240, but the actual logo is 70px tall, vertically centered
-        version_x = int(self.renderer.canvas_width/2)
-        version_y = int(self.canvas_height/2) + 35 + logo_offset_y + GUIConstants.COMPONENT_PADDING
-        self.renderer.draw.text(xy=(version_x, version_y), text=version, font=font, fill=GUIConstants.ACCENT_COLOR, anchor="mt")
+        version_x = int(self.renderer.canvas_width - 35)  # changed it to the right border for the new logo
+        version_y = int(self.canvas_height / 2) + 35 + logo_offset_y + GUIConstants.COMPONENT_PADDING
+        self.renderer.draw.text(xy=(version_x, version_y), text=version, font=font, fill=GUIConstants.VERSION_COLOR, anchor="rt")  # changed from middle top (mt) to right top (rt) for the new logo
         self.renderer.show_image()
 
         if show_partner_logos:

@@ -1,7 +1,7 @@
 # Todo
 ## Backend
 - [x] monero-python for monero seeds
-- [ ] [monero-python](https://github.com/DiosDelRayo/monero-python/Todo.md): monero seed encryption/decryption * not part of the CCS, delayed how it seems a rabbit hole (>48h work)
+- [.] [monero-python](https://github.com/DiosDelRayo/monero-python/Todo.md): monero seed encryption/decryption * not part of the CCS, delayed how it seems a rabbit hole (>48h work)
 - [x] polyseed-python for Polyseeds
 - [ ] implementation for monero signing capability
 - [ ] is UR already provided by SeedSigner, or need to switch?
@@ -17,8 +17,8 @@
 - [x] Export Polyseed (if Polyseed wallet)
 - [x] Convert Polyseed to monero 25 words seed
 - [.] Convert 14 words feather wallet seeds to monero 25 words seed (future)
-- [ ] Export QR
-- [ ] Export View Key
+- [x] Export QR
+- [x] Export View Key
 #### Load seed
 - [ ] Scan seed QR
 - [x] Enter 13 word monero seed
@@ -42,7 +42,7 @@
 - [x] Network Monero: Change Regtest to stagenet
 - [-] Monero seed passphrase, __not viable at the moment, excluded from the CCS, to be done with calm (#rabbit-hole)__
 - [x] Polyseed passphrase
-- [ ] Compact Seed QR (check)
+- [x] Compact Seed QR
 - [x] Partner logos: 'Monero CCS' for now
 - [ ] Handle donation screen
 - [x] Low security: disabled/enabled

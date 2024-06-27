@@ -68,14 +68,14 @@ class SeedStorage:
         return None
 
     def get_pending_mnemonic_fingerprint(self, network: str = SettingsConstants.MAINNET) -> str:
-        return Seed(self._pending_mnemonic).get_fingerprint(network)
+        return Seed(self._pending_mnemonic, network=network).fingerprint
 
-    def convert_pending_mnemonic_to_pending_seed(self):
-        self.pending_seed = Seed(self._pending_mnemonic)
+    def convert_pending_mnemonic_to_pending_seed(self, network: str = SettingsConstants.MAINNET):
+        self.pending_seed = Seed(self._pending_mnemonic, network=network)
         self.discard_pending_mnemonic()
 
-    def convert_pending_mnemonic_to_pending_polyseed(self):
-        self.pending_seed = PolyseedSeed(self._pending_mnemonic)
+    def convert_pending_mnemonic_to_pending_polyseed(self, network: str = SettingsConstants.MAINNET):
+        self.pending_seed = PolyseedSeed(self._pending_mnemonic, network=network)
         self.discard_pending_mnemonic()
 
     def discard_pending_mnemonic(self):

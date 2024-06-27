@@ -12,7 +12,7 @@ from xmrsigner.helpers.qr import QR  # TODO: 2024-06-15, remove?
 from xmrsigner.models.qr_type import QRType
 from xmrsigner.models.threads import BaseThread, ThreadsafeCounter
 
-from xmrsigner.models.seed import Seed
+from xmrsigner.models.seed import Seed, SeedType
 from xmrsigner.models.settings_definition import SettingsConstants, SettingsDefinition
 
 from .screen import (
@@ -1027,13 +1027,20 @@ class SeedReviewPassphraseScreen(ButtonListScreen):
 
 @dataclass
 class SeedTranscribeSeedQRFormatScreen(ButtonListScreen):
+
+    seed_type: SeedType = None
+
     def __post_init__(self):
         self.is_bottom_list = True
         super().__post_init__()
 
         self.components.append(IconTextLine(
             label_text="Standard",
-            value_text="BIP-39 wordlist indices",
+            value_text={
+                SeedType.Monero: 'Monero wordlist indices',
+                SeedType.MyMonero: 'My Monero wordlist indices',
+                SeedType.Polyseed: 'Polyseed wordlist indices'
+            }[self.seed_type],
             is_text_centered=False,
             auto_line_break=True,
             screen_x=GUIConstants.EDGE_PADDING,
@@ -1046,7 +1053,6 @@ class SeedTranscribeSeedQRFormatScreen(ButtonListScreen):
             screen_x=GUIConstants.EDGE_PADDING,
             screen_y=self.components[-1].screen_y + self.components[-1].height + 2*GUIConstants.COMPONENT_PADDING,
         ))
-
 
 
 @dataclass
@@ -1075,6 +1081,45 @@ class SeedTranscribeSeedQRWholeQRScreen(WarningEdgesMixin, ButtonListScreen):
 
         self.paste_images.append((qr_image, (int((self.canvas_width - qr_width)/2), self.top_nav.height)))
 
+
+@dataclass
+class WalletViewKeyQRScreen(BaseScreen):
+
+    qr_data: str = None
+
+    def __post_init__(self):
+        self.title = "View Only Wallet"
+        self.button_data = ['OK']
+        self.is_bottom_list = True
+        self.status_color = GUIConstants.DIRE_WARNING_COLOR
+        super().__post_init__()
+
+        # qr_height = self.buttons[0].screen_y - self.top_nav.height - GUIConstants.COMPONENT_PADDING
+        qr_height = 240
+        qr_width = qr_height
+
+        qr = QR()
+        qr_image = qr.qrimage(
+            data=self.qr_data,
+            width=qr_width,
+            height=qr_height,
+            border=1,
+            style=QR.STYLE__ROUNDED
+        ).convert("RGBA")
+
+        # self.paste_images.append((qr_image, (int((self.canvas_width - qr_width)/2), self.top_nav.height)))
+        self.paste_images.append((qr_image, (0, 0)))
+
+    def _run(self):
+        while True:
+            user_input = self.hw_inputs.wait_for(
+                HardwareButtonsConstants.ALL_KEYS,
+                check_release=True,
+                release_keys=HardwareButtonsConstants.ALL_KEYS
+            )
+            if user_input in HardwareButtonsConstants.ALL_KEYS:
+                return RET_CODE__BACK_BUTTON
+            time.sleep(0.1)
 
 
 @dataclass
@@ -1288,7 +1333,6 @@ class AddressVerificationSigTypeScreen(ButtonListScreen):
             text=self.text,
             screen_y=self.top_nav.height,
         ))
-
 
 
 @dataclass

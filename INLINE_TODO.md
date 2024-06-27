@@ -1,6 +1,6 @@
 # Inline Todo
 
-Total: 157
+Total: 167
 
 ## Index
 - [Urgent](#urgent)
@@ -11,13 +11,9 @@ Total: 157
 ## Urgent
 
 ### 2024-06-04
-- `src/xmrsigner/views/seed_views.py`:864
-  expire 2024-06-04: adapt to polyseed and monero seed
-- `src/xmrsigner/views/seed_views.py`:1009
-  expire 2024-06-04, can only be 25 (monero seed) or 16 (polyseed)
-- `src/xmrsigner/views/seed_views.py`:1114
+- `src/xmrsigner/views/seed_views.py`:1118
   expire 2024-06-04, remove BTC related stuff, make it work for monero
-- `src/xmrsigner/views/seed_views.py`:1164
+- `src/xmrsigner/views/seed_views.py`:1168
   expire 2024-06-04, remove BTC stuff, make monero work
 - `src/xmrsigner/views/tools_views.py`:182
   expire 2024-06-04 should be merged with ToolsImagePolyseedView, same code and be outsid of views...
@@ -35,21 +31,19 @@ Total: 157
   expire 2024-06-10, I think should be moved/merged with mnemonic_generation somehow and somewhere else, think about it.
 - `src/xmrsigner/models/decode_qr.py`:707
   2024-06-10, fix to monero (and polyseed?)
-- `src/xmrsigner/models/encode_qr.py`:222
-  2024-06-10, needs to return view only wallet URI
 - `src/xmrsigner/models/settings_definition.py`:102
   remove comment before 2024-06-10 handle differences in wordlist languages in monero seed and polyseed, think should be handled in the wordlist implementations instead
 - `src/xmrsigner/models/settings_definition.py`:144
   remove after 2024-06-10, maybe there should be SETTING__WORDLIST_LANGUAGE_MONERO and SETTING__WORDLIST_LANGUAGE_POLYSEED? Makes this even sense, should it not be more dynamic letting the responsibility to the monero, polyseed implementation to have it more future proof?
-- `src/xmrsigner/views/seed_views.py`:601
+- `src/xmrsigner/views/seed_views.py`:600
   2024-06-10: finish implementation
-- `src/xmrsigner/views/seed_views.py`:1348
+- `src/xmrsigner/views/seed_views.py`:1352
   expire 2024-06-10, adapt to monero
-- `src/xmrsigner/views/seed_views.py`:1369
+- `src/xmrsigner/views/seed_views.py`:1373
   expire 2024-06-10, adapt to monero
 
 ### 2024-06-12
-- `src/xmrsigner/views/seed_views.py`:1320
+- `src/xmrsigner/views/seed_views.py`:1324
   expire 2024-06-12, check if needed for monero, delete or modify
 
 ### 2024-06-14
@@ -111,23 +105,23 @@ Total: 157
   2024-06-15, don't like speed over ugly code, there must be a better solution
 - `src/xmrsigner/gui/screens/seed_screens.py`:11
   2024-06-15, remove?
-- `src/xmrsigner/gui/screens/seed_screens.py`:1354
+- `src/xmrsigner/gui/screens/seed_screens.py`:1398
   2024-06-15, check if used, if not remove, added with rebase from main to 0.7.0 of seedsigner
-- `src/xmrsigner/gui/screens/seed_screens.py`:1395
+- `src/xmrsigner/gui/screens/seed_screens.py`:1439
   2024-06-15, check if used, if not remove, added with rebase from main to 0.7.0 of seedsigner
 - `src/xmrsigner/gui/screens/settings_screens.py`:302
   2024-06-15, not sure if we need it, added from rebase from main to 0.7.0 from SeedSigner
 - `src/xmrsigner/models/decode_qr.py`:335
   2024-06-15, handle Polyseed different from here? 52 decimals (13 words, 100 decimals (25 words), 16 polyseed words would be 64 decimals
-- `src/xmrsigner/views/seed_views.py`:1269
+- `src/xmrsigner/views/seed_views.py`:1273
   expire 2024-06-15, what is that about??? Remove BTC stuff and make it for monero working. If not needed for monero, remove it
-- `src/xmrsigner/views/seed_views.py`:1297
-  2024-06-15, nonsense for us
 - `src/xmrsigner/views/seed_views.py`:1301
+  2024-06-15, nonsense for us
+- `src/xmrsigner/views/seed_views.py`:1305
   2024-06-15, remove all the cluster fuck here, we can verify easy if a address belongs to a wallet in monero
 
 ### 2024-06-16
-- `src/xmrsigner/gui/components.py`:1445
+- `src/xmrsigner/gui/components.py`:1446
   2024-06-16, seems like not needed, check and remove
 - `src/xmrsigner/hardware/microsd.py`:11
   2024-06-16, move to SettingsConstants
@@ -139,9 +133,9 @@ Total: 157
   2024-06-16, added from rebase main to 0.7.0, check if we really need it
 - `src/xmrsigner/views/seed_views.py`:97
   2024-06-16, added with rebase from main to 0.7.0 of seedsigner, check if we need it
-- `src/xmrsigner/views/seed_views.py`:1530
+- `src/xmrsigner/views/seed_views.py`:1534
   2024-06-16
-- `src/xmrsigner/views/seed_views.py`:1562
+- `src/xmrsigner/views/seed_views.py`:1566
   2024-06-16
 - `src/xmrsigner/views/view.py`:260
   2024-06-16, why all this drama and not simply `from sys import exit` and `exit(0)`???
@@ -171,42 +165,70 @@ Total: 157
   2024-06-20, don't like faster code on the expense of ugly code, search a better solution
 - `src/xmrsigner/controller.py`:304
   2024-06-20, maybe this should not be imported here, check
-- `src/xmrsigner/gui/components.py`:115
+- `src/xmrsigner/gui/components.py`:116
   2024-06-20, at the moment only an anotation from refactoring, see how to resolve the clusterfuck :D
 - `src/xmrsigner/gui/screens/psbt_screens.py`:670
   2024-06-20, probably should change to purple if polyseed?
 - `src/xmrsigner/gui/screens/scan_screens.py`:118
   2024-06-20, replace with constant!
-- `src/xmrsigner/gui/screens/screen.py`:150
-  2024-06-20, WTF hardcoded, move to constant!
 - `src/xmrsigner/gui/screens/screen.py`:151
   2024-06-20, WTF hardcoded, move to constant!
-- `src/xmrsigner/gui/screens/screen.py`:760
-  2024-06-20, WTF, anyway on import of SettingsConstants the whole file will be parsed, for what to make this pointless acrobatic?
-- `src/xmrsigner/gui/screens/screen.py`:784
-  2024-06-20, WTF, anyway on import of SettingsConstants the whole file will be parsed, for what to make this pointless acrobatic?
-- `src/xmrsigner/gui/screens/screen.py`:801
-  2024-06-20, WTF, anyway on import of SettingsConstants the whole file will be parsed, for what to make this pointless acrobatic?
-- `src/xmrsigner/gui/screens/screen.py`:960
+- `src/xmrsigner/gui/screens/screen.py`:152
+  2024-06-20, WTF hardcoded, move to constant!
+- `src/xmrsigner/gui/screens/screen.py`:973
   2024-06-20, WTF hardcoded, substitute with constant
-- `src/xmrsigner/gui/screens/screen.py`:993
+- `src/xmrsigner/gui/screens/screen.py`:1006
   2024-06-20, remove
 - `src/xmrsigner/gui/screens/seed_screens.py`:983
   2024-06-20, what is there going on? Why would you modify a password, and loose accenss? Double check. From rebasing from main to 0.7.0 of seedsigner
-- `src/xmrsigner/models/encode_qr.py`:64
+- `src/xmrsigner/models/encode_qr.py`:76
   2024-06-20, do we need that? For what purpose? Added with rebase from main to 0.7.0 from seedsigner
-- `src/xmrsigner/models/encode_qr.py`:238
+- `src/xmrsigner/models/encode_qr.py`:251
   2024-06-20, I don't know yet, but I belief it will not be the case for Monero!
 - `src/xmrsigner/views/scan_views.py`:80
   2024-06-20, what about polyseeds?
-- `src/xmrsigner/views/seed_views.py`:1434
+- `src/xmrsigner/views/seed_views.py`:1438
   2024-06-20
 
 ### 2024-06-21
 - `src/xmrsigner/views/tools_views.py`:56
   expire 2024-06-21, I think there should be a warning that this way most probale will lead to low entropy, should only be used if user is really knowing what he is doing... Maybe an alternative would be to use it as input entropy with pseudo entropy to generate a new "now magically random" (of course not, but at least with less probability of user picking the most prefered words out of the list and shootig himself in the foot.
 
+### 2024-06-26
+- `src/xmrsigner/views/psbt_views.py`:117
+  2024-06-26, solve multi network issue
+- `src/xmrsigner/views/psbt_views.py`:384
+  2024-06-26, solve multi network issue
+- `src/xmrsigner/views/psbt_views.py`:389
+  2024-06-26, solve multi network issue
+- `src/xmrsigner/views/seed_views.py`:430
+  2024-06-26, solve multi network issue
+- `src/xmrsigner/views/seed_views.py`:539
+  2024-06-26, solve multi network issue
+- `src/xmrsigner/views/seed_views.py`:1443
+  2024-06-26, solve multi network issue
+- `src/xmrsigner/views/seed_views.py`:1445
+  2024-06-26, solve multi network issue
+- `src/xmrsigner/views/seed_views.py`:1522
+  2024-06-26, solve multi network issue
+- `src/xmrsigner/views/seed_views.py`:1523
+  2024-06-26, solve multi network issue
+- `src/xmrsigner/views/seed_views.py`:1526
+  2024-06-26, solve multi network issue
+- `src/xmrsigner/views/tools_views.py`:470
+  2024-06-26, solve multi network issue
+- `src/xmrsigner/views/tools_views.py`:563
+  2024-06-26, solve multi network issue
+- `src/xmrsigner/views/tools_views.py`:569
+  2024-06-26, solve multi network issue
+- `src/xmrsigner/views/view.py`:322
+  2024-06-26, solve multi network issue
+- `src/xmrsigner/views/view.py`:326
+  2024-06-26, solve multi network issue
+
 ### 2024-06-30
+- `src/xmrsigner/gui/components.py`:803
+  2024-06-30, fix using network from parameter instead believing there can be only on network used at a time...
 - `src/xmrsigner/helpers/qr.py`:45
   2024-06-30, WTF, why not in python?
 - `src/xmrsigner/models/settings.py`:16
@@ -215,13 +237,11 @@ Total: 157
   2024-06-30, clean up, this code is now functional but uggly as fuck!
 - `src/xmrsigner/views/seed_views.py`:263
   expire 2024-06-30, lean it up
-- `src/xmrsigner/views/seed_views.py`:1011
-  expire 2024-06-30, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this???
 - `src/xmrsigner/views/tools_views.py`:302
   expire 2024-06-30, offer only 25 words if not low security is set in settings
 
 ### 2024-07-01
-- `src/xmrsigner/gui/screens/screen.py`:140
+- `src/xmrsigner/gui/screens/screen.py`:141
   expire 2024-07-01, why hardcoded???? Use constant!
 - `src/xmrsigner/helpers/mnemonic_generation.py`:1
   expire 2024-07-01 what to do about this file? Do we do the same thing?
@@ -229,6 +249,10 @@ Total: 157
   expire 2024-07-01, see #todo in xmrsigner.helpers.mnemonic_generation, and fix language together...
 - `src/xmrsigner/views/tools_views.py`:271
   expire 2024-07-01, see #todo in xmrsigner.helpers.mnemonic_generation, and fix language together...
+
+### 2024-07-15
+- `src/xmrsigner/views/seed_views.py`:1015
+  expire 2024-07-15, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this??? Test if smaller are viable
 
 ### 2024-07-31
 - `src/xmrsigner/helpers/mnemonic_generation.py`:12
@@ -239,6 +263,14 @@ Total: 157
   expire 2024-07-31, don't know python memory managment, but `del seed_entropy_image` etc seems for me the better way, well, need to investigate, when not mistaken, python uses GC, is there a way to clean up inmedately?
 - `src/xmrsigner/views/tools_views.py`:261
   expire 2024-07-31, don't know python memory managment, but `del seed_entropy_image` etc seems for me the better way, well, need to investigate, when not mistaken, python uses GC, is there a way to clean up inmedately?
+
+### 2024-08-01
+- `src/xmrsigner/gui/screens/screen.py`:310
+  2024-08-01, Define an actual class for button_data
+
+### 2024-12-01
+- `src/xmrsigner/models/settings_definition.py`:391
+  2024-12-01, change to VISIBILITY__ADVANCED after implementing passwords for monero seeds, is hidden because this feature is posponed because of insane password derivation method in monero (CryptoNight, need to transpile to python, very propably other #rabbit-hole, be aware before starting!)
 
 ### No time constraint
 - `src/xmrsigner/controller.py`:61
@@ -251,17 +283,17 @@ Total: 157
   **#SEEDSIGNER** Rename "storage" to something more indicative of its temp, in-memory state
 - `src/xmrsigner/gui/components.py`:20
   **#SEEDSIGNER** Remove all pixel hard coding
-- `src/xmrsigner/gui/components.py`:177
-  don't need BTC, need XMR glyph is still Bitcoin
 - `src/xmrsigner/gui/components.py`:178
   don't need BTC, need XMR glyph is still Bitcoin
-- `src/xmrsigner/gui/components.py`:315
+- `src/xmrsigner/gui/components.py`:179
+  don't need BTC, need XMR glyph is still Bitcoin
+- `src/xmrsigner/gui/components.py`:316
   **#SEEDSIGNER** Implement autosize width?
-- `src/xmrsigner/gui/components.py`:823
+- `src/xmrsigner/gui/components.py`:824
   change to Monero icon
-- `src/xmrsigner/gui/components.py`:1010
+- `src/xmrsigner/gui/components.py`:1011
   **#SEEDSIGNER** Rename the xmrsigner.helpers.Buttons class (to Inputs?) to reduce confusion
-- `src/xmrsigner/gui/components.py`:1074
+- `src/xmrsigner/gui/components.py`:1075
   **#SEEDSIGNER** Only apply screen_y at render
 - `src/xmrsigner/gui/screens/psbt_screens.py`:134
   **#SEEDSIGNER** Properly handle the ellipsis truncation in different languages
@@ -271,11 +303,9 @@ Total: 157
   **#SEEDSIGNER** alternate optimization for Pi Zero 2W?
 - `src/xmrsigner/gui/screens/scan_screens.py`:109
   **#SEEDSIGNER** Replace the instructions_text with a disappearing
-- `src/xmrsigner/gui/screens/screen.py`:88
+- `src/xmrsigner/gui/screens/screen.py`:89
   **#SEEDSIGNER** Check self.scroll_y and only render visible elements
-- `src/xmrsigner/gui/screens/screen.py`:308
-  **#SEEDSIGNER** Define an actual class for button_data?
-- `src/xmrsigner/gui/screens/screen.py`:688
+- `src/xmrsigner/gui/screens/screen.py`:705
   **#SEEDSIGNER** Refactor ToastOverlay to support two lines of icon + text and use
 - `src/xmrsigner/gui/screens/seed_screens.py`:61
   **#SEEDSIGNER** support other BIP39 languages/charsets
@@ -309,7 +339,7 @@ Total: 157
   **#SEEDSIGNER** support formats other than ascii?
 - `src/xmrsigner/models/encode_qr.py`:27
   Refactor so that this is a base class with implementation classes for each
-- `src/xmrsigner/models/encode_qr.py`:93
+- `src/xmrsigner/models/encode_qr.py`:105
   Make these properties?
 - `src/xmrsigner/models/psbt_parser.py`:198
   Move this to Seed?
@@ -318,7 +348,7 @@ Total: 157
 - `src/xmrsigner/models/settings.py`:243
   **#SEEDSIGNER** Perhaps prompt the user if the current settings (not including persistent
 - `src/xmrsigner/models/settings_definition.py`:169
-  Not using these for display purposes yet (ever?)
+  **#SEEDSIGNER** Not using these for display purposes yet (ever?)
 - `src/xmrsigner/models/settings_definition.py`:179
   **#SEEDSIGNER** Is there really a difference between ENABLED and PROMPT?
 - `src/xmrsigner/models/settings_definition.py`:207
@@ -326,20 +356,18 @@ Total: 157
 - `src/xmrsigner/models/settings_definition.py`:326
   **#SEEDSIGNER** Full babel multilanguage support! Until then, type == HIDDEN
 - `src/xmrsigner/models/settings_definition.py`:336
-  **#SEEDSIGNER** Support other bip-39 wordlist languages! Until then, type == HIDDEN
-- `src/xmrsigner/models/settings_definition.py`:391
-  change to VISIBILITY__ADVANCED after implementing passwords for monero seeds, is hidden because this feature is posponed because of insane password derivation method in monero (CryptoNight, need to transpile to python, very propably other #rabbit-hole, be aware before starting!)
+  **#SEEDSIGNER** Support wordlist languages! Until then, type == HIDDEN
 - `src/xmrsigner/views/psbt_views.py`:334
   **#SEEDSIGNER** Something is wrong with this psbt(?). Reroute to warning?
 - `src/xmrsigner/views/scan_views.py`:118
   Handle single-sig descriptors?
 - `src/xmrsigner/views/screensaver.py`:12
   This early code is now outdated vis-a-vis Screen vs View distinctions
-- `src/xmrsigner/views/seed_views.py`:1066
+- `src/xmrsigner/views/seed_views.py`:1070
   **#SEEDSIGNER** Does this belong in its own BaseThread?
-- `src/xmrsigner/views/seed_views.py`:1148
+- `src/xmrsigner/views/seed_views.py`:1152
   **#SEEDSIGNER** detect single sig vs multisig or have to prompt?
-- `src/xmrsigner/views/seed_views.py`:1409
+- `src/xmrsigner/views/seed_views.py`:1413
   **#SEEDSIGNER** Route properly when multisig brute-force addr verification is done
 - `src/xmrsigner/views/settings_views.py`:84
   **#SEEDSIGNER** Free-entry types (are there any?) will need their own SettingsEntryUpdateFreeEntryView(?).
@@ -379,21 +407,23 @@ Total: 157
 ### `src/xmrsigner/gui/components.py`
 - Line 20: None **#SEEDSIGNER** 
   Remove all pixel hard coding
-- Line 115: 2024-06-20 
+- Line 116: 2024-06-20 
   2024-06-20, at the moment only an anotation from refactoring, see how to resolve the clusterfuck :D
-- Line 177: None 
-  don't need BTC, need XMR glyph is still Bitcoin
 - Line 178: None 
   don't need BTC, need XMR glyph is still Bitcoin
-- Line 315: None **#SEEDSIGNER** 
+- Line 179: None 
+  don't need BTC, need XMR glyph is still Bitcoin
+- Line 316: None **#SEEDSIGNER** 
   Implement autosize width?
-- Line 823: None 
+- Line 803: 2024-06-30 
+  2024-06-30, fix using network from parameter instead believing there can be only on network used at a time...
+- Line 824: None 
   change to Monero icon
-- Line 1010: None **#SEEDSIGNER** 
+- Line 1011: None **#SEEDSIGNER** 
   Rename the xmrsigner.helpers.Buttons class (to Inputs?) to reduce confusion
-- Line 1074: None **#SEEDSIGNER** 
+- Line 1075: None **#SEEDSIGNER** 
   Only apply screen_y at render
-- Line 1445: 2024-06-16 
+- Line 1446: 2024-06-16 
   2024-06-16, seems like not needed, check and remove
 
 ### `src/xmrsigner/gui/screens/psbt_screens.py`
@@ -413,27 +443,21 @@ Total: 157
   2024-06-20, replace with constant!
 
 ### `src/xmrsigner/gui/screens/screen.py`
-- Line 88: None **#SEEDSIGNER** 
+- Line 89: None **#SEEDSIGNER** 
   Check self.scroll_y and only render visible elements
-- Line 140: 2024-07-01 
+- Line 141: 2024-07-01 
   expire 2024-07-01, why hardcoded???? Use constant!
-- Line 150: 2024-06-20 
-  2024-06-20, WTF hardcoded, move to constant!
 - Line 151: 2024-06-20 
   2024-06-20, WTF hardcoded, move to constant!
-- Line 308: None **#SEEDSIGNER** 
-  Define an actual class for button_data?
-- Line 688: None **#SEEDSIGNER** 
+- Line 152: 2024-06-20 
+  2024-06-20, WTF hardcoded, move to constant!
+- Line 310: 2024-08-01 
+  2024-08-01, Define an actual class for button_data
+- Line 705: None **#SEEDSIGNER** 
   Refactor ToastOverlay to support two lines of icon + text and use
-- Line 760: 2024-06-20 
-  2024-06-20, WTF, anyway on import of SettingsConstants the whole file will be parsed, for what to make this pointless acrobatic?
-- Line 784: 2024-06-20 
-  2024-06-20, WTF, anyway on import of SettingsConstants the whole file will be parsed, for what to make this pointless acrobatic?
-- Line 801: 2024-06-20 
-  2024-06-20, WTF, anyway on import of SettingsConstants the whole file will be parsed, for what to make this pointless acrobatic?
-- Line 960: 2024-06-20 
+- Line 973: 2024-06-20 
   2024-06-20, WTF hardcoded, substitute with constant
-- Line 993: 2024-06-20 
+- Line 1006: 2024-06-20 
   2024-06-20, remove
 
 ### `src/xmrsigner/gui/screens/seed_screens.py`
@@ -445,9 +469,9 @@ Total: 157
   2024-06-10, remove: Xpub related
 - Line 983: 2024-06-20 
   2024-06-20, what is there going on? Why would you modify a password, and loose accenss? Double check. From rebasing from main to 0.7.0 of seedsigner
-- Line 1354: 2024-06-15 
+- Line 1398: 2024-06-15 
   2024-06-15, check if used, if not remove, added with rebase from main to 0.7.0 of seedsigner
-- Line 1395: 2024-06-15 
+- Line 1439: 2024-06-15 
   2024-06-15, check if used, if not remove, added with rebase from main to 0.7.0 of seedsigner
 
 ### `src/xmrsigner/gui/screens/settings_screens.py`
@@ -541,13 +565,11 @@ Total: 157
   2024-06-14, used as quickfix to remove embit.psbt.PSBT! Adapt for monero
 - Line 27: None 
   Refactor so that this is a base class with implementation classes for each
-- Line 64: 2024-06-20 
+- Line 76: 2024-06-20 
   2024-06-20, do we need that? For what purpose? Added with rebase from main to 0.7.0 from seedsigner
-- Line 93: None 
+- Line 105: None 
   Make these properties?
-- Line 222: 2024-06-10 
-  2024-06-10, needs to return view only wallet URI
-- Line 238: 2024-06-20 
+- Line 251: 2024-06-20 
   2024-06-20, I don't know yet, but I belief it will not be the case for Monero!
 
 ### `src/xmrsigner/models/psbt_parser.py`
@@ -589,7 +611,7 @@ Total: 157
   remove comment before 2024-06-10 handle differences in wordlist languages in monero seed and polyseed, think should be handled in the wordlist implementations instead
 - Line 144: 2024-06-10 
   remove after 2024-06-10, maybe there should be SETTING__WORDLIST_LANGUAGE_MONERO and SETTING__WORDLIST_LANGUAGE_POLYSEED? Makes this even sense, should it not be more dynamic letting the responsibility to the monero, polyseed implementation to have it more future proof?
-- Line 169: None 
+- Line 169: None **#SEEDSIGNER** 
   Not using these for display purposes yet (ever?)
 - Line 179: None **#SEEDSIGNER** 
   Is there really a difference between ENABLED and PROMPT?
@@ -598,19 +620,25 @@ Total: 157
 - Line 326: None **#SEEDSIGNER** 
   Full babel multilanguage support! Until then, type == HIDDEN
 - Line 336: None **#SEEDSIGNER** 
-  Support other bip-39 wordlist languages! Until then, type == HIDDEN
-- Line 391: None 
-  change to VISIBILITY__ADVANCED after implementing passwords for monero seeds, is hidden because this feature is posponed because of insane password derivation method in monero (CryptoNight, need to transpile to python, very propably other #rabbit-hole, be aware before starting!)
+  Support wordlist languages! Until then, type == HIDDEN
+- Line 391: 2024-12-01 
+  2024-12-01, change to VISIBILITY__ADVANCED after implementing passwords for monero seeds, is hidden because this feature is posponed because of insane password derivation method in monero (CryptoNight, need to transpile to python, very propably other #rabbit-hole, be aware before starting!)
 
 ### `src/xmrsigner/views/psbt_views.py`
 - Line 28: 2024-06-14 
   2024-06-14, quick fix to remove embit.psbt.PSBT
 - Line 44: 2024-06-16 
   2024-06-16, added from rebase main to 0.7.0, check if we really need it
+- Line 117: 2024-06-26 
+  2024-06-26, solve multi network issue
 - Line 334: None **#SEEDSIGNER** 
   Something is wrong with this psbt(?). Reroute to warning?
 - Line 375: 2024-06-14 
   2024-06-14, removed to get rid of embit.script
+- Line 384: 2024-06-26 
+  2024-06-26, solve multi network issue
+- Line 389: 2024-06-26 
+  2024-06-26, solve multi network issue
 - Line 390: 2024-06-14 
   2024-06-14, removed to get rid of embit.script
 - Line 393: 2024-06-14 
@@ -639,41 +667,51 @@ Total: 157
   2024-06-30, clean up, this code is now functional but uggly as fuck!
 - Line 263: 2024-06-30 
   expire 2024-06-30, lean it up
-- Line 601: 2024-06-10 
+- Line 430: 2024-06-26 
+  2024-06-26, solve multi network issue
+- Line 539: 2024-06-26 
+  2024-06-26, solve multi network issue
+- Line 600: 2024-06-10 
   2024-06-10: finish implementation
-- Line 864: 2024-06-04 
-  expire 2024-06-04: adapt to polyseed and monero seed
-- Line 1009: 2024-06-04 
-  expire 2024-06-04, can only be 25 (monero seed) or 16 (polyseed)
-- Line 1011: 2024-06-30 
-  expire 2024-06-30, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this???
-- Line 1066: None **#SEEDSIGNER** 
+- Line 1015: 2024-07-15 
+  expire 2024-07-15, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this??? Test if smaller are viable
+- Line 1070: None **#SEEDSIGNER** 
   Does this belong in its own BaseThread?
-- Line 1114: 2024-06-04 
+- Line 1118: 2024-06-04 
   expire 2024-06-04, remove BTC related stuff, make it work for monero
-- Line 1148: None **#SEEDSIGNER** 
+- Line 1152: None **#SEEDSIGNER** 
   detect single sig vs multisig or have to prompt?
-- Line 1164: 2024-06-04 
+- Line 1168: 2024-06-04 
   expire 2024-06-04, remove BTC stuff, make monero work
-- Line 1269: 2024-06-15 
+- Line 1273: 2024-06-15 
   expire 2024-06-15, what is that about??? Remove BTC stuff and make it for monero working. If not needed for monero, remove it
-- Line 1297: 2024-06-15 
-  2024-06-15, nonsense for us
 - Line 1301: 2024-06-15 
+  2024-06-15, nonsense for us
+- Line 1305: 2024-06-15 
   2024-06-15, remove all the cluster fuck here, we can verify easy if a address belongs to a wallet in monero
-- Line 1320: 2024-06-12 
+- Line 1324: 2024-06-12 
   expire 2024-06-12, check if needed for monero, delete or modify
-- Line 1348: 2024-06-10 
+- Line 1352: 2024-06-10 
   expire 2024-06-10, adapt to monero
-- Line 1369: 2024-06-10 
+- Line 1373: 2024-06-10 
   expire 2024-06-10, adapt to monero
-- Line 1409: None **#SEEDSIGNER** 
+- Line 1413: None **#SEEDSIGNER** 
   Route properly when multisig brute-force addr verification is done
-- Line 1434: 2024-06-20 
+- Line 1438: 2024-06-20 
   2024-06-20
-- Line 1530: 2024-06-16 
+- Line 1443: 2024-06-26 
+  2024-06-26, solve multi network issue
+- Line 1445: 2024-06-26 
+  2024-06-26, solve multi network issue
+- Line 1522: 2024-06-26 
+  2024-06-26, solve multi network issue
+- Line 1523: 2024-06-26 
+  2024-06-26, solve multi network issue
+- Line 1526: 2024-06-26 
+  2024-06-26, solve multi network issue
+- Line 1534: 2024-06-16 
   2024-06-16
-- Line 1562: 2024-06-16 
+- Line 1566: 2024-06-16 
   2024-06-16
 
 ### `src/xmrsigner/views/settings_views.py`
@@ -707,8 +745,14 @@ Total: 157
   2024-06-04, rename, because it is missleading, the only thing what will be calculated is the checksum word
 - Line 452: 2024-06-04 
   2024-06-04 hot fix, make it right, seems actually right to add checksum
+- Line 470: 2024-06-26 
+  2024-06-26, solve multi network issue
 - Line 548: 2024-06-17 
   2024-06-17, holy clusterfuck, added with rebase from main to 0.7.0 of seedsigner, lot of work to do
+- Line 563: 2024-06-26 
+  2024-06-26, solve multi network issue
+- Line 569: 2024-06-26 
+  2024-06-26, solve multi network issue
 - Line 598: None 
   Refactor to a cleaner `BackStack.get_previous_View_cls()`
 - Line 652: None 
@@ -721,6 +765,10 @@ Total: 157
   2024-06-16, why all this drama and not simply `from sys import exit` and `exit(0)`???
 - Line 278: 2024-06-16 
   2024-06-16, IMO should be removed
+- Line 322: 2024-06-26 
+  2024-06-26, solve multi network issue
+- Line 326: 2024-06-26 
+  2024-06-26, solve multi network issue
 
 ## By Tags
 
@@ -737,11 +785,11 @@ Total: 157
   Something is wrong with this psbt(?). Reroute to warning?
 - `src/xmrsigner/views/view.py`:69
   Pull all rendering-related code out of Views and into gui.screens implementations
-- `src/xmrsigner/views/seed_views.py`:1066
+- `src/xmrsigner/views/seed_views.py`:1070
   Does this belong in its own BaseThread?
-- `src/xmrsigner/views/seed_views.py`:1148
+- `src/xmrsigner/views/seed_views.py`:1152
   detect single sig vs multisig or have to prompt?
-- `src/xmrsigner/views/seed_views.py`:1409
+- `src/xmrsigner/views/seed_views.py`:1413
   Route properly when multisig brute-force addr verification is done
 - `src/xmrsigner/views/settings_views.py`:84
   Free-entry types (are there any?) will need their own SettingsEntryUpdateFreeEntryView(?).
@@ -751,17 +799,15 @@ Total: 157
   Implement `release_lock` functionality as a global somewhere. Mixes up design
 - `src/xmrsigner/gui/components.py`:20
   Remove all pixel hard coding
-- `src/xmrsigner/gui/components.py`:315
+- `src/xmrsigner/gui/components.py`:316
   Implement autosize width?
-- `src/xmrsigner/gui/components.py`:1010
+- `src/xmrsigner/gui/components.py`:1011
   Rename the xmrsigner.helpers.Buttons class (to Inputs?) to reduce confusion
-- `src/xmrsigner/gui/components.py`:1074
+- `src/xmrsigner/gui/components.py`:1075
   Only apply screen_y at render
-- `src/xmrsigner/gui/screens/screen.py`:88
+- `src/xmrsigner/gui/screens/screen.py`:89
   Check self.scroll_y and only render visible elements
-- `src/xmrsigner/gui/screens/screen.py`:308
-  Define an actual class for button_data?
-- `src/xmrsigner/gui/screens/screen.py`:688
+- `src/xmrsigner/gui/screens/screen.py`:705
   Refactor ToastOverlay to support two lines of icon + text and use
 - `src/xmrsigner/gui/screens/psbt_screens.py`:134
   Properly handle the ellipsis truncation in different languages
@@ -789,6 +835,8 @@ Total: 157
   Pre-calculate this once on startup
 - `src/xmrsigner/models/decode_qr.py`:817
   support formats other than ascii?
+- `src/xmrsigner/models/settings_definition.py`:169
+  Not using these for display purposes yet (ever?)
 - `src/xmrsigner/models/settings_definition.py`:179
   Is there really a difference between ENABLED and PROMPT?
 - `src/xmrsigner/models/settings_definition.py`:207
@@ -796,4 +844,4 @@ Total: 157
 - `src/xmrsigner/models/settings_definition.py`:326
   Full babel multilanguage support! Until then, type == HIDDEN
 - `src/xmrsigner/models/settings_definition.py`:336
-  Support other bip-39 wordlist languages! Until then, type == HIDDEN
+  Support wordlist languages! Until then, type == HIDDEN

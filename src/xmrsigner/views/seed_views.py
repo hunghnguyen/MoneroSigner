@@ -25,7 +25,7 @@ from xmrsigner.models.decode_qr import DecodeQR
 from xmrsigner.models.encode_qr import EncodeQR
 from xmrsigner.models.psbt_parser import PSBTParser
 from xmrsigner.models.qr_type import QRType
-from xmrsigner.models.seed import InvalidSeedException, Seed
+from xmrsigner.models.seed import InvalidSeedException, Seed, SeedType
 from xmrsigner.models.polyseed import PolyseedSeed
 from xmrsigner.models.settings import Settings, SettingsConstants
 from xmrsigner.models.settings_definition import SettingsDefinition
@@ -53,7 +53,7 @@ class SeedsMenuView(View):
             print(type(seed))
             print(isinstance(seed, PolyseedSeed))
             self.seeds.append({
-                'fingerprint': seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK)),
+                'fingerprint': seed.fingerprint,
                 'has_passphrase': seed.has_passphrase,
                 'polyseed': isinstance(seed, PolyseedSeed),
                 'mymonero': seed.is_my_monero
@@ -132,7 +132,7 @@ class SeedSelectSeedView(View):  # TODO: 2024-06-16, added with rebase from main
         for seed in seeds:
             button_data.append(
                 (
-                    seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK)),
+                    seed.fingerprint,
                     IconConstants.FINGERPRINT,
                     'purple' if isinstance(seed, PolyseedSeed) else 'blue' if not seed.is_my_monero else 'red',
                     None,
@@ -366,7 +366,7 @@ class SeedFinalizeView(View):
     def __init__(self):
         super().__init__()
         self.seed = self.controller.storage.get_pending_seed()
-        self.fingerprint = self.seed.get_fingerprint(network=self.settings.get_value(SettingsConstants.SETTING__NETWORK))
+        self.fingerprint = self.seed.fingerprint
         self.polyseed = isinstance(self.seed, PolyseedSeed)
 
     def run(self):
@@ -427,11 +427,11 @@ class SeedReviewPassphraseView(View):
 
     def run(self):
         # Get the before/after fingerprints
-        network = self.settings.get_value(SettingsConstants.SETTING__NETWORK)
+        network = self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]  # TODO: 2024-06-26, solve multi network issue
         passphrase = self.seed.passphrase
-        fingerprint_with = self.seed.get_fingerprint(network=network)
+        fingerprint_with = self.seed.fingerprint
         self.seed.set_passphrase(None)
-        fingerprint_without = self.seed.get_fingerprint(network=network)
+        fingerprint_without = self.seed.fingerprint
         self.seed.set_passphrase(passphrase)
         
         button_data = [self.EDIT, self.DONE]
@@ -473,12 +473,11 @@ class SeedDiscardView(View):
     def run(self):
         button_data = [self.KEEP, self.DISCARD]
 
-        fingerprint = self.seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK))
         selected_menu_num = self.run_screen(
             WarningScreen,
             title="Discard Seed?",
             status_headline=None,
-            text=f"Wipe seed {fingerprint} from the device?",
+            text=f"Wipe seed {self.seed.fingerprint} from the device?",
             show_back_button=False,
             button_data=button_data,
         )
@@ -537,7 +536,7 @@ class SeedOptionsView(View):
             return Destination(SeedSignMessageConfirmMessageView, skip_current_view=True)
 
         if self.controller.psbt:
-            if PSBTParser.has_matching_input_fingerprint(self.controller.psbt, self.seed, network=self.settings.get_value(SettingsConstants.SETTING__NETWORK)):
+            if PSBTParser.has_matching_input_fingerprint(self.controller.psbt, self.seed, network=self.settings.get_value(SettingsConstants.SETTING__NETWORKS[0])):  # TODO: 2024-06-26, solve multi network issue
                 if self.controller.resume_main_flow and self.controller.resume_main_flow == Controller.FLOW__PSBT:
                     # Re-route us directly back to the start of the PSBT flow 
                     self.controller.resume_main_flow = None
@@ -563,7 +562,7 @@ class SeedOptionsView(View):
         selected_menu_num = self.run_screen(
             seed_screens.SeedOptionsScreen,
             button_data=button_data,
-            fingerprint=self.seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK)),
+            fingerprint=self.seed.fingerprint,
             polyseed=isinstance(self.seed, PolyseedSeed),
             my_monero=self.seed.is_my_monero,
             has_passphrase=self.seed.passphrase is not None
@@ -861,14 +860,16 @@ class SeedWordsBackupTestSuccessView(View):
 """****************************************************************************
     Export as SeedQR
 ****************************************************************************"""
-class SeedTranscribeSeedQRFormatView(View): # TODO: expire 2024-06-04: adapt to polyseed and monero seed
+class SeedTranscribeSeedQRFormatView(View):
     def __init__(self, seed_num: int):
         super().__init__()
         self.seed_num = seed_num
 
     def run(self):
-        seed = self.controller.get_seed(self.seed_num)
-        if len(seed.mnemonic_list) == 12:
+        seed: Seed = self.controller.get_seed(self.seed_num)
+        seed_type: SeedType = seed.type
+
+        if len(seed.mnemonic_list) < 25:
             STANDARD = "Standard: 25x25"
             COMPACT = "Compact: 21x21"
             num_modules_standard = 25
@@ -895,6 +896,7 @@ class SeedTranscribeSeedQRFormatView(View): # TODO: expire 2024-06-04: adapt to 
 
         selected_menu_num = seed_screens.SeedTranscribeSeedQRFormatScreen(
             title="SeedQR Format",
+            seed_type=seed_type,
             button_data=button_data,
         ).display()
 
@@ -968,7 +970,8 @@ class SeedTranscribeSeedQRWholeQRView(View):
         e = EncodeQR(
             seed_phrase=self.seed.mnemonic_list,
             qr_type=self.seedqr_format,
-            wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE)
+            wordlist_language_code=self.seed.wordlist_language_code,
+            wordlist=self.seed.wordlist
         )
         data = e.next_part()
 
@@ -991,24 +994,25 @@ class SeedTranscribeSeedQRWholeQRView(View):
 
 
 class SeedTranscribeSeedQRZoomedInView(View):
+
     def __init__(self, seed_num: int, seedqr_format: str):
         super().__init__()
         self.seed_num = seed_num
         self.seedqr_format = seedqr_format
         self.seed = self.controller.get_seed(seed_num)
     
-
     def run(self):
         e = EncodeQR(
             seed_phrase=self.seed.mnemonic_list,
             qr_type=self.seedqr_format,
-            wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE)
+            wordlist_language_code=self.seed.wordlist_language_code,
+            wordlist=self.seed.wordlist
         )
         data = e.next_part()
 
-        if len(self.seed.mnemonic_list) == 24: # TODO: expire 2024-06-04, can only be 25 (monero seed) or 16 (polyseed)
+        if len(self.seed.mnemonic_list) == 25:
             if self.seedqr_format == QRType.SEED__COMPACTSEEDQR:
-                num_modules = 25  # TODO: expire 2024-06-30, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this???
+                num_modules = 25  # TODO: expire 2024-07-15, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this??? Test if smaller are viable
             else:
                 num_modules = 29
         else:
@@ -1217,7 +1221,7 @@ class SeedSingleSigAddressVerificationSelectSeedView(View):
         for seed in seeds:
             button_data.append(
                 (
-                    seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK)),
+                    seed.fingerprint,
                     IconConstants.FINGERPRINT,
                     'purple' if isinstance(seed, PolyseedSeed) else 'blue' if not seed.is_my_monero else 'red',
                     None,
@@ -1303,7 +1307,7 @@ class SeedAddressVerificationView(View):  # TODO: expire 2024-06-15, what is tha
         # script_type_display = script_type_settings_entry.get_selection_option_display_name_by_value(self.script_type)
         # sig_type_settings_entry = SettingsDefinition.get_settings_entry(SettingsConstants.SETTING__SIG_TYPES)
         # sig_type_display = sig_type_settings_entry.get_selection_option_display_name_by_value(self.sig_type)
-        # network_settings_entry = SettingsDefinition.get_settings_entry(SettingsConstants.SETTING__NETWORK)
+        # network_settings_entry = SettingsDefinition.get_settings_entry(SettingsConstants.SETTING__NETWORKS)[0]
         # network_display = network_settings_entry.get_selection_option_display_name_by_value(self.network)
         # mainnet = network_settings_entry.get_selection_option_display_name_by_value(SettingsConstants.MAINNET)
         # Here was before "Brute force address-wallet verification"
@@ -1334,7 +1338,7 @@ class AddressVerificationSuccessView(View):  # TODO: expire 2024-06-12, check if
         if sig_type == SettingsConstants.MULTISIG:
             source = "multisig"
         else:
-            source = f"seed {self.seed.get_fingerprint()}"
+            source = f"seed {self.seed.fingerprint()}"
 
         LargeIconStatusScreen(
             status_headline="Address Verified",
@@ -1436,9 +1440,9 @@ class SeedSignMessageStartView(View):
             raise NotYetImplementedView("Signing messages for custom derivation paths not supported")
 
         # Note: addr_format["network"] can be MAINNET or [TESTNET, STAGENET]
-        if self.settings.get_value(SettingsConstants.SETTING__NETWORK) not in addr_format["network"]:
+        if self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0] not in addr_format["network"]:  # TODO: 2024-06-26, solve multi network issue
             from xmrsigner.views.view import NetworkMismatchErrorView
-            self.set_redirect(Destination(NetworkMismatchErrorView, view_args=dict(text=f"Current network setting ({self.settings.get_value_display_name(SettingsConstants.SETTING__NETWORK)}) doesn't match {self.derivation_path}")))
+            self.set_redirect(Destination(NetworkMismatchErrorView, view_args=dict(text=f"Current network setting ({self.settings.get_value_display_name(SettingsConstants.SETTING__NETWORKS)[0]}) doesn't match {self.derivation_path}")))  # TODO: 2024-06-26, solve multi network issue
 
             # cleanup. Note: We could leave this in place so the user can resume the
             # flow, but for now we avoid complications and keep things simple.
@@ -1515,11 +1519,11 @@ class SeedSignMessageConfirmAddressView(View):
 
         if addr_format["network"] != SettingsConstants.MAINNET:
             # We're in either Testnet or Regtest or...?
-            if self.settings.get_value(SettingsConstants.SETTING__NETWORK) in [SettingsConstants.TESTNET, SettingsConstants.STAGENET]:
-                addr_format["network"] = self.settings.get_value(SettingsConstants.SETTING__NETWORK)
+            if self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0] in [SettingsConstants.TESTNET, SettingsConstants.STAGENET]:  # TODO: 2024-06-26, solve multi network issue
+                addr_format["network"] = self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0] # TODO: 2024-06-26, solve multi network issue
             else:
                 from xmrsigner.views.view import NetworkMismatchErrorView
-                self.set_redirect(Destination(NetworkMismatchErrorView, view_args=dict(text=f"Current network setting ({self.settings.get_value_display_name(SettingsConstants.SETTING__NETWORK)}) doesn't match {self.derivation_path}")))
+                self.set_redirect(Destination(NetworkMismatchErrorView, view_args=dict(text=f"Current network setting ({self.settings.get_value_display_name(SettingsConstants.SETTING__NETWORKS)[0]}) doesn't match {self.derivation_path}")))  # TODO: 2024-06-26, solve multi network issue
 
                 # cleanup. Note: We could leave this in place so the user can resume the
                 # flow, but for now we avoid complications and keep things simple.

@@ -467,7 +467,7 @@ class ToolsCalcFinalWordDoneView(View):
         selected_menu_num = ToolsCalcFinalWordDoneScreen(
             final_word=final_word,
             mnemonic_word_length=mnemonic_word_length,
-            fingerprint=self.controller.storage.get_pending_mnemonic_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK)),
+            fingerprint=self.controller.storage.get_pending_mnemonic_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]),  # TODO: 2024-06-26, solve multi network issue
             button_data=button_data,
         ).display()
 
@@ -498,7 +498,7 @@ class ToolsAddressExplorerSelectSourceView(View):
         seeds = self.controller.storage.seeds
         button_data = []
         for seed in seeds:
-            button_str = seed.get_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORK))
+            button_str = seed.fingerprint
             button_data.append((button_str, IconConstants.FINGERPRINT))
         button_data = button_data + [self.SCAN_SEED, self.SCAN_WALLET, self.TYPE_13WORD, self.TYPE_25WORD, self.TYPE_POLYSEED]
         
@@ -560,13 +560,13 @@ class ToolsAddressExplorerAddressTypeView(View):  # TODO: 2024-06-17, holy clust
         """
         super().__init__()
         self.seed_num = seed_num
-        network = self.settings.get_value(SettingsConstants.SETTING__NETWORK)
+        network = self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]  # TODO: 2024-06-26, solve multi network issue
 
         # Store everything in the Controller's `address_explorer_data` so we don't have
         # to keep passing vals around from View to View and recalculating.
         data = {
             'seed_num': seed_num,
-            'network': self.settings.get_value(SettingsConstants.SETTING__NETWORK)
+            'network': self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]  # TODO: 2024-06-26, solve multi network issue
         }
         if self.seed_num is not None:
             self.seed = self.controller.storage.seeds[seed_num]
@@ -587,7 +587,7 @@ class ToolsAddressExplorerAddressTypeView(View):  # TODO: 2024-06-17, holy clust
         selected_menu_num = self.run_screen(
             ToolsAddressExplorerAddressTypeScreen,
             button_data=button_data,
-            fingerprint=self.seed.get_fingerprint() if self.seed_num is not None else None,
+            fingerprint=self.seed.fingerprint if self.seed_num is not None else None,
             wallet_descriptor_display_name=wallet_descriptor_display_name
         )
 

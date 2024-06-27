@@ -1,5 +1,6 @@
-from .seed import Seed, InvalidSeedException
-from .settings_definition import SettingsConstants
+from xmrsigner.models.seed import Seed, InvalidSeedException, SeedType
+from xmrsigner.models.settings_definition import SettingsConstants
+from monero.const import NET_MAIN
 from polyseed import Polyseed
 from polyseed.lang import Language
 from polyseed.exceptions import PolyseedWordCountMissmatchException, PolyseedLanguageNotFoundException
@@ -10,12 +11,16 @@ from binascii import hexlify
 from typing import List, Optional
 
 class PolyseedSeed(Seed):
+
     def __init__(self,
                  mnemonic: List[str] = None,
                  passphrase: str = "",
-                 wordlist_language_code: str = SettingsConstants.WORDLIST_LANGUAGE__ENGLISH):
+                 wordlist_language_code: str = SettingsConstants.WORDLIST_LANGUAGE__ENGLISH,
+                 network: str = NET_MAIN):
         self.wordlist_language_code = wordlist_language_code
         self.prefered_language = wordlist_language_code
+        self.network = network
+        self.height = 0
 
         if not mnemonic:
             raise Exception("Must initialize a Seed with a mnemonic List[str]")
@@ -26,6 +31,10 @@ class PolyseedSeed(Seed):
 
         self.seed_bytes: bytes = None
         self._generate_seed()
+
+    @property
+    def type(self) -> SeedType:
+        return SeedType.Polyseed
 
 
     @staticmethod
@@ -53,11 +62,12 @@ class PolyseedSeed(Seed):
             if self.passphrase:
                 ps.crypt(self.passphrase)
             self.seed_bytes = ps.keygen()
+            self.height = ps.get_birthday()
         except Exception as e:
             raise InvalidSeedException(repr(e))
     
     def to_monero_seed(self, password: Optional[str]) -> Seed:
-        return Seed.from_key(hexlify(self.seed_bytes), password, self.wordlist_language_code)
+        return Seed.from_key(hexlify(self.seed_bytes), password, self.wordlist_language_code, self.height, self.network)
 
     ### override operators    
     def __eq__(self, other: Seed):
