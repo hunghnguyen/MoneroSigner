@@ -25,7 +25,7 @@ class Camera(Singleton):
         if self._video_stream is not None:
             self.stop_video_stream_mode()
 
-        self._video_stream = PiVideoStream(resolution=resolution,framerate=framerate, format=format)
+        self._video_stream = PiVideoStream(resolution=resolution, framerate=framerate, format=format)
         self._video_stream.start()
 
 
@@ -80,4 +80,3 @@ class Camera(Singleton):
         if self._picamera is not None:
             self._picamera.close()
             self._picamera = None
-

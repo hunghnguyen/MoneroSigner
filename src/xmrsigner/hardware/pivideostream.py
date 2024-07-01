@@ -2,11 +2,12 @@
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 from threading import Thread
-import time
+from time import sleep
 
 
 # Modified from: https://github.com/jrosebr1/imutils
 class PiVideoStream:
+
 	def __init__(self, resolution=(320, 240), framerate=32, format="bgr", **kwargs):
 		# initialize the camera
 		self.camera = PiCamera(resolution=resolution, framerate=framerate, **kwargs)
@@ -22,15 +23,14 @@ class PiVideoStream:
 		self.should_stop = False
 		self.is_stopped = True
 
-	def start(self):
+	def start(self) -> None:
 		# start the thread to read frames from the video stream
 		t = Thread(target=self.update, args=())
 		t.daemon = True
 		t.start()
 		self.is_stopped = False
-		return self
 
-	def update(self):
+	def update(self) -> None:
 		# keep looping infinitely until the thread is stopped
 		for f in self.stream:
 			# grab the frame from the stream and clear the stream in
@@ -53,10 +53,10 @@ class PiVideoStream:
 		# return the frame most recently read
 		return self.frame
 
-	def stop(self):
+	def stop(self) -> None:
 		# indicate that the thread should be stopped
 		self.should_stop = True
 
 		# Block in this thread until stopped
 		while not self.is_stopped:
-			pass
+            sleep(0.01)
