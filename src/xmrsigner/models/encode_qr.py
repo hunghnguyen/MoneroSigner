@@ -10,6 +10,7 @@ from xmrsigner.helpers.ur2.ur import UR
 from xmrsigner.helpers.qr import QR
 from xmrsigner.models.qr_type import QRType
 from xmrsigner.models.seed import Seed
+from xmrsigner.helpers.compactseed import idx2bytes
 
 from urtypes.crypto import PSBT as UR_PSBT
 from urtypes.crypto import PSBT  # TODO: 2024-06-14, used as quickfix to remove embit.psbt.PSBT! Adapt for monero
@@ -197,31 +198,14 @@ class SeedQrEncoder(BaseStaticQrEncoder):
 class CompactSeedQrEncoder(SeedQrEncoder):
 
     def next_part(self):
-        # Output as binary data format
-        binary_str = ""
-        for word in self.seed_phrase:
-            index = self.wordlist.index(word)
+        seed_phrase = self.seed_phrase.copy()
+        if len(seed_phrase) in (13, 25):  # monero seed with checksum word, remove checksum word at the end
+            del seed_phrase[-1]
 
-            # Convert index to binary, strip out '0b' prefix; zero-pad to 11 bits
-            binary_str += bin(index).split('b')[1].zfill(11)
+        if len(seed_phrase) not in (12, 16, 24):  # results in (17, 22, 33) bytes per seed
+            raise Exception('Neither a monero seed nor a polyseed!')
 
-        # We can exclude the checksum bits at the end
-        if len(self.seed_phrase) == 24:
-            # 8 checksum bits in a 24-word seed
-            binary_str = binary_str[:-8]
-
-        elif len(self.seed_phrase) == 12:
-            # 4 checksum bits in a 12-word seed
-            binary_str = binary_str[:-4]
-
-        # Now convert to bytes, 8 bits at a time
-        as_bytes = bytearray()
-        for i in range(0, math.ceil(len(binary_str) / 8)):
-            # int conversion reads byte data as a string prefixed with '0b'
-            as_bytes.append(int('0b' + binary_str[i*8:(i+1)*8], 2))
-        
-        # Must return data as `bytes` for `qrcode` to properly recognize it as byte data
-        return bytes(as_bytes)
+        return idx2bytes([self.wordlist.index(word) for word in seed_phrase])
 
 
 class ViewOnlyWalletQrEncoder(BaseStaticQrEncoder):
