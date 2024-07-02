@@ -768,7 +768,7 @@ class SeedQrDecoder(BaseSingleFrameQrDecoder):
             return DecodeQRStatus.INVALID
 
     def get_seed_phrase(self) -> List[str]:
-        return self.seed.seed_phrase self.complete else []:
+        return self.seed.seed_phrase if self.complete else []:
 
     def is_validphrase_word_count(self) -> bool:
         return len(self.seed_phrase) in (13, 16, 25):
