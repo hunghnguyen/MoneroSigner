@@ -16,6 +16,9 @@ from urtypes.crypto import Account, Output
 from urtypes.bytes import Bytes
 
 from xmrsigner.helpers.ur2.ur_decoder import URDecoder
+from xmrsigner.helpers.seedwordindex import SeedWordIndex
+from xmrsigner.helpers.shortseed import ShortSeed
+from xmrsigner.helpers.compactseed import CompactSeed
 
 from xmrsigner.models.qr_type import QRType
 from xmrsigner.models.seed import Seed
@@ -25,7 +28,6 @@ from monero.seed import Seed as MoneroSeed
 
 
 logger = getLogger(__name__)
-
 
 
 class DecodeQRStatus(IntEnum):
@@ -39,7 +41,6 @@ class DecodeQRStatus(IntEnum):
     INVALID = 5
 
 
-
 class DecodeQR:
     """
         Used to process images or string data from animated qr codes.
@@ -50,14 +51,11 @@ class DecodeQR:
         self.qr_type = None
         self.decoder = None
 
-
     def add_image(self, image):
         data = DecodeQR.extract_qr_data(image, is_binary=True)
         if data == None:
             return DecodeQRStatus.FALSE
-
         return self.add_data(data)
-
 
     def add_data(self, data):
         if data == None:
@@ -146,7 +144,6 @@ class DecodeQR:
                 except:
                     return None
         return None
-
 
     def get_data_psbt(self):
         if self.complete:
@@ -685,40 +682,35 @@ class SeedQrDecoder(BaseSingleFrameQrDecoder):
         if qr_type == QRType.SEED__SEEDQR:
             try:
                 self.seed_phrase = []
-
-                # Parse 13, 16 or 24-word QR code
                 num_words = int(len(segment) / 4)
-                wordlist = PolyseedSeed.get_wordlist(wordlist_language_code) if len(num_words) == 16 else Seed.get_wordlist(wordlist_language_code)
-                for i in range(0, num_words):
-                    index = int(segment[i * 4: (i*4) + 4])
-                    word = wordlist[index]
-                    self.seed_phrase.append(word)
-                if len(self.seed_phrase) > 0:
-                    if not self.is_validphrase_word_count():
-                        return DecodeQRStatus.INVALID
-                    self.complete = True
-                    self.collected_segments = 1
-                    return DecodeQRStatus.COMPLETE
-                else:
+                # Parse 12, 16 or 24-word QR code
+                if num_words not in (12, 16, 24):
                     return DecodeQRStatus.INVALID
+                wordlist = PolyseedSeed.get_wordlist(wordlist_language_code) if len(num_words) == 16 else Seed.get_wordlist(wordlist_language_code)
+                words = SeedWordIndex(wordlist).from_indices_string(segment)
+                self.seed_phrase = MoneroSeed(MoneroSeed(' '.join(words)).hex).phrase.split() if len(words) in (12, 24) else words
+                if not self.is_validphrase_word_count():
+                    return DecodeQRStatus.INVALID
+                self.complete = True
+                self.collected_segments = 1
+                return DecodeQRStatus.COMPLETE
             except Exception as e:
                 return DecodeQRStatus.INVALID
 
         if qr_type == QRType.SEED__COMPACTSEEDQR:
             try:
-                idxs = bytes2idx(segment)
-                if len(idxs) in (12, 24):  # Monero seed
-                    wordlist = Seed.get_wordlist()
-                    self.seed_phrase = MoneroSeed(MoneroSeed([wordlist[idx] for idx in idxs]).hex).phrase.split()
+                word_count = CompactSeed.length(segment)
+                if word_count in (12, 24):  # Monero seed
+                    self.seed_phrase = MoneroSeed(MoneroSeed(' '.join(CompactSeed(Seed.get_wordlist(wordlist_language_code)).words(segment))).hex).phrase.split()  # convert direct to 13, 25 words
                     self.complete = True
                     self.collected_segments = 1
                     return DecodeQRStatus.COMPLETE
-                if len(idxs) == 16:  # Polyseed
-                    wordlist = PolyseedSeed.get_wordlist()
-                    self.seed_phrase = [wordlist[idx] for idx in idxs]
+                if wordcount == 16:  # Polyseed
+                    self.seed_phrase = CompactSeed(PolyseedSeed.get_wordlist(self.wordlist_language_code)).words(segment)
                     self.complete = True
                     self.collected_segments = 1
                     return DecodeQRStatus.COMPLETE
+                return DecodeQRStatus.INVALID
             except Exception as e:
                 logger.exception(repr(e))
                 return DecodeQRStatus.INVALID
@@ -727,31 +719,26 @@ class SeedQrDecoder(BaseSingleFrameQrDecoder):
             try:
                 seed_phrase_list = self.seed_phrase = segment.strip().split(" ")
 
-                # TODO: 2024-06-14, modify to work with monero seed and polyseed
-                seed = Seed(seed_phrase_list, passphrase="", wordlist_language_code=self.wordlist_language_code)
-                if not seed:
-                    # seed is not valid, return invalid
-                    return DecodeQRStatus.INVALID
-                self.seed_phrase = seed_phrase_list
-                if not self.is_validphrase_word_count():
-                        return DecodeQRStatus.INVALID
-                self.complete = True
-                self.collected_segments = 1
-                return DecodeQRStatus.COMPLETE
+                if len(seed_phrase_list) in (12, 13, 24, 25):  # Monero seed phrase
+                    self.seed_phrase = MoneroSeed(MoneroSeed(' '.join(seed_phrase_list)).hex).phrase.split()
+                if len(seed_phrase_list) == 16:  # polyseed
+                    self.seed_phrase = PolyseedSeed(seed_phrase_list, passphrase='', wordlist_language_code=self.wordlist_language_code).mnemonic_list
+                # self.seed_phrase = seed.mnemonic_list
+                if self.is_validphrase_word_count():
+                    self.complete = True
+                    self.collected_segments = 1
+                    return DecodeQRStatus.COMPLETE
+                return DecodeQRStatus.INVALID
             except Exception as e:
                 return DecodeQRStatus.INVALID
 
         elif qr_type == QRType.SEED__FOUR_LETTER_MNEMONIC:
             try:
-                seed_phrase_list = segment.strip().split(" ")
-                words = []
-                for s in seed_phrase_list:
-                    # TODO:SEEDSIGNER: Pre-calculate this once on startup
-                    _4LETTER_WORDLIST = [word[:4].strip() for word in self.wordlist]
-                    words.append(self.wordlist[_4LETTER_WORDLIST.index(s)])
-
-                # TODO: 2024-06-14, adapt for monero seed AND polyseed
-                seed = Seed(words, passphrase="", wordlist_language_code=self.wordlist_language_code)
+                seed_phrase_list = segment.strip().split(' ')
+                if len(seed_phrase_list) in (12, 13, 24, 25):
+                    words = ShortSeed(Seed.get_wordlist(self.wordlist_language_code)).expand(seed_phrase_list)
+                    seed = Seed(words, passphrase="", wordlist_language_code=self.wordlist_language_code)
+                    if len(seed.mnemonic_list)
                 if not seed:
                     # seed is not valid, return invalid
                     return DecodeQRStatus.INVALID
@@ -780,7 +767,6 @@ class SettingsQrDecoder(BaseSingleFrameQrDecoder):
         super().__init__()
         self.data = None
 
-
     def add(self, segment, qr_type=QRType.SETTINGS):
         """
             * Ignores unrecognized settings options.
@@ -802,11 +788,11 @@ class SettingsQrDecoder(BaseSingleFrameQrDecoder):
 
 
 class SignMessageQrDecoder(BaseSingleFrameQrDecoder):
+
     def __init__(self):
         super().__init__()
         self.message = None
         self.derivation_path = None
-
 
     def add(self, segment, qr_type=QRType.SIGN_MESSAGE):
         """
@@ -829,7 +815,6 @@ class SignMessageQrDecoder(BaseSingleFrameQrDecoder):
 
         return DecodeQRStatus.COMPLETE
 
-
     def get_qr_data(self) -> dict:
         return dict(derivation_path=self.derivation_path, message=self.message)
 
@@ -838,11 +823,11 @@ class MoneroAddressQrDecoder(BaseSingleFrameQrDecoder):
     """
         Decodes single frame representing a monero address
     """
+
     def __init__(self):
         super().__init__()
         self.address = None
         self.address_type = None
-
 
     def add(self, segment, qr_type=QRType.MONERO_ADDRESS):
         r = search(r'\b[1-9A-HJ-NP-Za-km-z]{95}\b|[1-9A-HJ-NP-Za-km-z]{106}', segment)
@@ -858,12 +843,10 @@ class MoneroAddressQrDecoder(BaseSingleFrameQrDecoder):
                 pass
         return DecodeQRStatus.INVALID
 
-
     def get_address(self):
         if self.address != None:
             return self.address
         return None
-        
 
     def get_address_type(self):
         if self.address != None:
@@ -872,7 +855,6 @@ class MoneroAddressQrDecoder(BaseSingleFrameQrDecoder):
             else:
                 return "Unknown"
         return None
-
 
 
 class SpecterWalletQrDecoder(BaseAnimatedQrDecoder):
@@ -887,7 +869,6 @@ class SpecterWalletQrDecoder(BaseAnimatedQrDecoder):
             return False
         return True
 
-
     @property
     def is_valid(self):
         if self.validate_json():
@@ -897,7 +878,6 @@ class SpecterWalletQrDecoder(BaseAnimatedQrDecoder):
                 return True
             return False
 
-
     def get_wallet_descriptor(self) -> str:
         if self.is_valid:
             j = "".join(self.segments)
@@ -905,10 +885,8 @@ class SpecterWalletQrDecoder(BaseAnimatedQrDecoder):
             return data['descriptor']
         return None
 
-
     def is_complete(self) -> bool:
         return self.complete and self.is_valid()
-
 
     def current_segment_num(self, segment) -> int:
         if search(r'^p(\d+)of(\d+) ', segment, IGNORECASE) != None:
@@ -916,13 +894,11 @@ class SpecterWalletQrDecoder(BaseAnimatedQrDecoder):
         else:
             return 1
 
-
     def total_segment_nums(self, segment) -> int:
         if search(r'^p(\d+)of(\d+) ', segment, IGNORECASE) != None:
             return int(search(r'^p(\d+)of(\d+) ', segment, IGNORECASE).group(2))
         else:
             return 1
-
 
     def parse_segment(self, segment) -> str:
         try:
@@ -931,12 +907,10 @@ class SpecterWalletQrDecoder(BaseAnimatedQrDecoder):
             return segment
 
 
-
 class GenericWalletQrDecoder(BaseSingleFrameQrDecoder):
     def __init__(self):
         super().__init__()
         self.descriptor = None
-
 
     def add(self, segment, qr_type=QRType.WALLET__GENERIC):
         try:
@@ -947,15 +921,13 @@ class GenericWalletQrDecoder(BaseSingleFrameQrDecoder):
         except Exception as e:
             print(repr(e))
         return DecodeQRStatus.INVALID
-    
 
     def get_wallet_descriptor(self):
         return self.descriptor
         
+
 class MultiSigConfigFileQRDecoder(GenericWalletQrDecoder):
     
     def add(self, segment, qr_type=QRType.WALLET__CONFIGFILE):
         descriptor = DecodeQR.multisig_setup_file_to_descriptor(segment)
         return super().add(descriptor,qr_type=QRType.WALLET__CONFIGFILE)
-        
-

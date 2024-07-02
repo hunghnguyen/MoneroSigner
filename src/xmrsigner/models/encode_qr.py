@@ -10,7 +10,7 @@ from xmrsigner.helpers.ur2.ur import UR
 from xmrsigner.helpers.qr import QR
 from xmrsigner.models.qr_type import QRType
 from xmrsigner.models.seed import Seed
-from xmrsigner.helpers.compactseed import idx2bytes
+from xmrsigner.helpers.compactseed import CompactSeed
 
 from urtypes.crypto import PSBT as UR_PSBT
 from urtypes.crypto import PSBT  # TODO: 2024-06-14, used as quickfix to remove embit.psbt.PSBT! Adapt for monero
@@ -205,7 +205,7 @@ class CompactSeedQrEncoder(SeedQrEncoder):
         if len(seed_phrase) not in (12, 16, 24):  # results in (17, 22, 33) bytes per seed
             raise Exception('Neither a monero seed nor a polyseed!')
 
-        return idx2bytes([self.wordlist.index(word) for word in seed_phrase])
+        return CompactSeed(self.wordlist).bytes(seed_phrase)
 
 
 class ViewOnlyWalletQrEncoder(BaseStaticQrEncoder):

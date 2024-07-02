@@ -1,0 +1,5 @@
+from .shortseed import TestShortSeed
+from .seedwordindex import TestSeedWordIndex
+from .compactseed import TestCompactSeed
+from .mnemonic_generation import TestMnemonicGeneration
+from .polyseed_mnemonic_generation import TestPolyseedMnemonicGeneration
