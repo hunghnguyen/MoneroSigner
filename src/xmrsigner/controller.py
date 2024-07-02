@@ -51,7 +51,7 @@ class Controller(Singleton):
         rather than at the top in order avoid circular imports.
     """
 
-    VERSION = "0.4.7"
+    VERSION = "0.4.8"
 
     buttons: HardwareButtons = None
     storage: SeedStorage = None
