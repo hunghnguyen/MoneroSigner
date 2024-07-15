@@ -171,13 +171,10 @@ class Destination:
         return not obj == self
 
 
-
-"""
-
-Root level Views don't have a sub-module home so they live at the top level here.
-
-"""
 class MainMenuView(View):
+    """
+    Root level Views don't have a sub-module home so they live at the top level here.
+    """
 
     SCAN = ("Scan", IconConstants.SCAN)
     SEEDS = ("Seeds", IconConstants.SEEDS)
@@ -211,7 +208,6 @@ class MainMenuView(View):
         elif button_data[selected_menu_num] == self.SETTINGS:
             from xmrsigner.views.settings_views import SettingsMenuView
             return Destination(SettingsMenuView)
-
 
 
 class PowerOptionsView(View):
