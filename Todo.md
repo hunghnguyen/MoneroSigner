@@ -9,7 +9,7 @@
 ## Start
 - [x] check partner logos, what to do about?
 ## Scan
-- [ ] check what is needed to Modify
+- [x] check what is needed to Modify
 ## Seeds
 ### Seed
 - [x] Remove Export Xpub (BTC only)
@@ -20,7 +20,7 @@
 - [x] Export QR
 - [x] Export View Key
 #### Load seed
-- [ ] Scan seed QR
+- [x] Scan seed QR
 - [x] Enter 13 word monero seed
 - [x] Enter 25 word monero seed
 - [?] Enter 14 words feather wallet seed (think should be supported in future)
@@ -53,11 +53,11 @@
 - [ ] offer signatures for source and builds, tend to use signify over gpg
 - [ ] Change links where necessary
 - [ ] Adapt documentation
-- [x] Implement [Polyseed] (https://github.com/DiosDelRayo/polyseed-python)
+- [x] Implement [Polyseed](https://github.com/DiosDelRayo/polyseed-python)
+- [W] Implement [Companion Application](https://github.com/DiosDelRayo/XmrSignerCompanion)
 - [ ] Implement UR [foundation-ur-py](https://github.com/DiosDelRayo/foundation-ur-py)
-- [ ] Create companion application
 - [ ] Modify [Monero GUI](https://github.com/DiosDelRayo/monero-gui)
-- [ ] tools/increment_version.py needs also to update the version in setup.py
+- [x] tools/increment_version.py needs also to update the version in setup.py
 - [x] setup.py needs further modification
 - [x] not working as expcted, fix: tools/tag_version.py
 - [ ] remove old font if unused

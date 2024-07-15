@@ -19,7 +19,7 @@
 
 ---------------
 
- MoneroSigner is in the process of rebranding to be not confused to an abandoned project called MoneroSigner.
+ MoneroSigner is in the process of rebranding to XmrSigner, to be not confused to an abandoned project called MoneroSigner.
 
 ---------------
 
@@ -59,6 +59,7 @@ How Monero is not a direct decendent from Bitcoin a lot of things are different.
 * [This one(MoneroSigner](https://github.com/DiosDelRayo/MoneroSigner)
 * [Emulator](https://github.com/DiosDelRayo/monerosigner-emulator) forked from [SeedSigner Emulator](https://github.com/enteropositivo/seedsigner-emulator), simple to use and no modifications of the source necessary thanks to overlay mount
 * [Polyseed](https://github.com/DiosDelRayo/polyseed-python) transpiled and pythonized from [original Polyseed C-implementation](https://github.com/tevador/polyseed)
+* [Companion Application](https://github.com/DiosDelRayo/XmrSignerCompanion) the Qt 6/C++ Companion Application
 * Companion Application [#Todo](Todo.md)
 
 ---------------
@@ -82,22 +83,35 @@ How Monero is not a direct decendent from Bitcoin a lot of things are different.
 
 2. XmrSigner working with companion Application (25 days from now)
     - [ ] Monero signer companion Application finished
-    - [ ] All missing XmrSigner functionality
         - [x] Show View Only Wallet QR code
         - [ ] Export key images
+            - [ ] conversion from monero encrypted key images file to RPC Json 
+            - [x] Rest
+        - [x] import outputs
+        - [x] sign transaction
+        - [x] export signed transaction
+        - [x] UR's implemented
+        - [ ] sending progress
+        - [ ] config QR
+    - [ ] All missing XmrSigner functionality
+        - [x] Show View Only Wallet QR code
         - [ ] import outputs
+        - [ ] Export key images
+        - [ ] import unsigned transaction
+        - [ ] show data from unsigned transaction
+        - [ ] ask for confirmation to proceed
         - [ ] sign transaction
         - [ ] export signed transaction
-    - [ ] UR's implemented
+        - [ ] UR's implemented
     - [X] first xmrsigner image build
-    - [ ] xmrsigner image build chain
+    - [x] xmrsigner image build chain
 
 
 3. Cleanup and production ready (45 days from now)
     - [ ] Tools
     - [ ] Scripts
     - [ ] Documentation final version
-    - [ ] Final cleanup Monero Signer
+    - [ ] Final cleanup XmrSigner
     - [ ] Final cleanup companion Application
 
 
@@ -123,9 +137,27 @@ How Monero is not a direct decendent from Bitcoin a lot of things are different.
  |   |   | |              |                   |              /- 2024-07-24 Milestone 4
  |   |   | |              |                   |              |
 (S)==|===|(1)============(2)=================(3)============(4)=====>
-                                          A
-                                          |
-                                          \------ Today: 2024-06-26
+                                                     A
+                                                     |
+                                                     \------ Today: 2024-07-14
+
+Heavy delay, Milestone 2 not yet finished. Try to hurry harder.
+Pretty much rabbit holes everywhere, somebody please remember me the next time to at least 3x
+the estimated time to unforseen clusterfuck.
+
+XmrSigner and XmrSigner Companion use for now the monero-wallet-rpc, to not import the whole monero source monster into that source, but to accomplish the compatibility the key images need to be transfered in the format monero-wallet-cli writes and reads the files. (wallet2)
+
+Now, no problem then let's write a converter on both sides, pack the json into binary form and then encrypt it with the secret view key. Needed: ed25519, keccak_256 and chacha20, well, not a walk of cake but doable in some hours. Only to figure out, then that key generation for chacha20 uses...tata: cn_slow_hash `*arg*` WTF.
+
+So, when you now go to untangle there the source you pulling one spaghetti after another...
+
+Options:
+ - Implement cn_slow_hash in python and try to cut the cn_slow_hash part out of the monero monster source with a scalpel, but I have huge worries that one dependency leads to the next, how I have studied the monero source until now... -> so, not at the moment how I drown finacially already but prefered version.
+ - switch to wallet2 for companion and use monero-wallet-cli on XmrSigner -> seems pretty uggly almost disgusting to me
+ - patch monero-wallet-rpc -> probably the best quick fix, but don't know yet what to do about. Because it would be to try a PR or maintain a fork, with a permanent headache, although, how it would be a temporary solution... (there is not something like a temporary solution, if it works 99% of the time it will stay and hurt as fuck. Would mean to add two endpoints more to monero-wallet-rpc: `export_key_images_binary` and `import_key_images_binary`. -> also ugly but probably the solution for now.
+ - using a combo of monero-wallet-rpc with monero-wallet-cli -> WTF, fuck off, this is the uggliest of all hacks
+
+ Will postpone the decission because already enough time wasted...
 ```
 ---------------
 
