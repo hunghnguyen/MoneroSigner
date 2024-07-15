@@ -737,8 +737,21 @@ class SeedQrDecoder(BaseSingleFrameQrDecoder):
                 seed_phrase_list = segment.strip().split(' ')
                 if len(seed_phrase_list) in (12, 13, 24, 25):
                     words = ShortSeed(Seed.get_wordlist(self.wordlist_language_code)).expand(seed_phrase_list)
-                    seed = Seed(words, passphrase="", wordlist_language_code=self.wordlist_language_code)
-                    if len(seed.mnemonic_list)
+                    seed = Seed(
+                        MoneroSeed(
+                            MoneroSeed(' '.join(
+                                ShortSeed(Seed.get_wordlist(self.wordlist_language_code)).expand(seed_phrase_list)
+                            )).hex
+                        ).phrase.split(),
+                        passphrase="",
+                        wordlist_language_code=self.wordlist_language_code
+                    )
+                if len(seed.mnemonic_list) == 16:
+                    seed = PolyseedSeed(
+                        ShortSeed(PolyseedSeed.get_wordlist(self.wordlist_language_code)).expand(seed_phrase_list),
+                        passphrase='',
+                        wordlist_language_code=self.wordlist_language_code
+                    )
                 if not seed:
                     # seed is not valid, return invalid
                     return DecodeQRStatus.INVALID
@@ -755,10 +768,10 @@ class SeedQrDecoder(BaseSingleFrameQrDecoder):
             return DecodeQRStatus.INVALID
 
     def get_seed_phrase(self) -> List[str]:
-        return self.seed.seed_phrase if self.complete else []:
+        return self.seed_phrase if self.complete else []
 
     def is_validphrase_word_count(self) -> bool:
-        return len(self.seed_phrase) in (13, 16, 25):
+        return len(self.seed_phrase) in (13, 16, 25)
 
 
 class SettingsQrDecoder(BaseSingleFrameQrDecoder):
