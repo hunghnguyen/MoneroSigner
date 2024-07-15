@@ -1,7 +1,8 @@
 from xmrsigner.models.qr_type import QRType
 from .view import NotYetImplementedView, View, Destination, BackStackView, MainMenuView
 from xmrsigner.models.encode_qr import EncodeQR
-from xmrsigner.gui.screens import seed_screens
+from xmrsigner.gui.screens import seed_screens, WarningScreen
+from xmrsigner.helpers.wallet import MoneroWalletRPCManager
 
 
 class WalletViewKeyQRView(View):
@@ -25,3 +26,22 @@ class WalletViewKeyQRView(View):
         ).display()
 
         return Destination(BackStackView)
+
+
+class WalletRpcView(View):
+    """
+    Get information about WalletRpc
+    """
+
+    def run(self):
+        from xmrsigner.gui.screens.screen import WalletRpcScreen
+        try:
+            version = MoneroWalletRPCManager().get_version_string()
+            if not version:
+                raise Exception('Now wallet rpc found')
+            self.run_screen(WalletRpcScreen, version=version)
+        except Exception:
+            self.run_screen(WarningScreen, title='Wallet RPC', text="Couldn't find Wallet RPC, without device is not working properly!", status_headline='Not found', status_color='red')
+
+        from xmrsigner.views.settings_views import SettingsMenuView
+        return Destination(SettingsMenuView)

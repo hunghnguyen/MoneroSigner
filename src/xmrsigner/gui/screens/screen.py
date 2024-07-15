@@ -32,7 +32,6 @@ RET_CODE__BACK_BUTTON = 1000
 RET_CODE__POWER_BUTTON = 1001
 
 
-
 @dataclass
 class BaseScreen(BaseComponent):
 
@@ -56,7 +55,6 @@ class BaseScreen(BaseComponent):
         # Tracks position on scrollable pages, determines which elements are visible.
         self.scroll_y = 0
 
-
     def display(self) -> Any:
         try:
             with self.renderer.lock:
@@ -74,14 +72,12 @@ class BaseScreen(BaseComponent):
             for t in self.threads:
                 t.stop()
 
-
     def clear_screen(self):
         # Clear the whole canvas
         self.image_draw.rectangle(
             (0, 0, self.canvas_width, self.canvas_height),
             fill=0,
         )
-
 
     def _render(self):
         self.clear_screen()
@@ -93,7 +89,6 @@ class BaseScreen(BaseComponent):
         for img, coords in self.paste_images:
             self.canvas.paste(img, coords)
 
-
     def _run_callback(self):
         """
             Optional implementation step that's called during each _run() loop.
@@ -103,7 +98,6 @@ class BaseScreen(BaseComponent):
             its parent View.
         """
         pass
-
 
     def _run(self):
         """
@@ -128,12 +122,10 @@ class BaseScreen(BaseComponent):
         raise Exception("Must implement in a child class")
 
 
-
 class LoadingScreenThread(BaseThread):
     def __init__(self, text: str = None):
         super().__init__()
         self.text =text
-
 
     def run(self):
         renderer: Renderer = Renderer.get_instance()
@@ -194,7 +186,6 @@ class LoadingScreenThread(BaseThread):
 
                 renderer.show_image()
             position += arc_sweep
-
 
 
 @dataclass
@@ -260,7 +251,6 @@ class BaseTopNavScreen(BaseScreen):
 
                 # Write the screen updates
                 self.renderer.show_image()
-
 
 
 @dataclass
@@ -391,7 +381,6 @@ class ButtonListScreen(BaseTopNavScreen):
                 # Render the button after the arrows to cover up overlap
                 button.render()
 
-
     def _render_up_arrow(self):
         self.canvas.paste(self.up_arrow_img, (int(self.canvas_width / 2) - self.arrow_half_width, self.up_arrow_img_y))
 
@@ -415,7 +404,6 @@ class ButtonListScreen(BaseTopNavScreen):
             ),
             fill="black"
         )
-
 
     def _run(self):
         while True:
@@ -596,7 +584,6 @@ class LargeButtonScreen(BaseTopNavScreen):
 
         self.buttons[self.selected_button].is_selected = True
 
-
     def _run(self):
         def swap_selected_button(new_selected_button: int):
             self.buttons[self.selected_button].is_selected = False
@@ -681,7 +668,6 @@ class LargeButtonScreen(BaseTopNavScreen):
                 self.renderer.show_image()
 
 
-
 @dataclass
 class QRDisplayScreen(BaseScreen):
     qr_encoder: 'EncodeQR' = None
@@ -699,7 +685,6 @@ class QRDisplayScreen(BaseScreen):
             self.qr_brightness = qr_brightness
             self.renderer = renderer
             self.tips_start_time = tips_start_time
-
 
         def add_brightness_tips(self, image: Image.Image) -> None:
             # TODO:SEEDSIGNER: Refactor ToastOverlay to support two lines of icon + text and use
@@ -771,7 +756,6 @@ class QRDisplayScreen(BaseScreen):
 
             # Write our temp Image onto the main image
             image.paste(rectangle, (0, image.height - rectangle_height - 1), rectangle)
-
 
         def run(self):
             settings = Settings.get_instance()
@@ -889,7 +873,6 @@ class LargeIconStatusScreen(ButtonListScreen):
         ))
 
 
-
 class WarningEdgesThread(BaseThread):
     def __init__(self, args):
         super().__init__()
@@ -953,7 +936,6 @@ class WarningEdgesThread(BaseThread):
             raise e
 
 
-
 @dataclass
 class WarningEdgesMixin:
     status_color: str = GUIConstants.WARNING_COLOR
@@ -963,7 +945,6 @@ class WarningEdgesMixin:
         super().__post_init__()
 
         self.threads.append(WarningEdgesThread(args=(self,)))
-
 
 
 @dataclass
@@ -984,7 +965,6 @@ class WarningScreen(WarningEdgesMixin, LargeIconStatusScreen):
 class DireWarningScreen(WarningScreen):
     status_headline: str = "Classified Info!"     # The colored text under the alert icon
     status_color: str = GUIConstants.DIRE_WARNING_COLOR
-
 
 
 @dataclass
@@ -1246,3 +1226,15 @@ class MainMenuScreen(LargeButtonScreen):
     title_font_size: int = 26
     show_back_button: bool = False
     show_power_button: bool = True
+
+
+@dataclass
+class WalletRpcScreen(LargeIconStatusScreen):
+    version: str = ''
+
+    def __post_init__(self):
+        self.title = 'Wallet RPC'
+        self.status_icon_name = IconConstants.TOOLS  # TODO:  2024-07-15, change symbol!
+        self.status_color = GUIConstants.INFO_COLOR
+        self.text = f'Version {self.version}'
+        super().__post_init__()

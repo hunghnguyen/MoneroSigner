@@ -10,13 +10,15 @@ from xmrsigner.gui.screens import (
 )
 from xmrsigner.models.settings import SettingsConstants, SettingsDefinition
 from xmrsigner.hardware.microsd import MicroSD
+from xmrsigner.views.wallet_views import WalletRpcView
 
 logger = getLogger(__name__)
 
 class SettingsMenuView(View):
 
-    IO_TEST = "I/O test"
-    DONATE = "Donate"
+    IO_TEST = 'I/O test'
+    DONATE = 'Donate'
+    WALLET_RPC = 'Wallet RPC'
 
     def __init__(self, visibility: str = SettingsConstants.VISIBILITY__GENERAL, selected_attr: str = None, initial_scroll: int = 0):
         super().__init__()
@@ -47,6 +49,7 @@ class SettingsMenuView(View):
  
             button_data.append(self.IO_TEST)
             # button_data.append(self.DONATE)  # TODO: 2024-06-27, don't display until we know what to do about
+            button_data.append(self.WALLET_RPC)
 
         elif self.visibility == SettingsConstants.VISIBILITY__ADVANCED:
             title = "Advanced"
@@ -79,6 +82,9 @@ class SettingsMenuView(View):
 
         elif len(button_data) > selected_menu_num and button_data[selected_menu_num] == self.DONATE:
             return Destination(DonateView)
+
+        elif len(button_data) > selected_menu_num and button_data[selected_menu_num] == self.WALLET_RPC:
+            return Destination(WalletRpcView)
 
         else:
             # TODO:SEEDSIGNER: Free-entry types (are there any?) will need their own SettingsEntryUpdateFreeEntryView(?).
