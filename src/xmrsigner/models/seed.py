@@ -46,6 +46,7 @@ class Seed:
         self.set_passphrase(passphrase, regenerate_seed=False)
 
         self.seed_bytes: bytes = None
+        self.address: Optional[str] = None
         self._generate_seed()
 
         self.network: str = network
@@ -62,7 +63,9 @@ class Seed:
         if self.passphrase is not None:
             raise Exception('Passwords for monero seeds are not yet implemented')
         try:
-            self.seed_bytes = unhexlify(MoneroSeed(self.mnemonic_str, SettingsConstants.ALL_WORDLIST_LANGUAGE_ENGLISH__NAMES[self.wordlist_language_code]).hex)
+            monero_seed = MoneroSeed(self.mnemonic_str, SettingsConstants.ALL_WORDLIST_LANGUAGE_ENGLISH__NAMES[self.wordlist_language_code])
+            self.seed_bytes = unhexlify(monero_seed.hex)
+            self.address = str(monero_seed.public_address())
         except Exception as e:
             raise InvalidSeedException(repr(e))
 
@@ -131,7 +134,7 @@ class Seed:
 
     @property
     def fingerprint(self) -> str:
-        return sha256(self.network.encode() + self.seed_bytes).hexdigest()[-6:].upper()
+        return sha256(self.address.encode()).hexdigest()[-6:].upper() if self.address else ''
 
     def set_wordlist_language_code(self, language_code: str) -> None:
         if language_code in SettingsConstants.ALL_WORDLIST_LANGUAGE_ENGLISH__NAMES:

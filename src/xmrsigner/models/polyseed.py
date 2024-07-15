@@ -4,6 +4,7 @@ from monero.const import NET_MAIN
 from polyseed import Polyseed
 from polyseed.lang import Language
 from polyseed.exceptions import PolyseedWordCountMissmatchException, PolyseedLanguageNotFoundException
+from monero.seed import Seed as MoneroSeed
 
 from unicodedata import normalize
 
@@ -30,6 +31,7 @@ class PolyseedSeed(Seed):
         self.set_passphrase(passphrase, regenerate_seed=False)
 
         self.seed_bytes: bytes = None
+        self.address: Optional[str] = None
         self._generate_seed()
 
     @property
@@ -62,6 +64,7 @@ class PolyseedSeed(Seed):
             if self.passphrase:
                 ps.crypt(self.passphrase)
             self.seed_bytes = ps.keygen()
+            self.address = str(MoneroSeed(hexlify(self.seed_bytes).decode()).public_address())
             self.height = ps.get_birthday()
         except Exception as e:
             raise InvalidSeedException(repr(e))
