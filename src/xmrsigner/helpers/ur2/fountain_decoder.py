@@ -76,7 +76,7 @@ class FountainDecoder:
             return 1
         if self.expected_part_indexes == None:
             return 0
-        estimated_input_parts = self.expected_part_count()
+        estimated_input_parts = self.expected_part_count() * 1.75
         return min(0.99, self.processed_parts_count / estimated_input_parts)
 
     def receive_part(self, encoder_part):
