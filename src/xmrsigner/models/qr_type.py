@@ -1,10 +1,8 @@
 class QRType:
     '''
-        Used with DecodeQR and EncodeQR to communicate qr encoding type
+    Used with DecodeQR and EncodeQR to communicate qr encoding type
     '''
-    PSBT__BASE64 = 'psbt__base64'
-    PSBT__BASE43 = 'psbt__base43'
-    PSBT__UR2 = 'psbt__ur2'
+    UR2 = 'ur2'
 
     SEED__SEEDQR = 'seed__seedqr'
     SEED__COMPACTSEEDQR = 'seed__compactseedqr'
@@ -15,6 +13,12 @@ class QRType:
     SETTINGS = 'settings'
 
     MONERO_ADDRESS = 'monero_address'
+    MONERO_WALLET = 'monero_wallet'
+    XMR_OUTPUT_UR = 'xmr__output__ur'
+    XMR_KEYIMAGE_UR = 'xmr__keyimage__ur'
+    XMR_TX_UNSIGNED_UR = 'xmr__unsigned__tx__ur'
+    XMR_TX_SIGNED_UR = 'xmr__signed__tx_ur'
+
     SIGN_MESSAGE = "sign_message"
 
     WALLET_VIEW_ONLY = 'wallet__view__only'

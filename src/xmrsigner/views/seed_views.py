@@ -22,15 +22,15 @@ from xmrsigner.gui.screens.screen import (
     QRDisplayScreen
 )
 from xmrsigner.models.decode_qr import DecodeQR
-from xmrsigner.models.encode_qr import EncodeQR
-from xmrsigner.models.psbt_parser import PSBTParser
+from xmrsigner.models.seed_encoder import SeedQrEncoder, CompactSeedQrEncoder
+from xmrsigner.models.tx_parser import TxParser
 from xmrsigner.models.qr_type import QRType
 from xmrsigner.models.seed import InvalidSeedException, Seed, SeedType
 from xmrsigner.models.polyseed import PolyseedSeed
 from xmrsigner.models.settings import Settings, SettingsConstants
 from xmrsigner.models.settings_definition import SettingsDefinition
 from xmrsigner.models.threads import BaseThread, ThreadsafeCounter
-from xmrsigner.views.wallet_views import WalletViewKeyQRView
+from xmrsigner.views.wallet_views import WalletViewKeyQRView, LoadWalletView
 
 from xmrsigner.views.view import (
     NotYetImplementedView,
@@ -105,6 +105,7 @@ class SeedSelectSeedView(View):  # TODO: 2024-06-16, added with rebase from main
     SCAN_SEED = ("Scan a seed", IconConstants.QRCODE)
     TYPE_13WORD = ("Enter 13-word seed", FontAwesomeIconConstants.KEYBOARD)
     TYPE_25WORD = ("Enter 25-word seed", FontAwesomeIconConstants.KEYBOARD)
+    TYPE_POLYSEED = ("Enter Polyseed", FontAwesomeIconConstants.KEYBOARD)
 
     def __init__(self, flow: str = Controller.FLOW__VERIFY_SINGLESIG_ADDR):
         super().__init__()
@@ -143,6 +144,7 @@ class SeedSelectSeedView(View):  # TODO: 2024-06-16, added with rebase from main
         button_data.append(self.SCAN_SEED)
         button_data.append(self.TYPE_13WORD)
         button_data.append(self.TYPE_25WORD)
+        button_data.append(self.TYPE_POLYSEED)
 
         selected_menu_num = self.run_screen(
             seed_screens.SeedSelectSeedScreen,
@@ -168,12 +170,16 @@ class SeedSelectSeedView(View):  # TODO: 2024-06-16, added with rebase from main
         if button_data[selected_menu_num] == self.SCAN_SEED:
             from xmrsigner.views.scan_views import ScanView
             return Destination(ScanView)
-        elif button_data[selected_menu_num] in [self.TYPE_13WORD, self.TYPE_25WORD]:
+        elif button_data[selected_menu_num] in [self.TYPE_13WORD, self.TYPE_25WORD, self.TYPE_POLYSEED]:
+            if button_data[selected_menu_num] == self.TYPE_POLYSEED:
+                from xmrsigner.views.seed_views import PolyseedMnemonicEntryView
+                self.controller.storage.init_pending_mnemonic(num_words=16)
+                return Destination(PolyseedMnemonicEntryView)
             from xmrsigner.views.seed_views import SeedMnemonicEntryView
             if button_data[selected_menu_num] == self.TYPE_13WORD:
-                self.controller.storage.init_pending_mnemonic(num_words=12)
+                self.controller.storage.init_pending_mnemonic(num_words=13)
             else:
-                self.controller.storage.init_pending_mnemonic(num_words=24)
+                self.controller.storage.init_pending_mnemonic(num_words=25)
             return Destination(SeedMnemonicEntryView)
 
 
@@ -491,6 +497,15 @@ class SeedDiscardView(View):
 
         elif button_data[selected_menu_num] == self.DISCARD:
             if self.seed_num is not None:
+                seed = self.controller.get_seed(self.seed_num)
+                if self.controller.get_wallet_seed(seed.network) == seed:
+                    try:
+                        self.controller.clear_wallet_seed(seed.network)
+                        self.controller.clear_wallet(seed.network)
+                        self.controller.wallet_rpc_manager.close_wallet(seed.network)
+                        self.controller.wallet_rpc_manager.purge_wallet(seed.fingerprint)
+                    except Exception as e:
+                        print(f'Unexcpected issue on purging wallet for seed: {seed.fingerprint}: {e}')
                 self.controller.discard_seed(self.seed_num)
             else:
                 self.controller.storage.clear_pending_seed()
@@ -502,14 +517,17 @@ class SeedOptionsView(View):
     Views for actions on individual seeds:
     """
 
-    SCAN_PSBT = ("Scan PSBT", IconConstants.QRCODE)
-    VERIFY_ADDRESS = "Verify Addr"
-    EXPLORER = "Address Explorer"
-    SIGN_MESSAGE = "Sign Message"
-    VIEW_ONLY_WALLET = ("View only Wallet")
-    BACKUP = ("Backup Seed", None, None, None, IconConstants.CHEVRON_RIGHT)
-    CONVERT_POOLYSEED = ('Convert to Monero seed')
-    DISCARD = ("Discard Seed", None, None, "red")
+    SCAN = ('Scan for Seed', IconConstants.SCAN)
+    EXPORT_KEY_IMAGES = ('Export Key Imags', IconConstants.QRCODE)
+    VERIFY_ADDRESS = 'Verify Addr'
+    EXPLORER = 'Address Explorer'
+    SIGN_MESSAGE = 'Sign Message'
+    VIEW_ONLY_WALLET = ('View only Wallet', IconConstants.QRCODE)
+    LOAD_WALLET = ('Load into Wallet', FontAwesomeIconConstants.WALLET)
+    PURGE_WALLET = ('Purge from Wallet', FontAwesomeIconConstants.TRASH_CAN)
+    BACKUP = ('Backup Seed', FontAwesomeIconConstants.VAULT, None, None, IconConstants.CHEVRON_RIGHT)
+    CONVERT_POOLYSEED = ('To Monero seed', IconConstants.CHEVRON_RIGHT)
+    DISCARD = ('Discard Seed', FontAwesomeIconConstants.TRASH_CAN, 'red', 'red')
 
     def __init__(self, seed_num: int):
         super().__init__()
@@ -517,7 +535,7 @@ class SeedOptionsView(View):
         self.seed = self.controller.get_seed(self.seed_num)
 
     def run(self):
-        from xmrsigner.views.psbt_views import PSBTOverviewView
+        from xmrsigner.views.monero_views import OverviewView
 
         if self.controller.unverified_address:
             if self.controller.resume_main_flow == Controller.FLOW__VERIFY_SINGLESIG_ADDR:
@@ -535,13 +553,13 @@ class SeedOptionsView(View):
             self.controller.sign_message_data["seed_num"] = self.seed_num
             return Destination(SeedSignMessageConfirmMessageView, skip_current_view=True)
 
-        if self.controller.psbt:
-            if PSBTParser.has_matching_input_fingerprint(self.controller.psbt, self.seed, network=self.settings.get_value(SettingsConstants.SETTING__NETWORKS[0])):  # TODO: 2024-06-26, solve multi network issue
-                if self.controller.resume_main_flow and self.controller.resume_main_flow == Controller.FLOW__PSBT:
-                    # Re-route us directly back to the start of the PSBT flow 
+        if self.controller.transaction:
+            if TxParser.has_matching_input_fingerprint(self.controller.transaction, self.seed, network=self.settings.get_value(SettingsConstants.SETTING__NETWORKS[0])):  # TODO: 2024-06-26, solve multi network issue
+                if self.controller.resume_main_flow and self.controller.resume_main_flow == Controller.FLOW__TX:
+                    # Re-route us directly back to the start of the Tx flow 
                     self.controller.resume_main_flow = None
-                    self.controller.psbt_seed = self.seed
-                    return Destination(PSBTOverviewView, skip_current_view=True)
+                    self.controller.transaction_seed = self.seed
+                    return Destination(OverviewView, skip_current_view=True)
 
         button_data = []
 
@@ -549,8 +567,13 @@ class SeedOptionsView(View):
             addr = self.controller.unverified_address["address"][:7]
             self.VERIFY_ADDRESS += f" {addr}"
             button_data.append(self.VERIFY_ADDRESS)
-        button_data.append(self.SCAN_PSBT)
+        button_data.append(self.SCAN)
+        button_data.append(self.EXPORT_KEY_IMAGES)
         button_data.append(self.VIEW_ONLY_WALLET)
+        if self.controller.get_wallet_seed(self.seed.network) != self.seed:
+            button_data.append(self.LOAD_WALLET)
+        else:
+            button_data.append(self.PURGE_WALLET)
         button_data.append(self.BACKUP)
         if isinstance(self.seed, PolyseedSeed):
             button_data.append(self.CONVERT_POOLYSEED)
@@ -558,7 +581,6 @@ class SeedOptionsView(View):
         if self.settings.get_value(SettingsConstants.SETTING__MESSAGE_SIGNING) == SettingsConstants.OPTION__ENABLED:
             button_data.append(self.SIGN_MESSAGE)
 
-        print(button_data)
         selected_menu_num = self.run_screen(
             seed_screens.SeedOptionsScreen,
             button_data=button_data,
@@ -572,9 +594,9 @@ class SeedOptionsView(View):
             # Force BACK to always return to the Main Menu
             return Destination(MainMenuView)
 
-        if button_data[selected_menu_num] == self.SCAN_PSBT:
-            from xmrsigner.views.scan_views import ScanPSBTView
-            return Destination(ScanPSBTView)
+        if button_data[selected_menu_num] == self.SCAN:
+            from xmrsigner.views.scan_views import ScanUR2View
+            return Destination(ScanUR2View)
 
         if button_data[selected_menu_num] == self.VERIFY_ADDRESS:
             return Destination(SeedAddressVerificationView, view_args={"seed_num": self.seed_num})
@@ -597,8 +619,15 @@ class SeedOptionsView(View):
                 ).display()
                 return Destination(BackStackView, skip_current_view=True)
 
-        if button_data[selected_menu_num] == self.VIEW_ONLY_WALLET:  # TODO: 2024-06-10: finish implementation
+        if button_data[selected_menu_num] == self.VIEW_ONLY_WALLET:
             return Destination(WalletViewKeyQRView, view_args={'seed_num': self.seed_num})
+
+        if button_data[selected_menu_num] == self.LOAD_WALLET:
+            return Destination(LoadWalletView, view_args={'seed_num': self.seed_num})
+
+        if button_data[selected_menu_num] == self.PURGE_WALLET:
+            # return Destination(PurgeWalletView, view_args={'seed_num': self.seed_num})
+            pass
 
         if button_data[selected_menu_num] == self.DISCARD:
             return Destination(SeedDiscardView, view_args={"seed_num": self.seed_num})
@@ -612,12 +641,12 @@ class SeedBackupView(View):
     
 
     def run(self):
-        VIEW_WORDS = "View Seed Words"
-        EXPORT_SEEDQR = "Export as SeedQR"
+        VIEW_WORDS = ('View Seed Words', FontAwesomeIconConstants.LIST)
+        EXPORT_SEEDQR = ('Export as SeedQR', FontAwesomeIconConstants.PEN)
         button_data = [VIEW_WORDS, EXPORT_SEEDQR]
 
         selected_menu_num = ButtonListScreen(
-            title="Backup Seed",
+            title='Backup Seed',
             button_data=button_data,
             is_bottom_list=True,
         ).display()
@@ -626,10 +655,10 @@ class SeedBackupView(View):
             return Destination(BackStackView)
 
         elif button_data[selected_menu_num] == VIEW_WORDS:
-            return Destination(SeedWordsWarningView, view_args={"seed_num": self.seed_num})
+            return Destination(SeedWordsWarningView, view_args={'seed_num': self.seed_num})
 
         elif button_data[selected_menu_num] == EXPORT_SEEDQR:
-            return Destination(SeedTranscribeSeedQRFormatView, view_args={"seed_num": self.seed_num})
+            return Destination(SeedTranscribeSeedQRFormatView, view_args={'seed_num': self.seed_num})
 
 
 """****************************************************************************
@@ -967,30 +996,20 @@ class SeedTranscribeSeedQRWholeQRView(View):
     
 
     def run(self):
-        e = EncodeQR(
-            seed_phrase=self.seed.mnemonic_list,
-            qr_type=self.seedqr_format,
-            wordlist_language_code=self.seed.wordlist_language_code,
-            wordlist=self.seed.wordlist
-        )
-        data = e.next_part()
-
+        e = SeedQrEncoder(self.seed.mnemonic_list, self.seed.wordlist) if self.seedqr_format == QRType.SEED__COMPACTSEEDQR else CompactSeedQrEncoder(self.seed.mnemonic_list, self.seed.wordlist)
         ret = seed_screens.SeedTranscribeSeedQRWholeQRScreen(
-            qr_data=data,
+            qr_data=e.next_part(),
             num_modules=self.num_modules,
         ).display()
-
         if ret == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
-        
-        else:
-            return Destination(
-                SeedTranscribeSeedQRZoomedInView,
-                view_args={
-                    "seed_num": self.seed_num,
-                    "seedqr_format": self.seedqr_format
-                }
-            )
+        return Destination(
+            SeedTranscribeSeedQRZoomedInView,
+            view_args={
+                "seed_num": self.seed_num,
+                "seedqr_format": self.seedqr_format
+            }
+        )
 
 
 class SeedTranscribeSeedQRZoomedInView(View):
@@ -1002,30 +1021,15 @@ class SeedTranscribeSeedQRZoomedInView(View):
         self.seed = self.controller.get_seed(seed_num)
     
     def run(self):
-        e = EncodeQR(
-            seed_phrase=self.seed.mnemonic_list,
-            qr_type=self.seedqr_format,
-            wordlist_language_code=self.seed.wordlist_language_code,
-            wordlist=self.seed.wordlist
-        )
-        data = e.next_part()
-
         if len(self.seed.mnemonic_list) == 25:
-            if self.seedqr_format == QRType.SEED__COMPACTSEEDQR:
-                num_modules = 25  # TODO: expire 2024-07-15, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this??? Test if smaller are viable
-            else:
-                num_modules = 29
+            num_modules = 25 if self.seedqr_format == QRType.SEED__COMPACTSEEDQR else 29  # TODO: expire 2024-07-15, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this??? Test if smaller are viable
         else:
-            if self.seedqr_format == QRType.SEED__COMPACTSEEDQR:
-                num_modules = 21
-            else:
-                num_modules = 25
-
+            num_modules = 21 if self.seedqr_format == QRType.SEED__COMPACTSEEDQR else 25
+        e = SeedQrEncoder(self.seed.mnemonic_list, self.seed.wordlist) if self.seedqr_format == QRType.SEED__COMPACTSEEDQR else CompactSeedQrEncoder(self.seed.mnemonic_list)
         seed_screens.SeedTranscribeSeedQRZoomedInScreen(
-            qr_data=data,
+            qr_data=e.next_part(),
             num_modules=num_modules,
         ).display()
-
         return Destination(SeedTranscribeSeedQRConfirmQRPromptView, view_args={"seed_num": self.seed_num})
 
 
@@ -1111,11 +1115,11 @@ class SeedTranscribeSeedQRConfirmScanView(View):
                 return Destination(BackStackView, skip_current_view=True)
 
 
-
 """****************************************************************************
     Address verification
 ****************************************************************************"""
 class AddressVerificationStartView(View):  # TODO: expire 2024-06-04, remove BTC related stuff, make it work for monero
+
     def __init__(self, address: str, script_type: str, network: str):
         super().__init__()
         self.controller.unverified_address = dict(
@@ -1124,12 +1128,10 @@ class AddressVerificationStartView(View):  # TODO: expire 2024-06-04, remove BTC
             network=network
         )
 
-
     def run(self):
         if self.controller.unverified_address["script_type"] == SettingsConstants.NESTED_SEGWIT:
             # No way to differentiate single sig from multisig
             return Destination(AddressVerificationSigTypeView, skip_current_view=True)
-
         if self.controller.unverified_address["script_type"] == SettingsConstants.NATIVE_SEGWIT:
             if len(self.controller.unverified_address["address"]) >= 62:
                 # Mainnet/testnet are 62, regtest is 64
@@ -1140,29 +1142,22 @@ class AddressVerificationStartView(View):  # TODO: expire 2024-06-04, remove BTC
                 else:
                     self.controller.resume_main_flow = Controller.FLOW__VERIFY_MULTISIG_ADDR
                     destination = Destination(LoadMultisigWalletDescriptorView)
-
             else:
                 sig_type = SettingsConstants.SINGLE_SIG
                 destination = Destination(SeedSingleSigAddressVerificationSelectSeedView)
-
         elif self.controller.unverified_address["script_type"] == SettingsConstants.TAPROOT:
             destination = Destination(NotYetImplementedView)
-
         elif self.controller.unverified_address["script_type"] == SettingsConstants.LEGACY_P2PKH:
             # TODO:SEEDSIGNER: detect single sig vs multisig or have to prompt?
             destination = Destination(NotYetImplementedView)
-
-        derivation_path = PSBTParser.calc_derivation(
+        derivation_path = TxParser.calc_derivation(
             network=self.controller.unverified_address["network"],
             wallet_type=sig_type,
             script_type=self.controller.unverified_address["script_type"]
         )
-
         self.controller.unverified_address["sig_type"] = sig_type
         self.controller.unverified_address["derivation_path"] = derivation_path
-
         return destination
-
 
 
 class AddressVerificationSigTypeView(View):  # TODO: expire 2024-06-04, remove BTC stuff, make monero work
@@ -1170,7 +1165,6 @@ class AddressVerificationSigTypeView(View):  # TODO: expire 2024-06-04, remove B
         sig_type_settings_entry = SettingsDefinition.get_settings_entry(SettingsConstants.SETTING__SIG_TYPES)
         SINGLE_SIG = sig_type_settings_entry.get_selection_option_display_name_by_value(SettingsConstants.SINGLE_SIG)
         MULTISIG = sig_type_settings_entry.get_selection_option_display_name_by_value(SettingsConstants.MULTISIG)
-
         button_data = [SINGLE_SIG, MULTISIG]
         selected_menu_num = seed_screens.AddressVerificationSigTypeScreen(
             title="Verify Address",
@@ -1178,15 +1172,12 @@ class AddressVerificationSigTypeView(View):  # TODO: expire 2024-06-04, remove B
             button_data=button_data,
             is_bottom_list=True,
         ).display()
-
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             self.controller.unverified_address = None
             return Destination(BackStackView)
-        
         elif button_data[selected_menu_num] == SINGLE_SIG:
             sig_type = SettingsConstants.SINGLE_SIG
             destination = Destination(SeedSingleSigAddressVerificationSelectSeedView)
-
         elif button_data[selected_menu_num] == MULTISIG:
             sig_type = SettingsConstants.MULTISIG
             if self.controller.multisig_wallet_descriptor:
@@ -1194,17 +1185,14 @@ class AddressVerificationSigTypeView(View):  # TODO: expire 2024-06-04, remove B
             else:
                 self.controller.resume_main_flow = Controller.FLOW__VERIFY_MULTISIG_ADDR
                 destination = Destination(LoadMultisigWalletDescriptorView)
-
         self.controller.unverified_address["sig_type"] = sig_type
-        derivation_path = PSBTParser.calc_derivation(
+        derivation_path = TxParser.calc_derivation(
             network=self.controller.unverified_address["network"],
             wallet_type=sig_type,
             script_type=self.controller.unverified_address["script_type"]
         )
         self.controller.unverified_address["derivation_path"] = derivation_path
-
         return destination
-
 
 
 class SeedSingleSigAddressVerificationSelectSeedView(View):
@@ -1214,6 +1202,7 @@ class SeedSingleSigAddressVerificationSelectSeedView(View):
         SCAN_SEED = ("Scan a seed", FontAwesomeIconConstants.QRCODE)
         TYPE_13WORD = ("Enter 13-word seed", FontAwesomeIconConstants.KEYBOARD)
         TYPE_25WORD = ("Enter 25-word seed", FontAwesomeIconConstants.KEYBOARD)
+        TYPE_POLYSEED = ("Enter Polyseed", FontAwesomeIconConstants.KEYBOARD)
         button_data = []
 
         text = "Load the seed to verify"
@@ -1260,7 +1249,11 @@ class SeedSingleSigAddressVerificationSelectSeedView(View):
             from xmrsigner.views.scan_views import ScanView
             return Destination(ScanView)
 
-        elif button_data[selected_menu_num] in [TYPE_13WORD, TYPE_25WORD]:
+        elif button_data[selected_menu_num] in [TYPE_13WORD, TYPE_25WORD, TYPE_POLYSEED]:
+            if button_data[selected_menu_num] == self.TYPE_POLYSEED:
+                from xmrsigner.views.seed_views import PolyseedMnemonicEntryView
+                self.controller.storage.init_pending_mnemonic(num_words=16)
+                return Destination(PolyseedMnemonicEntryView)
             from xmrsigner.views.seed_views import SeedMnemonicEntryView
             if button_data[selected_menu_num] == TYPE_13WORD:
                 self.controller.storage.init_pending_mnemonic(num_words=13)
@@ -1363,7 +1356,7 @@ class LoadMultisigWalletDescriptorView(View):  # TODO: expire 2024-06-10, adapt 
             return Destination(ScanView)
         
         elif button_data[selected_menu_num] == CANCEL:
-            if self.controller.resume_main_flow == Controller.FLOW__PSBT:
+            if self.controller.resume_main_flow == Controller.FLOW__TX:
                 return Destination(BackStackView)
             else:
                 return Destination(MainMenuView)
@@ -1381,13 +1374,13 @@ class MultisigWalletDescriptorView(View):  # TODO: expire 2024-06-10, adapt to m
         
         policy = descriptor.brief_policy.split("multisig")[0].strip()
         
-        RETURN = "Return to PSBT"
+        RETURN = "Return to Transaction"
         VERIFY = "Verify Addr"
         OK = "OK"
 
         button_data = [OK]
         if self.controller.resume_main_flow:
-            if self.controller.resume_main_flow == Controller.FLOW__PSBT:
+            if self.controller.resume_main_flow == Controller.FLOW__TX:
                 button_data = [RETURN]
             elif self.controller.resume_main_flow == Controller.FLOW__VERIFY_MULTISIG_ADDR and self.controller.unverified_address:
                 VERIFY += f""" {self.controller.unverified_address["address"][:7]}"""
@@ -1404,7 +1397,7 @@ class MultisigWalletDescriptorView(View):  # TODO: expire 2024-06-10, adapt to m
             return Destination(BackStackView)
         
         elif button_data[selected_menu_num] == RETURN:
-            # Jump straight back to PSBT change verification
+            # Jump straight back to Tx change verification
             self.controller.resume_main_flow = None
             return Destination(PSXMRhangeDetailsView, view_args=dict(change_address_num=0))
 
@@ -1552,22 +1545,17 @@ class SeedSignMessageConfirmAddressView(View):
 class SeedSignMessageSignedMessageQRView(View):
     """
     Displays the signed message as a QR code.
-
     """
-    def __init__(self):
-        super().__init__()
-        data = self.controller.sign_message_data
 
-        self.seed_num = data["seed_num"]
-        seed = self.controller.get_seed(self.seed_num)
-        derivation_path = data["derivation_path"]
-        message: str = data["message"]
+    def __init__(self):
+        raise Exception('Not Implemented Yet!')
+        super().__init__()
+        data = None  # self.controller.sign_message_data
 
         self.signed_message = None  # embit_utils.sign_message(seed_bytes=seed.seed_bytes, derivation=derivation_path, msg=message.encode()) # TODO: 2024-06-16
 
-
     def run(self):
-        qr_encoder = EncodeQR(qr_type=QRType.SIGN_MESSAGE, signed_message=self.signed_message)
+        qr_encoder = None  # TOOD: 2024-07-23, implement
         
         self.run_screen(
             QRDisplayScreen,

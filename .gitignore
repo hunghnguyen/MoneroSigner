@@ -5,3 +5,5 @@ src/seedsigner.egg-info/
 .vscode
 src/seedsigner/models/settings_definition.json
 *.swp
+pi0
+pi_binary

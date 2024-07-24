@@ -1,5 +1,4 @@
-import time
-
+from time import sleep, time_ns, time
 from dataclasses import dataclass
 from PIL import Image, ImageDraw, ImageColor
 from typing import Any, List, Tuple
@@ -19,7 +18,7 @@ from xmrsigner.gui.keyboard import Keyboard, TextEntryDisplay
 from xmrsigner.gui.renderer import Renderer
 
 from xmrsigner.models.threads import BaseThread, ThreadsafeCounter
-from xmrsigner.models.encode_qr import EncodeQR
+from xmrsigner.models.base_encoder import BaseQrEncoder
 from xmrsigner.models.settings import Settings, SettingsConstants
 
 
@@ -29,7 +28,7 @@ from xmrsigner.hardware.buttons import HardwareButtonsConstants, HardwareButtons
 # Must be huge numbers to avoid conflicting with the selected_button returned by the
 #   screens with buttons.
 RET_CODE__BACK_BUTTON = 1000
-RET_CODE__POWER_BUTTON = 1001
+RET_CODE__SETTINGS_BUTTON = 1001
 
 
 @dataclass
@@ -122,70 +121,117 @@ class BaseScreen(BaseComponent):
         raise Exception("Must implement in a child class")
 
 
-class LoadingScreenThread(BaseThread):
-    def __init__(self, text: str = None):
+class AnimatedScreenThread(BaseThread):
+
+    def __init__(self):
         super().__init__()
-        self.text =text
+        self.renderer: Option[Renderer] = None
+
+    def initial_render(self) -> None:
+        pass
+
+    def loop_render(self) -> None:
+        pass
 
     def run(self):
-        renderer: Renderer = Renderer.get_instance()
+        self.renderer = Renderer.get_instance()
+        self.initial_render()
+        while self.keep_running:
+            self.loop_render()
+            sleep(0.05)  # slow down, on emulator too fast!
 
-        center_image = load_image("xmr_logo_60x60.png")  # TODO: expire 2024-07-01, why hardcoded???? Use constant!
-        orbit_gap = 2*GUIConstants.COMPONENT_PADDING
-        bounding_box = (
-            int((renderer.canvas_width - center_image.width) / 2 - orbit_gap),
-            int((renderer.canvas_height - center_image.height) / 2 - orbit_gap),
-            int((renderer.canvas_width + center_image.width) / 2 + orbit_gap),
-            int((renderer.canvas_height + center_image.height) / 2 + orbit_gap),
+
+class LoadingScreenThread(AnimatedScreenThread):
+
+    def __init__(self, text: str = None):
+        super().__init__()
+        self.text = text
+        self.position = 0
+        self.arc_sweep = 45
+
+    def initial_render(self) -> None:
+        center_image = load_image(GUIConstants.LOADING_SCREEN_LOGO_IMAGE)
+        orbit_gap = 2 * GUIConstants.COMPONENT_PADDING
+        self.bounding_box = (
+            int((self.renderer.canvas_width - center_image.width) / 2 - orbit_gap),
+            int((self.renderer.canvas_height - center_image.height) / 2 - orbit_gap),
+            int((self.renderer.canvas_width + center_image.width) / 2 + orbit_gap),
+            int((self.renderer.canvas_height + center_image.height) / 2 + orbit_gap),
         )
-        position = 0
-        arc_sweep = 45
-        arc_color = "#ff9416"  # TODO: 2024-06-20, WTF hardcoded, move to constant!
-        arc_trailing_color = "#80490b"  # TODO: 2024-06-20, WTF hardcoded, move to constant!
 
         # Need to flush the screen
-        with renderer.lock:
-            renderer.draw.rectangle((0, 0, renderer.canvas_width, renderer.canvas_height), fill=GUIConstants.BACKGROUND_COLOR)
-            renderer.canvas.paste(center_image, (bounding_box[0] + orbit_gap, bounding_box[1] + orbit_gap))
+        with self.renderer.lock:
+            self.renderer.draw.rectangle((0, 0, self.renderer.canvas_width, self.renderer.canvas_height), fill=GUIConstants.BACKGROUND_COLOR)
+            self.renderer.canvas.paste(center_image, (self.bounding_box[0] + orbit_gap, self.bounding_box[1] + orbit_gap))
 
             if self.text:
                 TextArea(
                     text=self.text,
                     font_size=GUIConstants.TOP_NAV_TITLE_FONT_SIZE,
-                    screen_y=int((renderer.canvas_height - bounding_box[3]) / 2),
+                    screen_y=int((self.renderer.canvas_height - self.bounding_box[3]) / 2),
                 ).render()
 
-        while self.keep_running:
-            with renderer.lock:
-                # Render leading arc
-                renderer.draw.arc(
-                    bounding_box,
-                    start=position,
-                    end=position + arc_sweep,
-                    fill=arc_color,
-                    width=GUIConstants.COMPONENT_PADDING
-                )
+    def loop_render(self) -> None:
+        with self.renderer.lock:
+            # Render leading arc
+            self.renderer.draw.arc(
+                self.bounding_box,
+                start=self.position,
+                end=self.position + self.arc_sweep,
+                fill=GUIConstants.LOADING_SCREEN_ARC_COLOR,
+                width=GUIConstants.COMPONENT_PADDING
+            )
 
-                # Render trailing arc
-                renderer.draw.arc(
-                    bounding_box,
-                    start=position - arc_sweep,
-                    end=position,
-                    fill=arc_trailing_color,
-                    width=GUIConstants.COMPONENT_PADDING
-                )
+            # Render trailing arc
+            self.renderer.draw.arc(
+                self.bounding_box,
+                start=self.position - self.arc_sweep,
+                end=self.position,
+                fill=GUIConstants.LOADING_SCREEN_ARC_TRAILING_COLOR,
+                width=GUIConstants.COMPONENT_PADDING
+            )
 
-                # Erase previous trailing arc leading arc
-                renderer.draw.arc(
-                    bounding_box,
-                    start=position - 2*arc_sweep,
-                    end=position - arc_sweep,
-                    fill=GUIConstants.BACKGROUND_COLOR,
-                    width=GUIConstants.COMPONENT_PADDING
-                )
+            # Erase previous trailing arc leading arc
+            self.renderer.draw.arc(
+                self.bounding_box,
+                start=self.position - 2 * self.arc_sweep,
+                end=self.position - self.arc_sweep,
+                fill=GUIConstants.BACKGROUND_COLOR,
+                width=GUIConstants.COMPONENT_PADDING
+            )
 
-                renderer.show_image()
-            position += arc_sweep
+            self.renderer.show_image()
+        self.position += self.arc_sweep
+
+
+class EtaLoadingScreenThread(LoadingScreenThread):
+
+    def __init__(self, text: str = None, eta: int = 15):
+        super().__init__(text)
+        self.eta: int = eta
+        self.start_time: int = 0
+        self.timer_margin: int = 5
+
+    def start(self):
+        super().start()
+        self.start_time = int(time())
+
+    def loop_render(self) -> None:
+        super().loop_render()
+        self.render_timer()
+
+    def render_timer(self) -> None:
+        eta = self.eta - (int(time()) - self.start_time)
+        seconds = abs(eta) % 60
+        minutes = abs(eta) // 60
+        eta_text = f'ETA: {minutes:02d}:{seconds:02d}' if eta >=0 else f'Overdue: {minutes:02d}:{seconds:02d}'
+        with self.renderer.lock:
+            TextArea(
+                text=eta_text,
+                font_size=GUIConstants.TOP_NAV_TITLE_FONT_SIZE,
+                screen_y=int(self.renderer.canvas_height - (self.renderer.canvas_height - self.bounding_box[3]) / 2 - GUIConstants.TOP_NAV_TITLE_FONT_SIZE - self.timer_margin),
+                # screen_y=int(self.renderer.canvas_height - GUIConstants.TOP_NAV_TITLE_FONT_SIZE - self.timer_margin),
+            ).render()
 
 
 @dataclass
@@ -218,7 +264,7 @@ class BaseTopNavScreen(BaseScreen):
         while True:
             if not self.top_nav.show_back_button and not self.top_nav.show_power_button:
                 # There's no navigation away from this screen; nothing to do here
-                time.sleep(0.1)
+                sleep(0.1)
                 continue
 
             user_input = self.hw_inputs.wait_for(
@@ -670,12 +716,13 @@ class LargeButtonScreen(BaseTopNavScreen):
 
 @dataclass
 class QRDisplayScreen(BaseScreen):
-    qr_encoder: 'EncodeQR' = None
+    qr_encoder: BaseQrEncoder = None
 
     class QRDisplayThread(BaseThread):
+
         def __init__(
                 self,
-                qr_encoder: 'EncodeQR',
+                qr_encoder: BaseQrEncoder,
                 qr_brightness: ThreadsafeCounter,
                 renderer: Renderer,
                  tips_start_time: ThreadsafeCounter
@@ -687,10 +734,6 @@ class QRDisplayScreen(BaseScreen):
             self.tips_start_time = tips_start_time
 
         def add_brightness_tips(self, image: Image.Image) -> None:
-            # TODO:SEEDSIGNER: Refactor ToastOverlay to support two lines of icon + text and use
-            # that instead of this more manual approach.
-            # COMMENT: Don't support toast because IMO bad UI/UX
-
             # Instantiate a temp Image and ImageDraw object to draw on
             rectangle_width = image.width
             rectangle_height = GUIConstants.COMPONENT_PADDING * 2 + GUIConstants.BODY_FONT_SIZE * 2 + GUIConstants.BODY_LINE_SPACING
@@ -771,14 +814,14 @@ class QRDisplayScreen(BaseScreen):
 
                 # Display the brightness tips toast
                 duration = 10 ** 9 * 1.2  # 1.2 seconds
-                if show_brightness_tips and time.time_ns() - self.tips_start_time.cur_count < duration:
+                if show_brightness_tips and time_ns() - self.tips_start_time.cur_count < duration:
                     self.add_brightness_tips(image)
 
                 with self.renderer.lock:
                     self.renderer.show_image(image)
 
                 # Target n held frames per second before rendering next QR image
-                time.sleep(5 / 30.0)
+                sleep(5 / 30.0)
 
     def __post_init__(self):
         super().__post_init__()
@@ -786,7 +829,7 @@ class QRDisplayScreen(BaseScreen):
         settings = Settings.get_instance()
         self.qr_brightness = ThreadsafeCounter(
             initial_value=settings.get_value(SettingsConstants.SETTING__QR_BRIGHTNESS))
-        self.tips_start_time = ThreadsafeCounter(initial_value=time.time_ns())
+        self.tips_start_time = ThreadsafeCounter(initial_value=time_ns())
 
         self.threads.append(QRDisplayScreen.QRDisplayThread(
             qr_encoder=self.qr_encoder,
@@ -810,16 +853,16 @@ class QRDisplayScreen(BaseScreen):
             if user_input == HardwareButtonsConstants.KEY_DOWN:
                 # Reduce QR code background brightness
                 self.qr_brightness.set_value(max(31, self.qr_brightness.cur_count - 31))
-                self.tips_start_time.set_value(time.time_ns())
+                self.tips_start_time.set_value(time_ns())
             elif user_input == HardwareButtonsConstants.KEY_UP:
                 # Incrase QR code background brightness
                 self.qr_brightness.set_value(min(self.qr_brightness.cur_count + 31, 255))
-                self.tips_start_time.set_value(time.time_ns())
+                self.tips_start_time.set_value(time_ns())
             else:
                 # Any other input exits the screen
                 self.threads[-1].stop()
                 while self.threads[-1].is_alive():
-                    time.sleep(0.01)
+                    sleep(0.01)
                 break
         Settings.get_instance().set_value(SettingsConstants.SETTING__QR_BRIGHTNESS, self.qr_brightness.cur_count)
 
@@ -929,7 +972,7 @@ class WarningEdgesThread(BaseThread):
                 inhale_factor += inhale_step
 
                 # Target ~10fps
-                time.sleep(0.05)
+                sleep(0.05)
 
         except KeyboardInterrupt as e:
             self.stop()
@@ -976,35 +1019,6 @@ class ResetScreen(BaseTopNavScreen):
 
         self.components.append(TextArea(
             text="XmrSigner is restarting.\n\nAll in-memory data will be wiped.",
-            screen_y=self.top_nav.height,
-            height=self.canvas_height - self.top_nav.height,
-        ))
-
-
-
-@dataclass
-class PowerOffScreen(BaseTopNavScreen):  # TODO: 2024-06-20, remove
-    def __post_init__(self):
-        self.title = "Powering Off"
-        self.show_back_button = False
-        super().__post_init__()
-
-        self.components.append(TextArea(
-            text="Please wait about 30 seconds before disconnecting power.",
-            screen_y=self.top_nav.height,
-            height=self.canvas_height - self.top_nav.height,
-        ))
-
-
-@dataclass
-class PowerOffNotRequiredScreen(BaseTopNavScreen):
-    def __post_init__(self):
-        self.title = "Just Unplug It"
-        self.show_back_button = True
-        super().__post_init__()
-
-        self.components.append(TextArea(
-            text="It is safe to disconnect power at any time.",
             screen_y=self.top_nav.height,
             height=self.canvas_height - self.top_nav.height,
         ))

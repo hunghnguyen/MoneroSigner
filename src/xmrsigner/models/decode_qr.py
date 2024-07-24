@@ -1,44 +1,26 @@
-from base64 import b64encode, b64decode
-from json import loads
-from json.decoder import JSONDecodeError
 from re import search, IGNORECASE
 from logging import getLogger
 from binascii import hexlify
-from typing import List
+from typing import List, Dict, Optional, Union
 
 from binascii import a2b_base64, b2a_base64
 from monero.address import address as monero_address
-from enum import IntEnum
+from monero.address import Address
 from pyzbar import pyzbar
 from pyzbar.pyzbar import ZBarSymbol
-from urtypes.crypto import PSBT as UR_PSBT
-from urtypes.crypto import Account, Output
-from urtypes.bytes import Bytes
+from xmrsigner.urtypes.xmr import XmrOutput, XmrTxUnsigned
 
 from xmrsigner.helpers.ur2.ur_decoder import URDecoder
-from xmrsigner.helpers.seedwordindex import SeedWordIndex
-from xmrsigner.helpers.shortseed import ShortSeed
-from xmrsigner.helpers.compactseed import CompactSeed
 
+from xmrsigner.models.base_decoder import DecodeQRStatus
+from xmrsigner.models.seed_decoder import SeedQrDecoder
+from xmrsigner.models.monero_decoder import MoneroWalletQrDecoder, MoneroAddressQrDecoder
 from xmrsigner.models.qr_type import QRType
 from xmrsigner.models.seed import Seed
-from xmrsigner.models.polyseed import PolyseedSeed
 from xmrsigner.models.settings import SettingsConstants
-from monero.seed import Seed as MoneroSeed
 
 
 logger = getLogger(__name__)
-
-
-class DecodeQRStatus(IntEnum):
-    """
-        Used in DecodeQR to communicate status of adding qr frame/segment
-    """
-    PART_COMPLETE = 1
-    PART_EXISTING = 2
-    COMPLETE = 3
-    FALSE = 4
-    INVALID = 5
 
 
 class DecodeQR:
@@ -62,20 +44,25 @@ class DecodeQR:
             return DecodeQRStatus.FALSE
 
         qr_type = DecodeQR.detect_segment_type(data, wordlist_language_code=self.wordlist_language_code)
+        print(f'qr type: {qr_type}')
 
         if self.qr_type == None:
             self.qr_type = qr_type
+            print(f'self.qr_type: {self.qr_type}')
 
-            if self.qr_type in [QRType.PSBT__UR2, QRType.OUTPUT__UR, QRType.ACCOUNT__UR, QRType.BYTES__UR]:
-                self.decoder = URDecoder() # BCUR Decoder
+            if self.qr_type in [
+                QRType.XMR_OUTPUT_UR,
+                QRType.XMR_TX_UNSIGNED_UR
+                ]:
+                print('UR')
+                self.decoder = URDecoder()  # BCUR Decoder
 
-            elif self.qr_type == QRType.PSBT__BASE64:
-                self.decoder = Base64PsbtQrDecoder() # Single Segments Base64
-
-            elif self.qr_type == QRType.PSBT__BASE43:
-                self.decoder = Base43PsbtQrDecoder() # Single Segment Base43
-
-            elif self.qr_type in [QRType.SEED__SEEDQR, QRType.SEED__COMPACTSEEDQR, QRType.SEED__MNEMONIC, QRType.SEED__FOUR_LETTER_MNEMONIC, QRType.SEED__UR2]:
+            elif self.qr_type in [
+                    QRType.SEED__SEEDQR,
+                    QRType.SEED__COMPACTSEEDQR,
+                    QRType.SEED__MNEMONIC,
+                    QRType.SEED__FOUR_LETTER_MNEMONIC
+                    ]:
                 self.decoder = SeedQrDecoder(wordlist_language_code=self.wordlist_language_code)          
 
             elif self.qr_type == QRType.SETTINGS:
@@ -84,17 +71,13 @@ class DecodeQR:
             elif self.qr_type == QRType.MONERO_ADDRESS:
                 self.decoder = MoneroAddressQrDecoder() # Single Segment monero address
 
-            elif self.qr_type == QRType.SIGN_MESSAGE:
-                self.decoder = SignMessageQrDecoder() # Single Segment sign message request
-
-            elif self.qr_type == QRType.WALLET__GENERIC:
-                self.decoder = GenericWalletQrDecoder()
-                
-            elif self.qr_type == QRType.WALLET__CONFIGFILE:
-                self.decoder = MultiSigConfigFileQRDecoder()
+            elif self.qr_type == QRType.MONERO_WALLET:
+                self.decoder = MoneroWalletQrDecoder() # Single Segment monero address
 
         elif self.qr_type != qr_type:
             raise Exception('QR Fragment Unexpected Type Change')
+
+        print(f'decoder: {str(self.decoder)}')
         
         if not self.decoder:
             # Did not find any recognizable format
@@ -112,18 +95,23 @@ class DecodeQR:
             # Should always be bytes, but the test suite has some manual datasets that
             # are strings.
             # TODO:SEEDSIGNER: Convert the test suite rather than handle here?
-            qr_str = data.decode('utf-8')
+            qr_str = data.decode()
         else:
             # it's already str data
             qr_str = data
 
-        if self.qr_type in [QRType.PSBT__UR2, QRType.OUTPUT__UR, QRType.ACCOUNT__UR, QRType.BYTES__UR]:
+        if self.qr_type in [
+                QRType.XMR_OUTPUT_UR,
+                QRType.XMR_KEYIMAGE_UR,
+                QRType.XMR_TX_UNSIGNED_UR,
+                QRType.XMR_TX_SIGNED_UR,
+                QRType.BYTES__UR
+                ]:
             self.decoder.receive_part(qr_str)
             if self.decoder.is_complete():
                 self.complete = True
                 return DecodeQRStatus.COMPLETE
             return DecodeQRStatus.PART_COMPLETE # segment added to ur2 decoder
-
         else:
             # All other formats use the same method signature
             rt = self.decoder.add(qr_str, self.qr_type)
@@ -145,27 +133,16 @@ class DecodeQR:
                     return None
         return None
 
-    def get_data_psbt(self):
+    def get_output(self):
         if self.complete:
-            if self.qr_type == QRType.PSBT__UR2:
+            if self.qr_type == QRType.XMR_OUTPUT_UR:
                 cbor = self.decoder.result_message().cbor
-                return UR_PSBT.from_cbor(cbor).data
+                return XmrOutput.from_cbor(cbor).data
 
             else:
                 # All the other psbt decoder types use the same method signature
                 return self.decoder.get_data()
 
-        return None
-
-    def get_base64_psbt(self):
-        if self.complete:
-            data = self.get_data_psbt()
-            b64_psbt = b2a_base64(data)
-
-            if b64_psbt[-1:] == b"\n":
-                b64_psbt = b64_psbt[:-1]
-
-            return b64_psbt.decode("utf-8")
         return None
 
     def get_seed_phrase(self):
@@ -192,27 +169,14 @@ class DecodeQR:
         if self.is_address:
             return self.decoder.get_address_type()
 
-    def get_wallet_descriptor(self):
-        if self.is_wallet_descriptor:
-            if self.qr_type in [QRType.OUTPUT__UR, QRType.ACCOUNT__UR, QRType.BYTES__UR]:
-                cbor = self.decoder.result_message().cbor
-                if self.qr_type == QRType.OUTPUT__UR:
-                    return Output.from_cbor(cbor).descriptor()
-                elif self.qr_type == QRType.ACCOUNT__UR:
-                    return Account.from_cbor(cbor).output_descriptors[0].descriptor()
-                elif self.qr_type == QRType.BYTES__UR:
-                    raw = Bytes.from_cbor(cbor).data
-                    descriptor = DecodeQR.multisig_setup_file_to_descriptor(raw.decode("utf-8"))
-                    return descriptor
-            else:
-                # All the other wallet output descriptor decoder types use the same method signature
-                return self.decoder.get_wallet_descriptor()
-
     def get_percent_complete(self) -> int:
         if not self.decoder:
             return 0
 
-        if self.qr_type in [QRType.PSBT__UR2, QRType.OUTPUT__UR, QRType.ACCOUNT__UR, QRType.BYTES__UR]:
+        if self.qr_type in [
+                QRType.XMR_OUTPUT_UR,
+                QRType.XMR_TX_UNSIGNED_UR
+                ]:
             return int(self.decoder.estimated_percent_complete() * 100)
 
         elif self.decoder.total_segments == 1:
@@ -225,10 +189,6 @@ class DecodeQR:
             return 0
 
     @property
-    def is_sign_message(self):
-        return self.qr_type == QRType.SIGN_MESSAGE
-
-    @property
     def is_complete(self) -> bool:
         return self.complete
 
@@ -237,11 +197,10 @@ class DecodeQR:
         return self.qr_type == QRType.INVALID
 
     @property
-    def is_psbt(self) -> bool:
+    def is_ur(self) -> bool:
         return self.qr_type in [
-            QRType.PSBT__UR2,
-            QRType.PSBT__BASE64,
-            QRType.PSBT__BASE43,
+            QRType.XMR_OUTPUT_UR,
+            QRType.XMR_TX_UNSIGNED_UR
         ]
 
     @property
@@ -249,9 +208,8 @@ class DecodeQR:
         return self.qr_type in [
             QRType.SEED__SEEDQR,
             QRType.SEED__COMPACTSEEDQR,
-            QRType.SEED__UR2,
             QRType.SEED__MNEMONIC, 
-            QRType.SEED__FOUR_LETTER_MNEMONIC,
+            QRType.SEED__FOUR_LETTER_MNEMONIC
         ]
 
     @property
@@ -261,18 +219,6 @@ class DecodeQR:
     @property
     def is_address(self):
         return self.qr_type == QRType.MONERO_ADDRESS
-
-    @property
-    def is_wallet_descriptor(self):
-        check = self.qr_type in [QRType.WALLET__UR, QRType.WALLET__CONFIGFILE, QRType.WALLET__GENERIC, QRType.OUTPUT__UR]
-        
-        if self.qr_type in [QRType.BYTES__UR]:
-            cbor = self.decoder.result_message().cbor
-            raw = Bytes.from_cbor(cbor).data
-            data = raw.decode("utf-8").lower()
-            check = 'policy:' in data and "format:" in data and "derivation:" in data
-        
-        return check
 
     @property
     def is_settings(self):
@@ -294,53 +240,44 @@ class DecodeQR:
             return barcode.data
 
     @staticmethod
-    def detect_segment_type(s, wordlist_language_code=None):
+    def detect_segment_type(segment: Union[bytes, str], wordlist_language_code: Optional[str] = None):
         # print("-------------- DecodeQR.detect_segment_type --------------")
         # print(type(s))
         # print(len(s))
 
         try:
-            # Convert to str data
-            if type(s) == bytes:
-                # Should always be bytes, but the test suite has some manual datasets that
-                # are strings.
-                # TODO:SEEDSIGNER: Convert the test suite rather than handle here?
-                s = s.decode('utf-8')
+            s = segment if type(segment) == str else segment.decode()
 
-            # PSBT
-            if search("^UR:CRYPTO-PSBT/", s, IGNORECASE):
-                return QRType.PSBT__UR2
-                
-            elif search("^UR:CRYPTO-OUTPUT/", s, IGNORECASE):
-                return QRType.OUTPUT__UR
-                
-            elif search("^UR:CRYPTO-ACCOUNT/", s, IGNORECASE):
-                return QRType.ACCOUNT__UR
+            UR_XMR_OUTPUT = 'xmr-output'
+            UR_XMR_KEY_IMAGE = 'xmr-keyimage'
+            UR_XMR_TX_UNSIGNED = 'xmr-txunsigned'
+            UR_XMR_TX_SIGNED = 'xmr-txsigned'
 
-            elif search("^UR:BYTES/", s, IGNORECASE):
-                return QRType.BYTES__UR
+            print(f'segment: {s}')
 
-            elif DecodeQR.is_base64_psbt(s):
-                return QRType.PSBT__BASE64
+            # XMR UR
+            if search(f"^UR:{UR_XMR_OUTPUT.upper()}/", s, IGNORECASE):
+                return QRType.XMR_OUTPUT_UR
 
-            # Wallet Descriptor
-            if "multisig setup file" in s.lower():
-                return QRType.WALLET__CONFIGFILE
-            
-            elif "sortedmulti" in s:
-                return QRType.WALLET__GENERIC
+            if search(f'^UR:{UR_XMR_KEY_IMAGE}/', s, IGNORECASE):
+                return QRType.XMR_KEYIMAGE_UR
+
+            if search(f'^UR:{UR_XMR_TX_UNSIGNED}/', s, IGNORECASE):
+                return QRType.XMR_TX_UNSIGNED_UR
+
+            if search(f'^UR:{UR_XMR_TX_SIGNED}/', s, IGNORECASE):
+                return QRType.XMR_TX_SIGNED_UR
+
+            if s.startswith('monero_wallet:'):
+                return QRType.MONERO_WALLET
 
             # Seed
             if decimals := search(r'(\d{52,100})', s) and len(decimals.group(1)) in (52, 64, 100):  # TODO: 2024-06-15, handle Polyseed different from here? 52 decimals (13 words, 100 decimals (25 words), 16 polyseed words would be 64 decimals
                 return QRType.SEED__SEEDQR
 
             # Monero Address
-            elif DecodeQR.is_monero_address(s):
+            elif MoneroAddressQrDecoder.is_monero_address(s):
                 return QRType.MONERO_ADDRESS
- 
-            # message signing
-            elif DecodeQR.is_sign_message(s):
-                return QRType.SIGN_MESSAGE
 
             # config data
             if s.startswith("settings::"):
@@ -361,10 +298,6 @@ class DecodeQR:
             elif all(x in _4LETTER_WORDLIST for x in s.strip().split(" ")):
                 # checks if all 4 letter words are in list are in 4 letter bip39 word list
                 return QRType.SEED__FOUR_LETTER_MNEMONIC
-
-            elif DecodeQR.is_base43_psbt(s):
-                return QRType.PSBT__BASE43
-
         except UnicodeDecodeError:
             # Probably this isn't meant to be string data; check if it's valid byte data
             # below.
@@ -372,7 +305,7 @@ class DecodeQR:
         
         # Is it byte data?
         # 32 bytes for 24-word CompactSeedQR; 16 bytes for 12-word CompactSeedQR
-        if len(s) == 32 or len(s) == 16:
+        if len(s) == 32 or len(s) == 16:  # TODO: 2024-07-17, check for monero!
             try:
                 bitstream = ""
                 for b in s:
@@ -383,564 +316,4 @@ class DecodeQR:
             except Exception as e:
                 # Couldn't extract byte data; assume it's not a byte format
                 pass
-
         return QRType.INVALID
-
-    @staticmethod   
-    def is_base64(s):
-        try:
-            return b64encode(b64decode(s)) == s.encode('ascii')
-        except Exception:
-            return False
-
-    @staticmethod   
-    def is_base64_psbt(s):
-        try:
-            if DecodeQR.is_base64(s):
-                # psbt.PSBT.parse(a2b_base64(s))  # TODO: 2024-06-14, adapt to monero
-                return True
-        except Exception:
-            return False
-        return False
-
-    @staticmethod
-    def is_base43_psbt(s):
-        try:
-            # psbt.PSBT.parse(DecodeQR.base43_decode(s))  # TODO: 2024-06-14, adapt to monero
-            return True
-        except Exception:
-            return False
-
-    @staticmethod
-    def base43_decode(s):
-        chars = b'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$*+-./:' #base43 chars
-
-        if isinstance(s, bytes):
-            v = s
-        if isinstance(s, str):
-            v = s.encode('ascii')
-        elif isinstance(s, bytearray):
-            v = bytes(s)
-            
-        long_value = 0
-        power_of_base = 1
-        for c in v[::-1]:
-            digit = chars.find(bytes([c]))
-            if digit == -1:
-                raise Exception('Forbidden character {} for base {}'.format(c, 43))
-            # naive but slow variant:   long_value += digit * (base**i)
-            long_value += digit * power_of_base
-            power_of_base *= 43
-        result = bytearray()
-        while long_value >= 256:
-            div, mod = divmod(long_value, 256)
-            result.append(mod)
-            long_value = div
-        result.append(long_value)
-        nPad = 0
-        for c in v:
-            if c == chars[0]:
-                nPad += 1
-            else:
-                break
-        result.extend(b'\x00' * nPad)
-        result.reverse()
-        return bytes(result)
-
-    @staticmethod
-    def is_monero_address(s: str) -> bool:
-        if s.startswith('monero:'):
-            s = s[7:]
-        try:
-            monero_address(s)
-            return True
-        except:
-            return False
-
-    @staticmethod
-    def is_sign_message(s):
-        return type(s) == str and s.startswith("signmessage")
-
-    @staticmethod
-    def multisig_setup_file_to_descriptor(text) -> str:
-        # sample text file, parse the contents and create descriptor
-        """
-        Name: SeeedSigner Dev Funds
-        Policy: 4 of 6
-        Derivation: m/48'/0'/0'/2'
-        Format: P2WSH
-        
-        E0811B6B: xpub6E8v7uy63pCeJvHe5W8ea8zTnCtKMFgMRb5bueWWcUFMw6sWmUwTqxM8cFiKQRWkA2Fxth9HJZufJwjWTTvU1UGZNpTrh9khrswYMgeHiCt
-        852B308F: xpub6ErhgAWfnEqW7xDBm1iLq5JjNyUS65YUFnjHLrRv9zmdDEtuE75bpWQ8o6bSBnpT6AkrrsA8eA5SmEFArZn11KEPaZJzx9mHTXPWZCsxLyh
-        7EDF9C59: xpub6DaFfKoe7WpofrbYeNo3Wv2AiLUMeyrPwotXfukFxUHbK4JxaLHTd5394QtH5wnjFzBgr2YnJpHhXv25Zsqv2APmMFvH1DsKHj5LCr3pmXs
-        B433E095: xpub6EF51itHko2YhGTjVeuYbBgJjVbTzzpYzn2a3JwZHpDrMePRVgXGBHMx2Yv1KwgLsUn9i7ExcAo8uqMx4pDjVRY9J7qnceFAwRRj16dd5AS
-        184D07EB: xpub6EEoTpcQu7N4R8D84pJjZ69j3minevnYLDDoo2HBzYBXTQ4rGVf4XGTyCYFwJuZdsF9MyFYJNzYEjg5LGMA1ubTGWuDnjHAZz6ficVRDTSy
-        3E451EFE: xpub6ExQPvQxGBMaPxr8Fv7Vq91ztJFFX3VWvtpvex6UPZ1AptTeuAiJGCtKkgwJkrwpMZMagh9ex6rL4sM8axfFcdQbERoFCRUKTJxrBkJh56g
-        """
-        
-        lines = text.split('\n')
-        
-        m = 0
-        n = 0
-        xpubs = []
-        x = 0
-        derivation = ''
-        descriptor = ''
-        
-        lines = text.split('\n')
-        
-        for l in lines:
-            if l.find('#') == 0:
-                # skip comments
-                continue
-        
-            l = l.strip()
-        
-            if ':' not in l:
-                # when label/value divider not found, skip line
-                continue
-                        
-            label, value = l.split(':', 1)
-            label = label.strip().lower()
-            value = value.strip()
-        
-            if label == 'policy':
-                try:
-                    match = search(r'(\d+)\D*(\d+)', value)
-                    m = int(match.group(1))
-                    n = int(match.group(2))
-                except:
-                    raise Exception(f"Policy line not supported")
-            elif label == 'derivation':
-                derivation = value
-            elif label == 'format':
-                if value.lower() in ['p2wsh', 'p2sh-p2wsh', 'p2wsh-p2sh']:
-                    script_type = value.lower()
-            elif len(label) == 8:
-                if len(xpubs) == 0:
-                    xpubs = [None] * n
-        
-                xpubs[x] = {'xfp': label, 'key': value}
-                x += 1
-        
-        if None in xpubs or len(xpubs) != n:
-            raise Exception(f"bad or missing xpub")
-        
-        if m <= 0 or m > 9 or n <= 0 or n > 9:
-            raise Exception(f"bad or missing policy")
-        
-        if len(derivation) == 0:
-            raise Exception(f"bad or missing derivation path")
-        
-        if script_type not in ['p2wsh', 'p2sh-p2wsh', 'p2wsh-p2sh']:
-            raise Exception(f"bad or missing script format")
-        
-        # create descriptor string
-        
-        if script_type == "p2wsh":
-            script_open = "wsh(sortedmulti(" + str(m)
-            script_close = "))"
-        elif script_type in ["p2sh-p2wsh", 'p2wsh-p2sh']:
-            script_open = "sh(wsh(sortedmulti(" + str(m)
-            script_close = ")))"
-        
-        descriptor = script_open
-        
-        for x in xpubs:
-            if derivation[0] == 'm':
-                derivation = derivation[1:]
-            derivation = derivation.replace("'", "h")
-            descriptor += ',[' + x['xfp'] + derivation + "]" + x['key'] + "/{0,1}/*"
-        
-        descriptor += script_close
-
-        return descriptor
-
-class BaseQrDecoder:
-    def __init__(self):
-        self.total_segments = None
-        self.collected_segments = 0
-        self.complete = False
-
-    @property
-    def is_complete(self) -> bool:
-        return self.complete
-
-    def add(self, segment, qr_type):
-        raise Exception("Not implemented in child class")
-
-    def get_qr_data(self) -> dict:
-        # TODO:SEEDSIGNER: standardize this approach across all decoders (example: SignMessageQrDecoder)
-        raise Exception("get_qr_data must be implemented in decoder child class")
-
-
-class BaseSingleFrameQrDecoder(BaseQrDecoder):
-    def __init__(self):
-        super().__init__()
-        self.total_segments = 1
-
-
-class BaseAnimatedQrDecoder(BaseQrDecoder):
-    def __init__(self):
-        super().__init__()
-        self.segments = []
-
-    def current_segment_num(self, segment) -> int:
-        raise Exception("Not implemented in child class")
-
-    def total_segment_nums(self, segment) -> int:
-        raise Exception("Not implemented in child class")
-
-    def parse_segment(self, segment) -> str:
-        raise Exception("Not implemented in child class")
-    
-    @property
-    def is_valid(self) -> bool:
-        return True
-
-    def add(self, segment, qr_type=None):
-        if self.total_segments == None:
-            self.total_segments = self.total_segment_nums(segment)
-            self.segments = [None] * self.total_segments
-        elif self.total_segments != self.total_segment_nums(segment):
-            raise Exception('Segment total changed unexpectedly')
-
-        if self.segments[self.current_segment_num(segment) - 1] == None:
-            self.segments[self.current_segment_num(segment) - 1] = self.parse_segment(segment)
-            self.collected_segments += 1
-            if self.total_segments == self.collected_segments:
-                if self.is_valid:
-                    self.complete = True
-                    return DecodeQRStatus.COMPLETE
-                else:
-                    return DecodeQRStatus.INVALID
-            return DecodeQRStatus.PART_COMPLETE # new segment added
-
-        return DecodeQRStatus.PART_EXISTING # segment not added because it's already been added
-
-
-class Base64PsbtQrDecoder(BaseSingleFrameQrDecoder):
-    """
-        Decodes single frame base64 encoded qr image.
-        Does not support animated qr because no indicator of segments or their order
-    """
-    def add(self, segment, qr_type=QRType.PSBT__BASE64):
-        if DecodeQR.is_base64(segment):
-            self.complete = True
-            self.data = segment
-            self.collected_segments = 1
-            return DecodeQRStatus.COMPLETE
-
-        return DecodeQRStatus.INVALID
-
-
-    def get_base64_data(self) -> str:
-        return self.data
-
-
-    def get_data(self):
-        base64 = self.get_base64_data()
-        if base64 != None:
-            return a2b_base64(base64)
-
-        return None
-
-
-class Base43PsbtQrDecoder(BaseSingleFrameQrDecoder):
-    """
-        Decodes single frame base43 encoded qr image.
-        Does not support animated qr because no indicator of segments or their order
-    """
-    def add(self, segment, qr_type=QRType.PSBT__BASE43):
-        if DecodeQR.is_base43_psbt(segment):
-            self.complete = True
-            self.data = DecodeQR.base43_decode(segment)
-            self.collected_segments = 1
-            return DecodeQRStatus.COMPLETE
-
-        return DecodeQRStatus.INVALID
-
-
-    def get_data(self):
-        return self.data
-
-
-class SeedQrDecoder(BaseSingleFrameQrDecoder):
-    """
-        Decodes single frame representing a seed.
-        Supports XmrSigner SeedQR numeric (wordlist indices) representation of a seed.
-        Supports XmrSigner CompactSeedQR entropy byte representation of a seed.
-        Supports mnemonic seed phrase string data.
-    """
-    def __init__(self, wordlist_language_code):
-        super().__init__()
-        self.seed_phrase = []
-        self.wordlist_language_code = wordlist_language_code
-
-    def add(self, segment, qr_type=QRType.SEED__SEEDQR):
-        # `segment` data will either be bytes or str, depending on the qr_type
-        if qr_type == QRType.SEED__SEEDQR:
-            try:
-                self.seed_phrase = []
-                num_words = int(len(segment) / 4)
-                # Parse 12, 16 or 24-word QR code
-                if num_words not in (12, 16, 24):
-                    return DecodeQRStatus.INVALID
-                wordlist = PolyseedSeed.get_wordlist(wordlist_language_code) if len(num_words) == 16 else Seed.get_wordlist(wordlist_language_code)
-                words = SeedWordIndex(wordlist).from_indices_string(segment)
-                self.seed_phrase = MoneroSeed(MoneroSeed(' '.join(words)).hex).phrase.split() if len(words) in (12, 24) else words
-                if not self.is_validphrase_word_count():
-                    return DecodeQRStatus.INVALID
-                self.complete = True
-                self.collected_segments = 1
-                return DecodeQRStatus.COMPLETE
-            except Exception as e:
-                return DecodeQRStatus.INVALID
-
-        if qr_type == QRType.SEED__COMPACTSEEDQR:
-            try:
-                word_count = CompactSeed.length(segment)
-                if word_count in (12, 24):  # Monero seed
-                    self.seed_phrase = MoneroSeed(MoneroSeed(' '.join(CompactSeed(Seed.get_wordlist(wordlist_language_code)).words(segment))).hex).phrase.split()  # convert direct to 13, 25 words
-                    self.complete = True
-                    self.collected_segments = 1
-                    return DecodeQRStatus.COMPLETE
-                if wordcount == 16:  # Polyseed
-                    self.seed_phrase = CompactSeed(PolyseedSeed.get_wordlist(self.wordlist_language_code)).words(segment)
-                    self.complete = True
-                    self.collected_segments = 1
-                    return DecodeQRStatus.COMPLETE
-                return DecodeQRStatus.INVALID
-            except Exception as e:
-                logger.exception(repr(e))
-                return DecodeQRStatus.INVALID
-
-        elif qr_type == QRType.SEED__MNEMONIC:
-            try:
-                seed_phrase_list = self.seed_phrase = segment.strip().split(" ")
-
-                if len(seed_phrase_list) in (12, 13, 24, 25):  # Monero seed phrase
-                    self.seed_phrase = MoneroSeed(MoneroSeed(' '.join(seed_phrase_list)).hex).phrase.split()
-                if len(seed_phrase_list) == 16:  # polyseed
-                    self.seed_phrase = PolyseedSeed(seed_phrase_list, passphrase='', wordlist_language_code=self.wordlist_language_code).mnemonic_list
-                # self.seed_phrase = seed.mnemonic_list
-                if self.is_validphrase_word_count():
-                    self.complete = True
-                    self.collected_segments = 1
-                    return DecodeQRStatus.COMPLETE
-                return DecodeQRStatus.INVALID
-            except Exception as e:
-                return DecodeQRStatus.INVALID
-
-        elif qr_type == QRType.SEED__FOUR_LETTER_MNEMONIC:
-            try:
-                seed_phrase_list = segment.strip().split(' ')
-                if len(seed_phrase_list) in (12, 13, 24, 25):
-                    words = ShortSeed(Seed.get_wordlist(self.wordlist_language_code)).expand(seed_phrase_list)
-                    seed = Seed(
-                        MoneroSeed(
-                            MoneroSeed(' '.join(
-                                ShortSeed(Seed.get_wordlist(self.wordlist_language_code)).expand(seed_phrase_list)
-                            )).hex
-                        ).phrase.split(),
-                        passphrase="",
-                        wordlist_language_code=self.wordlist_language_code
-                    )
-                if len(seed.mnemonic_list) == 16:
-                    seed = PolyseedSeed(
-                        ShortSeed(PolyseedSeed.get_wordlist(self.wordlist_language_code)).expand(seed_phrase_list),
-                        passphrase='',
-                        wordlist_language_code=self.wordlist_language_code
-                    )
-                if not seed:
-                    # seed is not valid, return invalid
-                    return DecodeQRStatus.INVALID
-                self.seed_phrase = words
-                if not self.is_validphrase_word_count():
-                        return DecodeQRStatus.INVALID
-                self.complete = True
-                self.collected_segments = 1
-                return DecodeQRStatus.COMPLETE
-            except Exception as e:
-                return DecodeQRStatus.INVALID
-
-        else:
-            return DecodeQRStatus.INVALID
-
-    def get_seed_phrase(self) -> List[str]:
-        return self.seed_phrase if self.complete else []
-
-    def is_validphrase_word_count(self) -> bool:
-        return len(self.seed_phrase) in (13, 16, 25)
-
-
-class SettingsQrDecoder(BaseSingleFrameQrDecoder):
-
-    def __init__(self):
-        super().__init__()
-        self.data = None
-
-    def add(self, segment, qr_type=QRType.SETTINGS):
-        """
-            * Ignores unrecognized settings options.
-            * Raises an Exception if a settings value is invalid.
-
-            See `Settings.update()` for info on settings validation, especially for
-            missing settings.
-        """
-        if not segment.startswith("settings::"):
-            raise Exception("Invalid SettingsQR data")
-        
-        # Leave any other parsing or validation up to the Settings class itself.
-        # SettingsQR are just ascii data to hand it over as-is.
-        self.data = segment
-
-        self.complete = True
-        self.collected_segments = 1
-        return DecodeQRStatus.COMPLETE
-
-
-class SignMessageQrDecoder(BaseSingleFrameQrDecoder):
-
-    def __init__(self):
-        super().__init__()
-        self.message = None
-        self.derivation_path = None
-
-    def add(self, segment, qr_type=QRType.SIGN_MESSAGE):
-        """
-            Expected QR data format:
-
-            signmessage {derivation_path} ascii:{message}
-        """
-        parts = segment.split()
-        self.derivation_path = parts[1].replace("h", "'")
-        fmt = parts[2].split(":")[0]
-        self.message = segment.split(f"{fmt}:")[1]
-
-        # TODO:SEEDSIGNER: support formats other than ascii?
-        if fmt != "ascii":
-            print(f"Sign message: Unsupported format: {fmt}")
-            return DecodeQRStatus.INVALID
- 
-        self.complete = True
-        self.collected_segments = 1
-
-        return DecodeQRStatus.COMPLETE
-
-    def get_qr_data(self) -> dict:
-        return dict(derivation_path=self.derivation_path, message=self.message)
-
-
-class MoneroAddressQrDecoder(BaseSingleFrameQrDecoder):
-    """
-        Decodes single frame representing a monero address
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.address = None
-        self.address_type = None
-
-    def add(self, segment, qr_type=QRType.MONERO_ADDRESS):
-        r = search(r'\b[1-9A-HJ-NP-Za-km-z]{95}\b|[1-9A-HJ-NP-Za-km-z]{106}', segment)
-        if r != None:
-            try:
-                a = monero_address(r.group(1))
-                self.address_type = a.net
-                self.address = str(a)
-                self.complete = True
-                self.collected_segments = 1
-                return DecodeQRStatus.COMPLETE
-            except:
-                pass
-        return DecodeQRStatus.INVALID
-
-    def get_address(self):
-        if self.address != None:
-            return self.address
-        return None
-
-    def get_address_type(self):
-        if self.address != None:
-            if self.address_type != None:
-                return self.address_type
-            else:
-                return "Unknown"
-        return None
-
-
-class SpecterWalletQrDecoder(BaseAnimatedQrDecoder):
-    """
-        Decodes animated frames to get a wallet descriptor from Specter Desktop
-    """
-    def validate_json(self) -> str:
-        try:
-            j = "".join(self.segments)
-            loads(j)
-        except JSONDecodeError:
-            return False
-        return True
-
-    @property
-    def is_valid(self):
-        if self.validate_json():
-            j = "".join(self.segments)
-            data = loads(j)
-            if "descriptor" in data:
-                return True
-            return False
-
-    def get_wallet_descriptor(self) -> str:
-        if self.is_valid:
-            j = "".join(self.segments)
-            data = loads(j)
-            return data['descriptor']
-        return None
-
-    def is_complete(self) -> bool:
-        return self.complete and self.is_valid()
-
-    def current_segment_num(self, segment) -> int:
-        if search(r'^p(\d+)of(\d+) ', segment, IGNORECASE) != None:
-            return int(search(r'^p(\d+)of(\d+) ', segment, IGNORECASE).group(1))
-        else:
-            return 1
-
-    def total_segment_nums(self, segment) -> int:
-        if search(r'^p(\d+)of(\d+) ', segment, IGNORECASE) != None:
-            return int(search(r'^p(\d+)of(\d+) ', segment, IGNORECASE).group(2))
-        else:
-            return 1
-
-    def parse_segment(self, segment) -> str:
-        try:
-            return search(r'^p(\d+)of(\d+) (.+$)', segment, IGNORECASE).group(3)
-        except:
-            return segment
-
-
-class GenericWalletQrDecoder(BaseSingleFrameQrDecoder):
-    def __init__(self):
-        super().__init__()
-        self.descriptor = None
-
-    def add(self, segment, qr_type=QRType.WALLET__GENERIC):
-        try:
-            # TODO: 2024-06-14, validate
-            self.descriptor = segment
-            self.complete = True
-            return DecodeQRStatus.COMPLETE
-        except Exception as e:
-            print(repr(e))
-        return DecodeQRStatus.INVALID
-
-    def get_wallet_descriptor(self):
-        return self.descriptor
-        
-
-class MultiSigConfigFileQRDecoder(GenericWalletQrDecoder):
-    
-    def add(self, segment, qr_type=QRType.WALLET__CONFIGFILE):
-        descriptor = DecodeQR.multisig_setup_file_to_descriptor(segment)
-        return super().add(descriptor,qr_type=QRType.WALLET__CONFIGFILE)

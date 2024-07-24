@@ -3,13 +3,11 @@ from typing import Type, List, Dict, Union
 
 from xmrsigner.gui.components import FontAwesomeIconConstants, IconConstants
 from xmrsigner.gui.screens.screen import (
-    RET_CODE__POWER_BUTTON,
+    RET_CODE__SETTINGS_BUTTON,
     RET_CODE__BACK_BUTTON,
     BaseScreen,
     DireWarningScreen,
     LargeButtonScreen,
-    PowerOffScreen,
-    PowerOffNotRequiredScreen,
     ResetScreen,
     WarningScreen
 )
@@ -21,13 +19,14 @@ from xmrsigner.models.threads import BaseThread
 
 class BackStackView:
     """
-        Empty class that just signals to the Controller to pop the most recent View off
-        the back_stack.
+    Empty class that just signals to the Controller to pop the most recent View off
+    the back_stack.
     """
     pass
 
 
-"""
+class View:
+    """
     Views contain the biz logic to handle discrete tasks, exactly analogous to a Flask
     request/response function or a Django View. Each page/screen displayed to the user
     should be implemented in its own View.
@@ -51,8 +50,7 @@ class BackStackView:
     "Done" - End of flow, return to entry point (non-destructive)
     "OK/Close" - Exit current screen (non-destructive)
     "Cancel" - End task and return to entry point (destructive)
-"""
-class View:
+    """
 
     def _initialize(self):
         """
@@ -165,7 +163,6 @@ class Destination:
         return (isinstance(obj, Destination) and 
             obj.View_cls == self.View_cls and
             obj.view_args == self.view_args)
-    
 
     def __ne__(self, obj):
         return not obj == self
@@ -179,19 +176,20 @@ class MainMenuView(View):
     SCAN = ("Scan", IconConstants.SCAN)
     SEEDS = ("Seeds", IconConstants.SEEDS)
     TOOLS = ("Tools", IconConstants.TOOLS)
-    SETTINGS = ("Settings", IconConstants.SETTINGS)
+    WALLET = ("Wallet", FontAwesomeIconConstants.WALLET)
 
     def run(self):
         from xmrsigner.gui.screens.screen import MainMenuScreen
-        button_data = [self.SCAN, self.SEEDS, self.TOOLS, self.SETTINGS]
+        button_data = [self.SCAN, self.SEEDS, self.TOOLS, self.WALLET]
         selected_menu_num = self.run_screen(
             MainMenuScreen,
             title="Home",
             button_data=button_data,
         )
 
-        if selected_menu_num == RET_CODE__POWER_BUTTON:
-            return Destination(PowerOptionsView)
+        if selected_menu_num == RET_CODE__SETTINGS_BUTTON:
+            from xmrsigner.views.settings_views import SettingsMenuView
+            return Destination(SettingsMenuView)
 
         if button_data[selected_menu_num] == self.SCAN:
             from xmrsigner.views.scan_views import ScanView
@@ -205,79 +203,9 @@ class MainMenuView(View):
             from xmrsigner.views.tools_views import ToolsMenuView
             return Destination(ToolsMenuView)
 
-        elif button_data[selected_menu_num] == self.SETTINGS:
-            from xmrsigner.views.settings_views import SettingsMenuView
-            return Destination(SettingsMenuView)
-
-
-class PowerOptionsView(View):
-
-    RESET = ("Restart", IconConstants.RESTART)
-    POWER_OFF = ("Power Off", IconConstants.POWER)
-
-    def run(self):
-        button_data = [self.RESET, self.POWER_OFF]
-        selected_menu_num = self.run_screen(
-            LargeButtonScreen,
-            title="Reset / Power",
-            show_back_button=True,
-            button_data=button_data
-        )
-
-        if selected_menu_num == RET_CODE__BACK_BUTTON:
-            return Destination(BackStackView)
-        
-        elif button_data[selected_menu_num] == self.RESET:
-            return Destination(RestartView)
-        
-        elif button_data[selected_menu_num] == self.POWER_OFF:
-            return Destination(PowerOffView)
-
-
-
-class RestartView(View):
-
-    def run(self):
-        thread = RestartView.DoResetThread()
-        thread.start()
-        self.run_screen(ResetScreen)
-
-    class DoResetThread(BaseThread):
-        def run(self):
-            from time import sleep
-            from subprocess import call
-
-            # Give the screen just enough time to display the reset message before
-            # exiting.
-            sleep(0.25)
-
-            # Kill the SeedSigner process; Running the process again.
-            # `.*` is a wildcard to detect either `python`` or `python3`.
-            if Settings.HOSTNAME == Settings.XMRSIGNER_OS:  # TODO: 2024-06-16, why all this drama and not simply `from sys import exit` and `exit(0)`???
-                call("kill $(pidof python*) & python /opt/src/main.py", shell=True)
-            else:
-                call("kill $(ps aux | grep '[p]ython.*main.py' | awk '{print $2}')", shell=True)
-
-
-class PowerOffView(View):
-
-    def run(self):
-        if Settings.HOSTNAME == Settings.XMRSIGNER_OS:
-            self.run_screen(PowerOffNotRequiredScreen)
-            return Destination(BackStackView)
-        else:
-            thread = PowerOffView.PowerOffThread()
-            thread.start()
-            self.run_screen(PowerOffScreen)
-
-
-    class PowerOffThread(BaseThread):  # TODO: 2024-06-16, IMO should be removed
-        def run(self):
-            from time import sleep
-            from subprocess import call
-            while self.keep_running:
-                sleep(5)
-                call("sudo shutdown --poweroff now", shell=True)
+        elif button_data[selected_menu_num] == self.WALLET:
+            from xmrsigner.views.wallet_views import WalletMenuView
+            return Destination(WalletMenuView)
 
 
 @dataclass
@@ -387,7 +315,6 @@ class OptionDisabledView(View):
             return Destination(MainMenuView, clear_history=True)
 
 
-
 class RemoveMicroSDWarningView(View):
     """
         Warning to remove the microsd
@@ -400,7 +327,7 @@ class RemoveMicroSDWarningView(View):
         self.run_screen(
             WarningScreen,
             title="Security Tip",
-            status_icon_name=FontAwesomeIconConstants.SDCARD,
+            status_icon_name=IconConstants.MICROSD,
             status_headline="",
             text="For maximum security,\nremove the MicroSD card\nbefore continuing.",
             show_back_button=False,

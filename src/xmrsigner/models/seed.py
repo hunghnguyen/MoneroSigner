@@ -126,10 +126,14 @@ class Seed:
         return self.get_wordlist(self.wordlist_language_code)
 
     @property
+    def monero_seed(self) -> MoneroSeed:
+        return MoneroSeed(hexlify(self.seed_bytes).decode())
+
+    @property
     def wallet(self) -> Wallet:
         if self.seed_bytes is None:
             raise NoSeedBytesException()
-        monero_seed = MoneroSeed(hexlify(self.seed_bytes).decode())
+        monero_seed = self.monero_seed
         return Wallet(OfflineWallet(monero_seed.public_address(self.network), monero_seed.secret_view_key(), monero_seed.secret_spend_key()))
 
     @property

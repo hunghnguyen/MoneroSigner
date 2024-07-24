@@ -2,21 +2,27 @@ import logging
 import traceback
 
 from PIL.Image import Image
-from typing import List
+from typing import List, Optional, Dict, Union
 
 from xmrsigner.gui.renderer import Renderer
 from xmrsigner.hardware.buttons import HardwareButtons  # TODO: 2024-06-20, don't like faster code paying with ugly code, search better solution
 from xmrsigner.views.screensaver import ScreensaverScreen  # TODO: 2024-06-20, don't like faster code paying with ugly code, search better solution
 from xmrsigner.views.view import Destination, NotYetImplementedView, UnhandledExceptionView
 
+from xmrsigner.helpers.network import Network
+from xmrsigner.helpers.wallet import MoneroWalletRPCManager
 from xmrsigner.models.seed import Seed
 from xmrsigner.models.seed_storage import SeedStorage
 from xmrsigner.models.settings import Settings
 from xmrsigner.models.singleton import Singleton
-from xmrsigner.models.psbt_parser import PSBTParser
+from xmrsigner.models.tx_parser import TxParser
+from xmrsigner.views.view import RemoveMicroSDWarningView
+
+from monero.wallet import Wallet as MoneroWallet
 
 
 MICROSECONDS_PER_MINUTE = 60 * 1000
+IS_EMULATOR = False
 
 
 logger = logging.getLogger(__name__)
@@ -63,7 +69,11 @@ class Controller(Singleton):
     # psbt: PSBT = None  # TODO: 2024-06-15 removed with empit.psbt.psbt
     psbt = None
     psbt_seed: Seed = None
-    psbt_parser: PSBTParser = None
+    tx_parser: TxParser = None
+
+    _wallet_rpc_manager: Optional[MoneroWalletRPCManager] = None
+    wallets: Dict[Network, MoneroWallet] = {}
+    wallet_seeds: Dict[Network, Seed] = {}
 
     unverified_address = None
 
@@ -75,9 +85,9 @@ class Controller(Singleton):
     # TODO:SEEDSIGNER: end refactor section
 
     # Destination placeholder for when we need to jump out to a side flow but intend to
-    # return navigation to the main flow (e.g. PSBT flow, load multisig descriptor,
-    # then resume PSBT flow).
-    FLOW__PSBT = "psbt"
+    # return navigation to the main flow (e.g. TX flow, load something,
+    # then resume TX flow).
+    FLOW__TX = "tx"
     FLOW__VERIFY_MULTISIG_ADDR = "multisig_addr"
     FLOW__VERIFY_SINGLESIG_ADDR = "singlesig_addr"
     FLOW__ADDRESS_EXPLORER = "address_explorer"
@@ -135,7 +145,9 @@ class Controller(Singleton):
 
         # Store one working psbt in memory
         controller.psbt = None
-        controller.psbt_parser = None
+        controller.tx_parser = None
+        controller.transaction = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
+        controller.transaction_seed = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
 
         # Configure the Renderer
         Renderer.configure_instance()
@@ -173,6 +185,42 @@ class Controller(Singleton):
         else:
             raise Exception(f"There is no seed_num {seed_num}; only {len(self.storage.seeds)} in memory.")
 
+    @property
+    def wallet_rpc_manager(self):
+        if not self._wallet_rpc_manager:
+            self._wallet_rpc_manager = MoneroWalletRPCManager.get_instance()
+        return self._wallet_rpc_manager
+
+    def get_wallet_seed(self, network: Union[str, Network]) -> Optional[Seed]:
+        network = Network.ensure(network)
+        if network in self.wallet_seeds:
+            return self.wallet_seeds[network]
+        return None
+
+    def set_wallet_seed(self, network: Union[str, Network], seed: Seed) -> None:
+        network = Network.ensure(network)
+        self.wallet_seeds[network] = seed
+
+    def clear_wallet_seed(self, network: Union[str, Network]) -> None:
+        network = Network.ensure(network)
+        if network in self.wallet_seeds:
+            del self.wallet_seeds[network]
+
+    def get_wallet(self, network: Union[str, Network]) -> Optional[MoneroWallet]:
+        network = Network.ensure(network)
+        if network in self.wallets:
+            return self.wallets[network]
+        return None
+
+    def set_wallet(self, network: Union[str, Network], wallet: MoneroWallet) -> None:
+        network = Network.ensure(network)
+        self.wallets[network] = wallet
+
+    def clear_wallet(self, network: Union[str, Network]) -> None:
+        network = Network.ensure(network)
+        if network in self.wallets:
+            del self.wallets[network]
+
     def pop_prev_from_back_stack(self):
         if len(self.back_stack) > 0:
             # Pop the top View (which is the current View_cls)
@@ -182,7 +230,6 @@ class Controller(Singleton):
                 # One more pop back gives us the actual "back" View_cls
                 return self.back_stack.pop()
         return Destination(None)
-    
 
     def clear_back_stack(self):
         self.back_stack = BackStack()
@@ -222,7 +269,7 @@ class Controller(Singleton):
                 View_cls(**init_args).run()
         """
         try:
-            next_destination = Destination(MainMenuView)
+            next_destination = Destination(MainMenuView) if not IS_EMULATOR else Destination(RemoveMicroSDWarningView, view_args={'next_view': MainMenuView}, clear_history=True)
             while True:
                 # Destination(None) is a special case; render the Home screen
                 if next_destination.View_cls is None:
@@ -237,14 +284,14 @@ class Controller(Singleton):
                     self.multisig_wallet_descriptor = None
                     self.unverified_address = None
                     self.address_explorer_data = None
-                    self.psbt = None
-                    self.psbt_parser = None
-                    self.psbt_seed = None
+                    self.transaction = None
+                    self.tx_parser = None
+                    self.transaction_seed = None
                 
-                print(f"back_stack: {self.back_stack}")
+                print(f'back_stack: {self.back_stack}')
 
                 try:
-                    print(f"Executing {next_destination}")
+                    print(f'Executing {next_destination}')
                     next_destination = next_destination.run()
                 except Exception as e:
                     # Display user-friendly error screen w/debugging info
@@ -258,7 +305,7 @@ class Controller(Singleton):
                     # Remove the current View from history; it's forwarding us straight
                     # to the next View so it should be as if this View never happened.
                     current_view = self.back_stack.pop()
-                    print(f"Skipping current view: {current_view}")
+                    print(f'Skipping current view: {current_view}')
 
                 # Hang on to this reference...
                 clear_history = next_destination.clear_history
@@ -276,19 +323,19 @@ class Controller(Singleton):
                 # Do not push a "new" destination if it is the same as the current one on
                 # the top of the stack.
                 if len(self.back_stack) == 0 or self.back_stack[-1] != next_destination:
-                    print(f"Appending next destination: {next_destination}")
+                    print(f'Appending next destination: {next_destination}')
                     self.back_stack.append(next_destination)
                 else:
-                    print(f"NOT appending {next_destination}")
+                    print(f'NOT appending {next_destination}')
                 
-                print("-" * 30)
+                print('-' * 30)
 
         finally:
             if self.is_screensaver_running:
                 self.screensaver.stop()
 
             # Clear the screen when exiting
-            print("Clearing screen, exiting")
+            print('Clearing screen, exiting')
             Renderer.get_instance().display_blank_screen()
 
     @property

@@ -28,6 +28,7 @@ class GUIConstants:
     DIRE_WARNING_COLOR = "#FF453A"
     SUCCESS_COLOR = "#30D158"
     ACCENT_COLOR = "#ED5F00"
+    ACCENT_COLOR_FADED = "#F06D36";
     TESTNET_COLOR = "#00F100"
     STAGENET_COLOR = "#00CAF1"
     INFO_COLOR = '#0000FF'
@@ -68,6 +69,11 @@ class GUIConstants:
     FINGERPRINT_MONERO_SEED_COLOR = '#0000FF'
     FINGERPRINT_POLYSEED_COLOR = '#FF00FF'
     FINGERPRINT_MY_MONERO_SEED_COLOR = '#FF0000'
+    LOADING_SCREEN_LOGO_IMAGE = 'xmr_logo_60x60.png'
+    LOADING_SCREEN_ARC_COLOR = ACCENT_COLOR
+    LOADING_SCREEN_ARC_TRAILING_COLOR = ACCENT_COLOR_FADED
+    # LOADING_SCREEN_ARC_COLOR = '#ff9416'
+    # LOADING_SCREEN_ARC_TRAILING_COLOR = '#80490b'
 
 
 class FontAwesomeIconConstants:
@@ -111,6 +117,15 @@ class FontAwesomeIconConstants:
     UNLOCK = "\uf09c"
     QRCODE = "\uf029"
     X = "\u0058"
+    WALLET = '\uf555'
+    TRASH_CAN = '\uf2ed'
+    VAULT = '\ue2c5'
+    LIST = '\uf03a'
+    SEEDLING = '\uf4d8'
+    EYE = '\uf06e'
+    EYE_LIGHT = '\uf06e'
+    COINS = '\uf51e'
+    CONVERT = '\uf30b'
 
 
 class FontAwesomeIconConstantsV2:  # TODO: 2024-06-20, at the moment only an anotation from refactoring, see how to resolve the clusterfuck :D
@@ -777,7 +792,6 @@ class FormattedAddress(BaseComponent):
             self.image_draw.text((p[0][0], p[0][1] + self.screen_y), text=p[1], fill=p[2], font=p[3])
 
 
-
 @dataclass
 class XmrAmount(BaseComponent):
     """
@@ -1005,11 +1019,8 @@ class XmrAmount(BaseComponent):
         self.canvas.paste(self.paste_image, self.paste_coords)
 
 
-
 @dataclass
 class Button(BaseComponent):
-    # TODO:SEEDSIGNER: Rename the xmrsigner.helpers.Buttons class (to Inputs?) to reduce confusion
-    # with this GUI component.
     """
         Attrs with defaults must be listed last.
     """
@@ -1164,7 +1175,6 @@ class Button(BaseComponent):
             icon.render()
 
 
-
 @dataclass
 class CheckedSelectionButton(Button):
     is_checked: bool = False
@@ -1180,7 +1190,6 @@ class CheckedSelectionButton(Button):
             self.icon_name = None
             self.icon = None
             self.icon_selected = None
-
 
 
 @dataclass
@@ -1257,7 +1266,7 @@ class TopNav(BaseComponent):
 
         if self.show_power_button:
             self.right_button = IconButton(
-                icon_name=IconConstants.POWER,
+                icon_name=IconConstants.SETTINGS,
                 icon_size=GUIConstants.ICON_INLINE_FONT_SIZE,
                 screen_x=self.width - GUIConstants.TOP_NAV_BUTTON_SIZE - GUIConstants.EDGE_PADDING,
                 screen_y=GUIConstants.EDGE_PADDING,
@@ -1297,22 +1306,19 @@ class TopNav(BaseComponent):
                 height_ignores_below_baseline=True,  # Consistently vertically center text, ignoring chars that render below baseline (e.g. "pqyj")
             )
 
-
     @property
     def selected_button(self):
-        from .screens import RET_CODE__BACK_BUTTON, RET_CODE__POWER_BUTTON
+        from .screens import RET_CODE__BACK_BUTTON, RET_CODE__SETTINGS_BUTTON
         if not self.is_selected:
             return None
         if self.show_back_button:
             return RET_CODE__BACK_BUTTON
         if self.show_power_button:
-            return RET_CODE__POWER_BUTTON
-
+            return RET_CODE__SETTINGS_BUTTON
 
     def render(self):
         self.title.render()
         self.render_buttons()
-    
 
     def render_buttons(self):
         if self.show_back_button:
@@ -1328,8 +1334,6 @@ def linear_interp(a, b, t):
         int((1.0 - t)*a[0] + t*b[0]),
         int((1.0 - t)*a[1] + t*b[1])
     )
-
-
 
 def calc_bezier_curve(p1: Tuple[int,int], p2: Tuple[int,int], p3: Tuple[int,int], segments: int) -> List[Tuple[Tuple[int,int], Tuple[int,int]]]:
     """
@@ -1358,7 +1362,6 @@ def calc_bezier_curve(p1: Tuple[int,int], p2: Tuple[int,int], p3: Tuple[int,int]
         points.append(q1)
     
     return points
-
 
 def reflow_text_for_width(text: str,
                           width: int,
@@ -1440,8 +1443,6 @@ def reflow_text_for_width(text: str,
                     words = words[index:]
 
     return text_lines
-
-
 
 # TODO: 2024-06-16, seems like not needed, check and remove
 def reflow_text_into_pages(text: str,

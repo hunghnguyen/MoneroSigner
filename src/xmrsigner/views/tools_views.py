@@ -28,7 +28,7 @@ from xmrsigner.helpers import polyseed_mnemonic_generation
 from xmrsigner.models.seed import Seed
 from xmrsigner.models.polyseed import PolyseedSeed
 from xmrsigner.models.settings_definition import SettingsConstants
-from xmrsigner.models.encode_qr import EncodeQR
+from xmrsigner.models.monero_encoder import MoneroAddressEncoder
 from xmrsigner.models.qr_type import QRType
 from xmrsigner.views.seed_views import (
     SeedDiscardView,
@@ -728,10 +728,9 @@ class ToolsAddressExplorerAddressView(View):
     
     def run(self):
         from xmrsigner.gui.screens.screen import QRDisplayScreen
-        qr_encoder = EncodeQR(qr_type=QRType.MONERO_ADDRESS, monero_address=self.address)
         self.run_screen(
             QRDisplayScreen,
-            qr_encoder=qr_encoder,
+            qr_encoder=MoneroAddressEncoder(self.address),
         )
     
         # Exiting/Cancelling the QR display screen always returns to the list

@@ -24,7 +24,7 @@ class ScanView(View):
         formats and will route to the most sensible next step.
 
         Can also be used as a base class for more specific scanning flows with
-        dedicated errors when an unexpected QR type is scanned (e.g. Scan PSBT was
+        dedicated errors when an unexpected QR type is scanned (e.g. Scan Tx was
         selected but a SeedQR was scanned).
     """
 
@@ -53,6 +53,8 @@ class ScanView(View):
             decoder=self.decoder
         )
  
+        print(f'scan view: decoder: {self.decoder}')
+        print(f'scan view: decoder type: {type(self.decoder)}')
         # Handle the results
         if self.decoder.is_complete:
             if not self.is_valid_qr_type:
@@ -85,42 +87,14 @@ class ScanView(View):
                     else:
                         return Destination(SeedFinalizeView)
             if self.decoder.is_psbt:
-                from xmrsigner.views.psbt_views import PSBTSelectSeedView
-                psbt = self.decoder.get_psbt()
-                self.controller.psbt = psbt
-                self.controller.psbt_parser = None
-                return Destination(PSBTSelectSeedView, skip_current_view=True)
+                from xmrsigner.views.monero_views import MoneroSelectSeedView
+                tx = self.decoder.get_psbt()
+                self.controller.transaction = tx
+                self.controller.tx_parser = None
+                return Destination(MoneroSelectSeedView, skip_current_view=True)
             if self.decoder.is_settings:
                 data = self.decoder.get_settings_data()
                 return Destination(SettingsIngestSettingsQRView, view_args=dict(data=data))
-            if self.decoder.is_wallet_descriptor:
-                from xmrsigner.views.seed_views import MultisigWalletDescriptorView
-                descriptor_str = self.decoder.get_wallet_descriptor()
-
-                try:
-                    # We need to replace `/0/*` wildcards with `/{0,1}/*` in order to use
-                    # the Descriptor to verify change, too.
-                    orig_descriptor_str = descriptor_str
-                    if len(re.findall (r'\[([0-9,a-f,A-F]+?)(\/[0-9,\/,h\']+?)\].*?(\/0\/\*)', descriptor_str)) > 0:
-                        p = re.compile(r'(\[[0-9,a-f,A-F]+?\/[0-9,\/,h\']+?\].*?)(\/0\/\*)')
-                        descriptor_str = p.sub(r'\1/{0,1}/*', descriptor_str)
-                    elif len(re.findall (r'(\[[0-9,a-f,A-F]+?\/[0-9,\/,h,\']+?\][a-z,A-Z,0-9]*?)([\,,\)])', descriptor_str)) > 0:
-                        p = re.compile(r'(\[[0-9,a-f,A-F]+?\/[0-9,\/,h,\']+?\][a-z,A-Z,0-9]*?)([\,,\)])')
-                        descriptor_str = p.sub(r'\1/{0,1}/*\2', descriptor_str)
-                except Exception as e:
-                    print(repr(e))
-                    descriptor_str = orig_descriptor_str
-
-                # descriptor = Descriptor.from_string(descriptor_str)  # TODO: 2024-06-14, removed to get rid of embit.descriptor.Descriptor
-                descriptor = None  # TODO: 2024-06-14, removed to get rid of embit.descriptor.Descriptor
-
-                if not descriptor.is_basic_multisig:
-                    # TODO: Handle single-sig descriptors?
-                    print(f"Received single sig descriptor: {descriptor}")
-                    return Destination(NotYetImplementedView)
-
-                self.controller.multisig_wallet_descriptor = descriptor
-                return Destination(MultisigWalletDescriptorView)
             if self.decoder.is_address:
                 from xmrsigner.views.seed_views import AddressVerificationStartView
                 address = self.decoder.get_address()
@@ -133,17 +107,6 @@ class ScanView(View):
                         "script_type": script_type,
                         "network": network,
                     }
-                )
-            if self.decoder.is_sign_message:
-                from xmrsigner.views.seed_views import SeedSignMessageStartView
-                qr_data = self.decoder.get_qr_data()
-
-                return Destination(
-                    SeedSignMessageStartView,
-                    view_args=dict(
-                        derivation_path=qr_data["derivation_path"],
-                        message=qr_data["message"],
-                    )
                 )
             return Destination(NotYetImplementedView)
         if self.decoder.is_invalid:
@@ -160,14 +123,22 @@ class ScanView(View):
         return Destination(MainMenuView)
 
 
-class ScanPSBTView(ScanView):
+class ScanUR2View(ScanView):
 
-    instructions_text = "Scan PSBT"
-    invalid_qr_type_message = "Expected a PSBT"
+    instructions_text = "Scan UR"
+    invalid_qr_type_message = "Expected a UR"
 
     @property
     def is_valid_qr_type(self):
         return self.decoder.is_psbt
+
+
+class ScanOutputsView(ScanUR2View):  # TODO: 2024-07-23, implement
+    pass
+
+
+class ScanUnsignedTransactionView(ScanUR2View):  # TODO: 2024-07-23, implement
+    pass
 
 
 class ScanSeedQRView(ScanView):
@@ -178,18 +149,6 @@ class ScanSeedQRView(ScanView):
     @property
     def is_valid_qr_type(self):
         return self.decoder.is_seed
-
-
-
-class ScanWalletDescriptorView(ScanView):
-
-    instructions_text = "Scan descriptor"
-    invalid_qr_type_message = "Expected a wallet descriptor QR"
-
-    @property
-    def is_valid_qr_type(self):
-        return self.decoder.is_wallet_descriptor
-
 
 
 class ScanAddressView(ScanView):

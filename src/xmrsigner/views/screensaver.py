@@ -173,6 +173,7 @@ class ScreensaverScreen(LogoScreen):
                         self.increment_y = self.rand_increment()
                         if self.increment_y > 0.0:
                             self.increment_y *= -1.0
+                    sleep(0.05)
             except KeyboardInterrupt as e:
                 # Exit triggered; close gracefully
                 print("Shutting down Screensaver")

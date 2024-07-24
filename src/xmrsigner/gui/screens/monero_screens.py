@@ -24,7 +24,7 @@ from ..components import (
 
 
 @dataclass
-class PSBTOverviewScreen(ButtonListScreen):
+class TxOverviewScreen(ButtonListScreen):
     spend_amount: int = 0
     change_amount: int = 0
     fee_amount: int = 0
@@ -36,11 +36,11 @@ class PSBTOverviewScreen(ButtonListScreen):
 
     def __post_init__(self):
         # Customize defaults
-        self.title = "Review PSBT"
+        self.title = "Review Transaction"
         self.is_bottom_list = True
         self.button_data = ["Review Details"]
 
-        # This screen can take a while to load while parsing the PSBT
+        # This screen can take a while to load while parsing the Tx
         self.show_loading_screen = True
 
         super().__post_init__()
@@ -357,7 +357,7 @@ class PSBTOverviewScreen(ButtonListScreen):
 
         # Pass input and output curves to the animation thread
         self.threads.append(
-            PSBTOverviewScreen.TxExplorerAnimationThread(
+            TxOverviewScreen.TxExplorerAnimationThread(
                 inputs=input_curves,
                 outputs=output_curves,
                 supersampling_factor=ssf,
@@ -455,7 +455,7 @@ class PSBTOverviewScreen(ButtonListScreen):
 
 
 @dataclass
-class PSBTMathScreen(ButtonListScreen):
+class TxMathScreen(ButtonListScreen):
     input_amount: int = 0
     num_inputs: int = 0
     spend_amount: int = 0
@@ -466,7 +466,7 @@ class PSBTMathScreen(ButtonListScreen):
 
     def __post_init__(self):
         # Customize defaults
-        self.title = "PSBT Math"
+        self.title = "Tx Math"
         self.button_data = ["Review Recipients"]
         self.is_bottom_list = True
 
@@ -583,7 +583,7 @@ class PSBTMathScreen(ButtonListScreen):
 
 
 @dataclass
-class PSBTAddressDetailsScreen(ButtonListScreen):
+class TxAddressDetailsScreen(ButtonListScreen):
     address: str = None
     amount: int = 0
 
@@ -687,10 +687,10 @@ class PSXMRhangeDetailsScreen(ButtonListScreen):
 
 
 @dataclass
-class PSBTFinalizeScreen(ButtonListScreen):
+class TxFinalizeScreen(ButtonListScreen):
     def __post_init__(self):
         # Customize defaults
-        self.title = "Sign PSBT"
+        self.title = "Sign Tx"
         self.is_bottom_list = True
         super().__post_init__()
 
