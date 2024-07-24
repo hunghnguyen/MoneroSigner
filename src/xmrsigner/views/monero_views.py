@@ -7,6 +7,7 @@ from xmrsigner.models.monero_encoder import MoneroSignedTxQrEncoder
 from xmrsigner.models.tx_parser import TxParser
 from xmrsigner.models.qr_type import QRType
 from xmrsigner.models.settings import SettingsConstants
+from xmrsigner.models.polyseed import PolyseedSeed
 from xmrsigner.gui.screens.monero_screens import TxOverviewScreen
 from xmrsigner.gui.screens.screen import (
     RET_CODE__BACK_BUTTON,

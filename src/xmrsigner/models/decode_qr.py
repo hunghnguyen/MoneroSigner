@@ -39,7 +39,7 @@ class DecodeQR:
             return DecodeQRStatus.FALSE
         return self.add_data(data)
 
-    def add_data(self, data):
+    def add_data(self, data) -> DecodeQRStatus:
         if data == None:
             return DecodeQRStatus.FALSE
 
@@ -82,24 +82,17 @@ class DecodeQR:
         if not self.decoder:
             # Did not find any recognizable format
             return DecodeQRStatus.INVALID
-
         # Process the binary formats first
         if self.qr_type == QRType.SEED__COMPACTSEEDQR:
             rt = self.decoder.add(data, QRType.SEED__COMPACTSEEDQR)
             if rt == DecodeQRStatus.COMPLETE:
                 self.complete = True
             return rt
-
         # Convert to string data
-        if type(data) == bytes:
-            # Should always be bytes, but the test suite has some manual datasets that
-            # are strings.
-            # TODO:SEEDSIGNER: Convert the test suite rather than handle here?
-            qr_str = data.decode()
-        else:
-            # it's already str data
-            qr_str = data
-
+        # Should always be bytes, but the test suite has some manual datasets that
+        # are strings.
+        # TODO:SEEDSIGNER: Convert the test suite rather than handle here?
+        qr_str = data.decode() if type(data) == bytes else data
         if self.qr_type in [
                 QRType.XMR_OUTPUT_UR,
                 QRType.XMR_KEYIMAGE_UR,
@@ -110,6 +103,7 @@ class DecodeQR:
             self.decoder.receive_part(qr_str)
             if self.decoder.is_complete():
                 self.complete = True
+                print(f'data: {self.decoder.result_message().cbor}')  # TODO: 2024-07-24, remove DEBUG only
                 return DecodeQRStatus.COMPLETE
             return DecodeQRStatus.PART_COMPLETE # segment added to ur2 decoder
         else:
@@ -138,7 +132,6 @@ class DecodeQR:
             if self.qr_type == QRType.XMR_OUTPUT_UR:
                 cbor = self.decoder.result_message().cbor
                 return XmrOutput.from_cbor(cbor).data
-
             else:
                 # All the other psbt decoder types use the same method signature
                 return self.decoder.get_data()
@@ -172,21 +165,15 @@ class DecodeQR:
     def get_percent_complete(self) -> int:
         if not self.decoder:
             return 0
-
         if self.qr_type in [
                 QRType.XMR_OUTPUT_UR,
                 QRType.XMR_TX_UNSIGNED_UR
                 ]:
             return int(self.decoder.estimated_percent_complete() * 100)
-
-        elif self.decoder.total_segments == 1:
+        if self.decoder.total_segments == 1:
             # The single frame QR formats are all or nothing
-            if self.decoder.complete:
-                return 100
-            else:
-                return 0
-        else:
-            return 0
+            return 100 if self.decoder.complete else 0
+        return 0
 
     @property
     def is_complete(self) -> bool:
@@ -228,13 +215,10 @@ class DecodeQR:
     def extract_qr_data(image, is_binary:bool = False) -> str:
         if image is None:
             return None
-
         barcodes = pyzbar.decode(image, symbols=[ZBarSymbol.QRCODE], binary=is_binary)
-
         # if barcodes:
             # print("--------------- extract_qr_data ---------------")
             # print(barcodes)
-
         for barcode in barcodes:
             # Only pull and return the first barcode
             return barcode.data
@@ -244,7 +228,6 @@ class DecodeQR:
         # print("-------------- DecodeQR.detect_segment_type --------------")
         # print(type(s))
         # print(len(s))
-
         try:
             s = segment if type(segment) == str else segment.decode()
 
@@ -252,50 +235,37 @@ class DecodeQR:
             UR_XMR_KEY_IMAGE = 'xmr-keyimage'
             UR_XMR_TX_UNSIGNED = 'xmr-txunsigned'
             UR_XMR_TX_SIGNED = 'xmr-txsigned'
-
-            print(f'segment: {s}')
-
             # XMR UR
-            if search(f"^UR:{UR_XMR_OUTPUT.upper()}/", s, IGNORECASE):
+            if search(f"^UR:{UR_XMR_OUTPUT}/", s, IGNORECASE):
                 return QRType.XMR_OUTPUT_UR
-
             if search(f'^UR:{UR_XMR_KEY_IMAGE}/', s, IGNORECASE):
                 return QRType.XMR_KEYIMAGE_UR
-
             if search(f'^UR:{UR_XMR_TX_UNSIGNED}/', s, IGNORECASE):
                 return QRType.XMR_TX_UNSIGNED_UR
-
             if search(f'^UR:{UR_XMR_TX_SIGNED}/', s, IGNORECASE):
                 return QRType.XMR_TX_SIGNED_UR
-
             if s.startswith('monero_wallet:'):
                 return QRType.MONERO_WALLET
-
             # Seed
             if decimals := search(r'(\d{52,100})', s) and len(decimals.group(1)) in (52, 64, 100):  # TODO: 2024-06-15, handle Polyseed different from here? 52 decimals (13 words, 100 decimals (25 words), 16 polyseed words would be 64 decimals
                 return QRType.SEED__SEEDQR
-
             # Monero Address
-            elif MoneroAddressQrDecoder.is_monero_address(s):
+            if MoneroAddressQrDecoder.is_monero_address(s):
                 return QRType.MONERO_ADDRESS
-
             # config data
             if s.startswith("settings::"):
                 return QRType.SETTINGS
-
             # Seed
-            # create 4 letter wordlist only if not PSBT (performance gain)
+            # create 4 letter wordlist only if not PSBT (performance gain)  # TODO: 2024-07-24, why not at compile time, if it matters?
             wordlist = Seed.get_wordlist(wordlist_language_code)
+            if all(x in wordlist for x in s.strip().split(" ")):
+                # checks if all words in list are in bip39 word list
+                return QRType.SEED__MNEMONIC
             try:
                 _4LETTER_WORDLIST = [word[:4].strip() for word in wordlist]
             except:
                 _4LETTER_WORDLIST = []
-            
-            if all(x in wordlist for x in s.strip().split(" ")):
-                # checks if all words in list are in bip39 word list
-                return QRType.SEED__MNEMONIC
-
-            elif all(x in _4LETTER_WORDLIST for x in s.strip().split(" ")):
+            if all(x in _4LETTER_WORDLIST for x in s.strip().split(" ")):
                 # checks if all 4 letter words are in list are in 4 letter bip39 word list
                 return QRType.SEED__FOUR_LETTER_MNEMONIC
         except UnicodeDecodeError:

@@ -86,9 +86,9 @@ class ScanView(View):
                         return Destination(SeedAddPassphraseView)
                     else:
                         return Destination(SeedFinalizeView)
-            if self.decoder.is_psbt:
+            if self.decoder.is_ur:
                 from xmrsigner.views.monero_views import MoneroSelectSeedView
-                tx = self.decoder.get_psbt()
+                tx = self.decoder.get_output()
                 self.controller.transaction = tx
                 self.controller.tx_parser = None
                 return Destination(MoneroSelectSeedView, skip_current_view=True)

@@ -78,22 +78,18 @@ class ScanScreen(BaseScreen):
                 self.render_rect = (0, 0, self.renderer.canvas_width, self.renderer.canvas_height)
             self.render_width = self.render_rect[2] - self.render_rect[0]
             self.render_height = self.render_rect[3] - self.render_rect[1]
-
             super().__init__()
-
 
         def run(self):
             from timeit import default_timer as timer
-
             instructions_font = Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BUTTON_FONT_SIZE)
             while self.keep_running:
                 start = timer()
                 frame = self.camera.read_video_stream(as_image=True)
                 if frame is not None:
                     scan_text = self.instructions_text
-                    if self.decoder and self.decoder.get_percent_complete() > 0 and self.decoder.is_psbt:
+                    if self.decoder and self.decoder.get_percent_complete() > 0 and self.decoder.is_ur:
                         scan_text = str(self.decoder.get_percent_complete()) + "% Complete"
-
                     with self.renderer.lock:
                         if frame.width > self.render_width or frame.height > self.render_height:
                             frame = frame.resize(
@@ -101,7 +97,6 @@ class ScanScreen(BaseScreen):
                                 resample=Image.NEAREST  # Use nearest neighbor for max speed
                             )
                         draw = ImageDraw.Draw(frame)
-
                         if scan_text:
                             # Note: shadowed text (adding a 'stroke' outline) can
                             # significantly slow down the rendering.
@@ -127,9 +122,7 @@ class ScanScreen(BaseScreen):
                                      fill=GUIConstants.BODY_FONT_COLOR,
                                      font=instructions_font,
                                      anchor="ms")
-
                         self.renderer.show_image(frame, show_direct=True)
-
                 sleep(0.05) # turn this up or down to tune performance while decoding psbt
                 if self.camera._video_stream is None:
                     break
@@ -137,9 +130,9 @@ class ScanScreen(BaseScreen):
 
     def _run(self):
         """
-            _render() is mostly meant to be a one-time initial drawing call to set up the
-            Screen. Once interaction starts, the display updates have to be managed in
-            _run(). The live preview is an extra-complex case.
+        _render() is mostly meant to be a one-time initial drawing call to set up the
+        Screen. Once interaction starts, the display updates have to be managed in
+        _run(). The live preview is an extra-complex case.
         """
         while True:
             frame = self.camera.read_video_stream()
