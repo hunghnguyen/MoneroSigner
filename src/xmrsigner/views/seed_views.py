@@ -30,7 +30,7 @@ from xmrsigner.models.polyseed import PolyseedSeed
 from xmrsigner.models.settings import Settings, SettingsConstants
 from xmrsigner.models.settings_definition import SettingsDefinition
 from xmrsigner.models.threads import BaseThread, ThreadsafeCounter
-from xmrsigner.views.wallet_views import WalletViewKeyQRView, LoadWalletView
+from xmrsigner.views.wallet_views import WalletViewKeyQRView, WalletViewKeyJsonQRView, LoadWalletView
 
 from xmrsigner.views.view import (
     NotYetImplementedView,
@@ -523,6 +523,7 @@ class SeedOptionsView(View):
     EXPLORER = 'Address Explorer'
     SIGN_MESSAGE = 'Sign Message'
     VIEW_ONLY_WALLET = ('View only Wallet', IconConstants.QRCODE)
+    VIEW_ONLY_WALLET_JSON = ('View only Wallet (json)', IconConstants.QRCODE)
     LOAD_WALLET = ('Load into Wallet', FontAwesomeIconConstants.WALLET)
     PURGE_WALLET = ('Purge from Wallet', FontAwesomeIconConstants.TRASH_CAN)
     BACKUP = ('Backup Seed', FontAwesomeIconConstants.VAULT, None, None, IconConstants.CHEVRON_RIGHT)
@@ -570,6 +571,7 @@ class SeedOptionsView(View):
         button_data.append(self.SCAN)
         button_data.append(self.EXPORT_KEY_IMAGES)
         button_data.append(self.VIEW_ONLY_WALLET)
+        button_data.append(self.VIEW_ONLY_WALLET_JSON)
         if self.controller.get_wallet_seed(self.seed.network) != self.seed:
             button_data.append(self.LOAD_WALLET)
         else:
@@ -621,6 +623,9 @@ class SeedOptionsView(View):
 
         if button_data[selected_menu_num] == self.VIEW_ONLY_WALLET:
             return Destination(WalletViewKeyQRView, view_args={'seed_num': self.seed_num})
+
+        if button_data[selected_menu_num] == self.VIEW_ONLY_WALLET_JSON:
+            return Destination(WalletViewKeyJsonQRView, view_args={'seed_num': self.seed_num})
 
         if button_data[selected_menu_num] == self.LOAD_WALLET:
             return Destination(LoadWalletView, view_args={'seed_num': self.seed_num})

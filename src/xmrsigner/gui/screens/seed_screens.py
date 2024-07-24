@@ -1083,46 +1083,6 @@ class SeedTranscribeSeedQRWholeQRScreen(WarningEdgesMixin, ButtonListScreen):
 
 
 @dataclass
-class WalletViewKeyQRScreen(BaseScreen):
-
-    qr_data: str = None
-
-    def __post_init__(self):
-        self.title = "View Only Wallet"
-        self.button_data = ['OK']
-        self.is_bottom_list = True
-        self.status_color = GUIConstants.DIRE_WARNING_COLOR
-        super().__post_init__()
-
-        # qr_height = self.buttons[0].screen_y - self.top_nav.height - GUIConstants.COMPONENT_PADDING
-        qr_height = 240
-        qr_width = qr_height
-
-        qr = QR()
-        qr_image = qr.qrimage(
-            data=self.qr_data,
-            width=qr_width,
-            height=qr_height,
-            border=1,
-            style=QR.STYLE__ROUNDED
-        ).convert("RGBA")
-
-        # self.paste_images.append((qr_image, (int((self.canvas_width - qr_width)/2), self.top_nav.height)))
-        self.paste_images.append((qr_image, (0, 0)))
-
-    def _run(self):
-        while True:
-            user_input = self.hw_inputs.wait_for(
-                HardwareButtonsConstants.ALL_KEYS,
-                check_release=True,
-                release_keys=HardwareButtonsConstants.ALL_KEYS
-            )
-            if user_input in HardwareButtonsConstants.ALL_KEYS:
-                return RET_CODE__BACK_BUTTON
-            time.sleep(0.1)
-
-
-@dataclass
 class SeedTranscribeSeedQRZoomedInScreen(BaseScreen):
     qr_data: str = None
     num_modules: int = None

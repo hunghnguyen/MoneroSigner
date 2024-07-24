@@ -1,7 +1,7 @@
 from xmrsigner.models.qr_type import QRType
 from xmrsigner.models.monero_encoder import MoneroKeyImageQrEncoder
 from xmrsigner.views.view import NotYetImplementedView, View, Destination, BackStackView, MainMenuView
-from xmrsigner.models.monero_encoder import ViewOnlyWalletQrEncoder
+from xmrsigner.models.monero_encoder import ViewOnlyWalletQrEncoder, ViewOnlyWalletJsonQrEncoder
 from xmrsigner.gui.screens import seed_screens, WarningScreen, ButtonListScreen
 from xmrsigner.helpers.wallet import MoneroWalletRPCManager, WALLET_PORT
 from xmrsigner.helpers.network import Network
@@ -29,8 +29,15 @@ class WalletViewKeyQRView(View):
             QRDisplayScreen,
             qr_encoder=ViewOnlyWalletQrEncoder(self.wallet, self.height)
         )
-        # self.run_screen(seed_screens.WalletViewKeyQRScreen(qr_data=ViewOnlyWalletQrEncoder(self.wallet, self.height).next_part()))
-        return Destination(BackStackView)
+
+
+class WalletViewKeyJsonQRView(WalletViewKeyQRView):
+
+    def run(self):
+        self.run_screen(
+            QRDisplayScreen,
+            qr_encoder=ViewOnlyWalletJsonQrEncoder(self.wallet, self.height)
+        )
 
 
 class WalletRpcView(View):

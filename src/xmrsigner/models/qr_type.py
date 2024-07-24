@@ -22,6 +22,7 @@ class QRType:
     SIGN_MESSAGE = "sign_message"
 
     WALLET_VIEW_ONLY = 'wallet__view__only'
+    WALLET_VIEW_ONLY_JSON = 'wallet__view__only__json'
     WALLET__UR = 'wallet__ur'
     WALLET__CONFIGFILE = 'wallet__configfile'
     WALLET__GENERIC = 'wallet__generic'

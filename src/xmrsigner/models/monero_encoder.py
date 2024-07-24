@@ -35,8 +35,18 @@ class ViewOnlyWalletQrEncoder(BaseStaticQrEncoder):
 
     def next_part(self):
         return f'monero_wallet:{self.wallet.address()}?view_key={self.wallet.view_key()}&height={self.height}'
+
     def get_qr_type(self):
         return QRType.WALLET_VIEW_ONLY
+
+
+class ViewOnlyWalletJsonQrEncoder(ViewOnlyWalletQrEncoder):
+
+    def next_part(self):
+        return '{' + f'"primaryAddress": "{self.wallet.address()}", "privateViewKey": "{self.wallet.view_key()}", "restoreHeight": {self.height}' + '}'
+
+    def get_qr_type(self):
+        return QRType.WALLET_VIEW_ONLY_JSON
 
 
 class MoneroKeyImageQrEncoder(UrQrEncoder):
