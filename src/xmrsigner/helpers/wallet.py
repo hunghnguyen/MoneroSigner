@@ -98,7 +98,7 @@ class MoneroWalletRPCManager:
             sleep(0.1)
         return self.is_daemon_running(network)
 
-    def stop_daemon(self, network: Union[str, Network]):
+    def stop_daemon(self, network: Union[str, Network]) -> bool:
         network = Network.ensure(network)
         if str(network) not in self.networks:
             raise ValueError(f"Invalid network: {network}")
@@ -106,12 +106,17 @@ class MoneroWalletRPCManager:
             return True
         process = self.processes.get(network)
         if process:
+            print(f'Terminate wallet rpc for {str(network)}...')
             process.terminate()
             try:
+                print(f'Wait wallet rpc for {str(network)} for finishing peacefully...')
                 process.wait(timeout=10)
             except TimeoutExpired:
+                print(f'Kill wallet rpc for {str(network)}...')
                 process.kill()
             if process.poll() is not None and system() != 'Windows':
+                sleep(1)
+                print(f'Send signal 9 to wallet rpc for {str(network)}...')
                 process.send_signal(9)
                 sleep(1)
             del self.processes[network]
@@ -298,7 +303,7 @@ class MoneroWalletRPCManager:
             response = wallet.raw_request('get_address', {'account_index': 0})
             print(response)
             if 'address' in response:
-                return sha256(response['address'].encode()).hexdigest()[-6:]
+                return sha256(response['address'].encode()).hexdigest()[-6:].upper()
             return None
         except ConnectionError:
             return None

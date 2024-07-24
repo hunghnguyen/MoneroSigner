@@ -3,6 +3,8 @@ import traceback
 
 from PIL.Image import Image
 from typing import List, Optional, Dict, Union
+from time import sleep
+from sys import exit
 
 from xmrsigner.gui.renderer import Renderer
 from xmrsigner.hardware.buttons import HardwareButtons  # TODO: 2024-06-20, don't like faster code paying with ugly code, search better solution
@@ -107,6 +109,11 @@ class Controller(Singleton):
             # Instantiate the one and only Controller instance
             return cls.configure_instance()
 
+    @classmethod
+    def shutdown(cls) -> None:
+        print('shutdown...')
+        if cls._instance._wallet_rpc_manager:
+            cls._instance._wallet_rpc_manager.cleanup()
 
     @classmethod
     def configure_instance(cls, disable_hardware=False):

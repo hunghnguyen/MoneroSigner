@@ -9,6 +9,7 @@ from ..components import (
     Icon,
     IconButton,
     LargeIconButton,
+    FontAwesomeIconConstants,
     IconConstants,
     TopNav,
     TextArea,
@@ -1248,7 +1249,7 @@ class WalletRpcScreen(LargeIconStatusScreen):
 
     def __post_init__(self):
         self.title = 'Wallet RPC'
-        self.status_icon_name = IconConstants.TOOLS  # TODO:  2024-07-15, change symbol!
+        self.status_icon_name = FontAwesomeIconConstants.WALLET
         self.status_color = GUIConstants.INFO_COLOR
         self.text = f'Version {self.version}'
         super().__post_init__()
