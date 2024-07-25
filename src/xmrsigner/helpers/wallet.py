@@ -69,6 +69,11 @@ class MoneroWalletRPCManager:
         out = [
             self.daemon_path,
             '--offline',
+            '--no-dns',
+            '--rpc-ssl=disabled',
+            '--disable-rpc-ban',
+            '--no-initial-sync',
+            '--log-level=0',
             f'--rpc-bind-port={port}',
             f'--wallet-dir={WALLET_DIR}',
             f'--rpc-login={self.user}:{self.password}' if self.user and self.password else '--disable-rpc-login',
