@@ -68,9 +68,10 @@ class Controller(Singleton):
 
     # TODO:SEEDSIGNER: Refactor these flow-related attrs that survive across multiple Screens.
     # TODO:SEEDSIGNER: Should all in-memory flow-related attrs get wiped on MainMenuView?
-    # psbt: PSBT = None  # TODO: 2024-06-15 removed with empit.psbt.psbt
-    psbt = None
-    psbt_seed: Seed = None
+    # TODO: 2024-07-24, holy clustefuck, improve this sh*t - but later
+    selected_seed: Optional[Seed] = None
+    transaction: Optional[bytes] = None
+    outputs: Optional[bytes] = None
     tx_parser: TxParser = None
 
     _wallet_rpc_manager: Optional[MoneroWalletRPCManager] = None
@@ -89,6 +90,7 @@ class Controller(Singleton):
     # Destination placeholder for when we need to jump out to a side flow but intend to
     # return navigation to the main flow (e.g. TX flow, load something,
     # then resume TX flow).
+    FLOW__SYNC = "sync"
     FLOW__TX = "tx"
     FLOW__VERIFY_MULTISIG_ADDR = "multisig_addr"
     FLOW__VERIFY_SINGLESIG_ADDR = "singlesig_addr"
@@ -150,11 +152,11 @@ class Controller(Singleton):
         controller.microsd = MicroSD.get_instance()
         controller.microsd.start_detection()
 
-        # Store one working psbt in memory
-        controller.psbt = None
-        controller.tx_parser = None
+        # Store one working incomming data in memory
+        controller.outputs = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
         controller.transaction = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
-        controller.transaction_seed = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
+        controller.selected_seed = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
+        controller.tx_parser = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
 
         # Configure the Renderer
         Renderer.configure_instance()
@@ -173,6 +175,15 @@ class Controller(Singleton):
     def camera(self):
         from .hardware.camera import Camera
         return Camera.get_instance()
+
+    def has_seed(self, seed: Seed) -> bool:
+        return seed in self.storage.seeds
+
+    def get_seed_num(self, seed: Seed) -> Optional[int]:
+        idx = self.storage.seeds.index(seed)
+        if idx >= 0:
+            return idx
+        return None
 
     def get_seed(self, seed_num: int) -> Seed:
         if seed_num < len(self.storage.seeds):
@@ -291,9 +302,10 @@ class Controller(Singleton):
                     self.multisig_wallet_descriptor = None
                     self.unverified_address = None
                     self.address_explorer_data = None
+                    self.selected_seed = None
+                    self.outputs = None
                     self.transaction = None
                     self.tx_parser = None
-                    self.transaction_seed = None
                 
                 print(f'back_stack: {self.back_stack}')
 

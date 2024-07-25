@@ -1057,6 +1057,7 @@ class SeedTranscribeSeedQRFormatScreen(ButtonListScreen):
 
 @dataclass
 class SeedTranscribeSeedQRWholeQRScreen(WarningEdgesMixin, ButtonListScreen):
+
     qr_data: str = None
     num_modules: int = None
 

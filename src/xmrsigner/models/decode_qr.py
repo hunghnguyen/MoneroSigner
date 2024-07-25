@@ -93,6 +93,12 @@ class DecodeQR:
         # are strings.
         # TODO:SEEDSIGNER: Convert the test suite rather than handle here?
         qr_str = data.decode() if type(data) == bytes else data
+        if self.qr_type == QRType.SEED__SEEDQR:
+            rt = self.decoder.add(data, QRType.SEED__SEEDQR)
+            print(f'rt: {rt}')
+            if rt == DecodeQRStatus.COMPLETE:
+                self.complete = True
+            return rt
         if self.qr_type in [
                 QRType.XMR_OUTPUT_UR,
                 QRType.XMR_KEYIMAGE_UR,
@@ -192,6 +198,7 @@ class DecodeQR:
 
     @property
     def is_seed(self):
+        print(f'DecodeQR.is_seed(): qr_type: {self.qr_type}')
         return self.qr_type in [
             QRType.SEED__SEEDQR,
             QRType.SEED__COMPACTSEEDQR,
@@ -247,7 +254,8 @@ class DecodeQR:
             if s.startswith('monero_wallet:'):
                 return QRType.MONERO_WALLET
             # Seed
-            if decimals := search(r'(\d{52,100})', s) and len(decimals.group(1)) in (52, 64, 100):  # TODO: 2024-06-15, handle Polyseed different from here? 52 decimals (13 words, 100 decimals (25 words), 16 polyseed words would be 64 decimals
+            print(f'search: ({len(s)}){s}')
+            if (decimals := search(r'(\d{52,100})', s)) and len(decimals.group(1)) in (52, 64, 100):  # TODO: 2024-06-15, handle Polyseed different from here? 52 decimals (13 words, 100 decimals (25 words), 16 polyseed words would be 64 decimals
                 return QRType.SEED__SEEDQR
             # Monero Address
             if MoneroAddressQrDecoder.is_monero_address(s):

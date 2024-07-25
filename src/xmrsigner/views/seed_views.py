@@ -30,7 +30,7 @@ from xmrsigner.models.polyseed import PolyseedSeed
 from xmrsigner.models.settings import Settings, SettingsConstants
 from xmrsigner.models.settings_definition import SettingsDefinition
 from xmrsigner.models.threads import BaseThread, ThreadsafeCounter
-from xmrsigner.views.wallet_views import WalletViewKeyQRView, WalletViewKeyJsonQRView, LoadWalletView
+from xmrsigner.views.wallet_views import WalletViewKeyQRView, WalletViewKeyJsonQRView, LoadWalletView, ImportOutputsView
 
 from xmrsigner.views.view import (
     NotYetImplementedView,
@@ -94,7 +94,7 @@ class SeedsMenuView(View):
             return Destination(BackStackView)
 
 
-class SeedSelectSeedView(View):  # TODO: 2024-06-16, added with rebase from main to 0.7.0 of seedsigner, check if we need it
+class SeedSelectSeedView(View):  # TODO: 2024-06-16, added with rebase from main to 0.7.0 of seedsigner, check if we need it @see xmrsigner.views.monero_view.MoneroSelectSeedView
     """
     Reusable seed selection UI. Prompts the user to select amongst the already-loaded
     seeds OR to load a seed.
@@ -107,21 +107,20 @@ class SeedSelectSeedView(View):  # TODO: 2024-06-16, added with rebase from main
     TYPE_25WORD = ("Enter 25-word seed", FontAwesomeIconConstants.KEYBOARD)
     TYPE_POLYSEED = ("Enter Polyseed", FontAwesomeIconConstants.KEYBOARD)
 
-    def __init__(self, flow: str = Controller.FLOW__VERIFY_SINGLESIG_ADDR):
+    def __init__(self, flow: str):
         super().__init__()
         self.flow = flow
 
     def run(self):
         seeds = self.controller.storage.seeds
-
-        if self.flow == Controller.FLOW__VERIFY_SINGLESIG_ADDR:
+        if self.flow == Controller.FLOW__SYNC:
             title = "Verify Address"
             if not seeds:
-                text = "Load the seed to verify"
+                text = "Load the seed to sync"
             else: 
-                text = "Select seed to verify"
-        elif self.flow == Controller.FLOW__SIGN_MESSAGE:
-            title = "Sign Message"
+                text = "Select seed to sync"
+        elif self.flow == Controller.FLOW__TX:
+            title = "Sign Transaction"
             if not seeds:
                 text = "Load the seed to sign with"
             else:
@@ -160,9 +159,9 @@ class SeedSelectSeedView(View):  # TODO: 2024-06-16, added with rebase from main
         if len(seeds) > 0 and selected_menu_num < len(seeds):
             # User selected one of the n seeds
             view_args = dict(seed_num=selected_menu_num)
-            if self.flow == Controller.FLOW__VERIFY_SINGLESIG_ADDR:
-                return Destination(SeedAddressVerificationView, view_args=view_args)
-            elif self.flow == Controller.FLOW__SIGN_MESSAGE:
+            if self.flow == Controller.FLOW__SYNC:
+                return Destination(ImportOutputsView, view_args=view_args)
+            elif self.flow == Controller.FLOW__TX:
                 self.controller.sign_message_data["seed_num"] = selected_menu_num
                 return Destination(SeedSignMessageConfirmMessageView)
         self.controller.resume_main_flow = self.flow
@@ -895,6 +894,7 @@ class SeedWordsBackupTestSuccessView(View):
     Export as SeedQR
 ****************************************************************************"""
 class SeedTranscribeSeedQRFormatView(View):
+
     def __init__(self, seed_num: int):
         super().__init__()
         self.seed_num = seed_num
@@ -1001,7 +1001,7 @@ class SeedTranscribeSeedQRWholeQRView(View):
     
 
     def run(self):
-        e = SeedQrEncoder(self.seed.mnemonic_list, self.seed.wordlist) if self.seedqr_format == QRType.SEED__COMPACTSEEDQR else CompactSeedQrEncoder(self.seed.mnemonic_list, self.seed.wordlist)
+        e = SeedQrEncoder(self.seed.mnemonic_list, self.seed.wordlist) if self.seedqr_format == QRType.SEED__SEEDQR else CompactSeedQrEncoder(self.seed.mnemonic_list, self.seed.wordlist)
         ret = seed_screens.SeedTranscribeSeedQRWholeQRScreen(
             qr_data=e.next_part(),
             num_modules=self.num_modules,
@@ -1030,7 +1030,7 @@ class SeedTranscribeSeedQRZoomedInView(View):
             num_modules = 25 if self.seedqr_format == QRType.SEED__COMPACTSEEDQR else 29  # TODO: expire 2024-07-15, from there come this numbers, is this not some data comming from QR code constraints? Would it no be wise to get the number from there instead of this??? Test if smaller are viable
         else:
             num_modules = 21 if self.seedqr_format == QRType.SEED__COMPACTSEEDQR else 25
-        e = SeedQrEncoder(self.seed.mnemonic_list, self.seed.wordlist) if self.seedqr_format == QRType.SEED__COMPACTSEEDQR else CompactSeedQrEncoder(self.seed.mnemonic_list)
+        e = SeedQrEncoder(self.seed.mnemonic_list, self.seed.wordlist) if self.seedqr_format == QRType.SEED__SEEDQR else CompactSeedQrEncoder(self.seed.mnemonic_list)
         seed_screens.SeedTranscribeSeedQRZoomedInScreen(
             qr_data=e.next_part(),
             num_modules=num_modules,
@@ -1486,7 +1486,7 @@ class SeedSignMessageConfirmMessageView(View):
             if self.page_num == 0:
                 # We're exiting this flow entirely
                 self.controller.resume_main_flow = None
-                self.controller.sign_message_data = None
+                self.controller.transaction = None
             return Destination(BackStackView)
 
         # User clicked "Next"

@@ -2,6 +2,7 @@ from typing import List
 
 from xmrsigner.controller import Controller
 
+from xmrsigner.gui.components import GUIConstants
 from xmrsigner.gui.components import FontAwesomeIconConstants, IconConstants
 from xmrsigner.models.monero_encoder import MoneroSignedTxQrEncoder
 from xmrsigner.models.tx_parser import TxParser
@@ -17,6 +18,7 @@ from xmrsigner.gui.screens.screen import (
     QRDisplayScreen,
     WarningScreen
 )
+from xmrsigner.views.wallet_views import ImportOutputsView
 from xmrsigner.views.view import (
     BackStackView,
     MainMenuView,
@@ -26,14 +28,15 @@ from xmrsigner.views.view import (
 )
 
 
-class PSBT:  # TODO: 2024-06-14, quick fix to remove embit.psbt.PSBT
-    pass
-
-class MoneroSelectSeedView(View):  # TODO: 2024-07-23, seems to me redundant code
+class MoneroSelectSeedView(View):  # TODO: 2024-07-23, seems to me redundant code: @see xmrsigner.views.seed_views.SeedSelectSeedView
 
     SCAN_SEED = ("Scan a seed", FontAwesomeIconConstants.QRCODE)
     TYPE_13WORD = ("Enter 13-word seed", FontAwesomeIconConstants.KEYBOARD)
     TYPE_25WORD = ("Enter 25-word seed", FontAwesomeIconConstants.KEYBOARD)
+
+    def __init__(self, flow: str):
+        super().__init__()
+        self.flow = flow
 
     def run(self):
         seeds = self.controller.storage.seeds
@@ -64,11 +67,16 @@ class MoneroSelectSeedView(View):  # TODO: 2024-07-23, seems to me redundant cod
 
         if len(seeds) > 0 and selected_menu_num < len(seeds):
             # User selected one of the n seeds
-            self.controller.transaction_seed = self.controller.get_seed(selected_menu_num)  # TODO: 2024-07-23, add transaction_seed to control
-            return Destination(OverviewView)
+            print(f'selected seed: {selected_menu_num}')
+            self.controller.selected_seed = self.controller.get_seed(selected_menu_num)
+            if self.flow == Controller.FLOW__SYNC:
+                return Destination(ImportOutputsView)
+            if self.flow == Controller.FLOW__TX:
+                return Destination(OverviewView)
         
         # The remaining flows are a sub-flow; resume PSBT flow once the seed is loaded.
-        self.controller.resume_main_flow = Controller.FLOW__TX
+        # self.controller.resume_main_flow = Controller.FLOW__TX
+        self.controller.resume_main_flow = self.flow
 
         if button_data[selected_menu_num] == self.SCAN_SEED:
             from xmrsigner.views.scan_views import ScanSeedQRView
@@ -142,8 +150,8 @@ class OverviewView(View):
             destination_addresses=destination_addresses
         )
         if selected_menu_num == RET_CODE__BACK_BUTTON:
-            # TODO: 2024-07-23, discard transaction
-            # self.controller.psbt_seed = None
+            self.controller.transaction = None
+            self.controller.selected_seed = None
             return Destination(BackStackView)
         if change_amount == 0:
             return Destination(NoChangeWarningView)
@@ -209,8 +217,9 @@ class MathView(View):
 
 class DirectionsDetailsView(View):
     """
-        Shows the recipient's address and amount they will receive
+    Shows the recipient's address and amount they will receive
     """
+
     def __init__(self, address_num):
         super().__init__()
         self.address_num = address_num
@@ -285,9 +294,9 @@ class XMRChangeDetailsView(View):
 
         # Single-sig verification is easy. We expect to find a single fingerprint
         # and derivation path.
-        seed_fingerprint = self.controller.psbt_seed.fingerprint
+        seed_fingerprint = self.controller.selected_seed.fingerprint
 
-        if seed_fingerprint not in change_data.get("fingerprint"):
+        if seed_fingerprint not in change_data.get('fingerprint'):
             # TODO:SEEDSIGNER: Something is wrong with this psbt(?). Reroute to warning?
             return Destination(NotYetImplementedView)
 
@@ -336,10 +345,10 @@ class XMRChangeDetailsView(View):
                 change_path = '/'.join(derivation_path.split("/")[-2:])
                 wallet_path = '/'.join(derivation_path.split("/")[:-2])
                 
-                xpub = self.controller.psbt_seed.get_xpub(
-                    wallet_path=wallet_path,
-                    network=self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]  # TODO: 2024-06-26, solve multi network issue
-                )
+                # xpub = self.controller.selected_seed.get_xpub(
+                #     wallet_path=wallet_path,
+                #    network=self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]  # TODO: 2024-06-26, solve multi network issue
+                #)
                 
                 # take script type and call script method to generate address from seed / derivation
                 # xpub_key = xpub.derive(change_path).key
@@ -495,7 +504,7 @@ class SigningErrorView(View):
 
         if selected_menu_num == 0:
             # clear seed selected for psbt signing since it did not add a valid signature
-            self.controller.psbt_seed = None
+            self.controller.selected_seed = None
             return Destination(SelectSeedView, clear_history=True)
 
         if selected_menu_num == RET_CODE__BACK_BUTTON:

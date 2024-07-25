@@ -2,7 +2,7 @@ from xmrsigner.models.qr_type import QRType
 from xmrsigner.models.monero_encoder import MoneroKeyImageQrEncoder
 from xmrsigner.views.view import NotYetImplementedView, View, Destination, BackStackView, MainMenuView
 from xmrsigner.models.monero_encoder import ViewOnlyWalletQrEncoder, ViewOnlyWalletJsonQrEncoder
-from xmrsigner.gui.screens import seed_screens, WarningScreen, ButtonListScreen
+from xmrsigner.gui.screens import seed_screens, WarningScreen, ButtonListScreen, LargeIconStatusScreen
 from xmrsigner.helpers.wallet import MoneroWalletRPCManager, WALLET_PORT
 from xmrsigner.helpers.network import Network
 from xmrsigner.helpers.monero import WalletRpcWrapper
@@ -13,8 +13,10 @@ from xmrsigner.gui.screens.screen import RET_CODE__BACK_BUTTON, QRDisplayScreen
 from monero.wallet import Wallet as MoneroWallet
 from monero.seed import Seed as MoneroSeed
 
+from hashlib import sha256
 from time import sleep
-from typing import Union
+from typing import Union, Optional
+
 
 class WalletViewKeyQRView(View):
 
@@ -122,6 +124,36 @@ class ExportKeyImagesView(View):
             return Destination(BackStackView)
         return Destination(MainMenuView)
 
+class ImportOutputsView(View):
+
+    def __init__(self, seed_num: Optional[int] = None):
+        super().__init__()
+        self.loading_screen = None
+        self.seed = self.controller.get_seed(seed_num) if seed_num else self.controller.selected_seed
+        self.network = Network.ensure(self.seed.network) if self.seed else None
+        self.wallet: MoneroWallet = self.controller.get_wallet(self.network)
+        if self.seed and self.wallet and sha256(str(self.wallet.address()).encode()).hexdigest()[-6:].upper() == self.seed.fingerprint:
+            from xmrsigner.gui.screens.screen import LoadingScreenThread
+            self.loading_screen = LoadingScreenThread(text=f'Loading Outputs for {self.seed.fingerprint}...')
+            self.loading_screen.start()
+
+    def run(self):
+        if not self.wallet and self.seed and self.controller.has_seed(self.seed):
+            return Destination(LoadWalletView, view_args={'seed_num': self.controller.get_seed_num(self.seed)})
+        try:
+            num_imported = WalletRpcWrapper(self.wallet).update_outputs(self.controller.outputs)
+            # TODO: 2024-07-24, handle num_imported == 0, probably inform user that no tx because 0 balance
+            if self.loading_screen:
+                self.loading_screen.stop()
+            self.run_screen(LargeIconStatusScreen, title='Loaded Outputs', text=f"Loaded {num_imported} outputs for {self.seed.fingerprint} into wallet.", status_headline='Success!')
+            return Destination(ExportKeyImagesView, view_args={'network': self.network})
+        except Exception as e:
+            print(e)
+        if self.loading_screen:
+            self.loading_screen.stop()
+        self.run_screen(WarningScreen, title='Import outputs', text=f'Error on importing outputs into wallet {self.seed.fingerprint}', status_headline='Failed!', status_color='red')
+        return Destination(MainMenuView)
+
 
 class WalletOptionsView(View):
     """
@@ -175,7 +207,6 @@ class LoadWalletView(View):
 
     def __init__(self, seed_num: int):
         super().__init__()
-
         self.loading_screen = None
         self.wallet_seed = self.controller.get_seed(seed_num)
 
@@ -184,14 +215,12 @@ class LoadWalletView(View):
             from xmrsigner.gui.screens.screen import EtaLoadingScreenThread
             self.loading_screen = EtaLoadingScreenThread(text="Loading Wallet...", eta=180)
             self.loading_screen.start()
-
-            try:
-                # load wallet
-                pass
-                # sleep(120)
-            except Exception as e:
-                self.loading_screen.stop()
-                raise e
+            # try:  # TODO: 2024-07-24, to remove
+            #    # load wallet
+            #    pass
+            #except Exception as e:
+            #    self.loading_screen.stop()
+            #    raise e
 
     def run(self):
         if self.controller.get_wallet(self.wallet_seed.network) and self.controller.get_wallet_seed(self.wallet_seed.network) == self.wallet_seed:
@@ -225,4 +254,4 @@ class LoadWalletView(View):
         # Everything is set. Stop the loading screen
         if self.loading_screen:
             self.loading_screen.stop()
-        return Destination(WalletMenuView)
+        return Destination(BackStackView)

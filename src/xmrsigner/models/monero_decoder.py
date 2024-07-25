@@ -45,6 +45,16 @@ class MoneroAddressQrDecoder(BaseSingleFrameQrDecoder):
                 return "Unknown"
         return None
 
+    @staticmethod
+    def is_monero_address(s: str) -> bool:
+        if s.startswith('monero:'):
+            s = s[7:]
+        try:
+            monero_address(s)
+            return True
+        except:
+            return False
+
 
 class MoneroWalletQrDecoder(BaseSingleFrameQrDecoder):
     """
@@ -105,13 +115,3 @@ class MoneroWalletQrDecoder(BaseSingleFrameQrDecoder):
             'spend_key': self.spend_key,
             'height': self.height
             }
-
-    @staticmethod
-    def is_monero_address(s: str) -> bool:
-        if s.startswith('monero:'):
-            s = s[7:]
-        try:
-            monero_address(s)
-            return True
-        except:
-            return False
