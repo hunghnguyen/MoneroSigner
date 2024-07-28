@@ -846,7 +846,7 @@ class XmrAmount(BaseComponent):
             screen_x=0,
             screen_y=0,
         )
-        xmr_icon.render()
+        # xmr_icon.render()  # TODO: 2024-07-28, render only with Monero Logo
         cur_x = xmr_icon.width + int(GUIConstants.COMPONENT_PADDING / 4)
         print(f'denomination: {denomination}')
         print(f'total_atomic_units: {self.total_atomic_units}')
@@ -924,7 +924,7 @@ class XmrAmount(BaseComponent):
                 screen_x=0,
                 screen_y=0,
             )
-            xmr_icon.render()
+            # xmr_icon.render()  # TODO: 2024-07-28, render only with Monero Logo
             cur_x = xmr_icon.width + int(GUIConstants.COMPONENT_PADDING/4)
             (left, top, text_width, bottom) = smaller_digit_font.getbbox(xmr_text, anchor="ls")
             text_height = -1 * top + bottom

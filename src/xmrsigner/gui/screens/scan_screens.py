@@ -43,7 +43,7 @@ class ScanScreen(BaseScreen):
     decoder: DecodeQR = None
     instructions_text: str = None
     resolution: Tuple[int,int] = (480, 480)
-    framerate: int = 20  # TODO:SEEDSIGNER: alternate optimization for Pi Zero 2W?
+    framerate: int = 6  # TODO:SEEDSIGNER: alternate optimization for Pi Zero 2W?
     render_rect: Tuple[int,int,int,int] = None
 
 
