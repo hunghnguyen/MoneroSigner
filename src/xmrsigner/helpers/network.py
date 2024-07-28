@@ -1,4 +1,5 @@
 from monero.const import NET_MAIN, NET_TEST, NET_STAGE
+from monero.address import Address
 from typing import List, Union
 from enum import Enum
 
@@ -15,6 +16,18 @@ class Network(Enum):
 
     @classmethod
     def fromString(cls, net: str) -> 'Network':
+        if net == NET_MAIN:
+            return cls.MAIN
+        elif net == NET_TEST:
+            return cls.TEST
+        elif net == NET_STAGE:
+            return cls.STAGE
+        else:
+            raise ValueError("Invalid network type")
+
+    @classmethod
+    def fromAddress(cls, address: Union[str, Address]) -> 'Network':
+        net = (Address(address) if not isinstance(address, Address) else address).net
         if net == NET_MAIN:
             return cls.MAIN
         elif net == NET_TEST:

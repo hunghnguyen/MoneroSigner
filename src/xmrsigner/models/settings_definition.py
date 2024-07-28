@@ -37,15 +37,15 @@ class SettingsConstants:
         (LANGUAGE__ENGLISH, "English"),
     ]
 
-    XMR_DENOMINATION__XMR = "xmr"
-    XMR_DENOMINATION__ATOMICUNITS = "atomicunits"
+    XMR_DENOMINATION__XMR = "XMR"
+    XMR_DENOMINATION__ATOMICUNITS = "pXMR"
     XMR_DENOMINATION__THRESHOLD = "thr"
     XMR_DENOMINATION__XMRATOMICUNITSHYBRID = "hyb"
     ALL_XMR_DENOMINATIONS = [
         (XMR_DENOMINATION__XMR, "XMR-only"),
         (XMR_DENOMINATION__ATOMICUNITS, "AtomicUnits-only"),
         (XMR_DENOMINATION__THRESHOLD, "Threshold at 0.01"),
-        (XMR_DENOMINATION__XMRATOMICUNITSHYBRID, "XMR | AtomicUnits hybrid"),
+        (XMR_DENOMINATION__XMRATOMICUNITSHYBRID, "XMR | pXMR hybrid"),
     ]
 
     CAMERA_ROTATION__0 = 0
@@ -194,15 +194,15 @@ class SettingsConstants:
 @dataclass
 class SettingsEntry:
     """
-        Defines all the parameters for a single settings entry.
+    Defines all the parameters for a single settings entry.
 
-        * category: Mostly for organizational purposes when displaying options in the
-            SettingsQR UI. Potentially an additional sub-level breakout in the menus
-            on the device itself, too.
-        
-        * selection_options: May be specified as a List(Any) or List(tuple(Any, str)).
-            The tuple form is to provide a human-readable display_name. Probably all
-            entries should shift to using the tuple form.
+    * category: Mostly for organizational purposes when displaying options in the
+        SettingsQR UI. Potentially an additional sub-level breakout in the menus
+        on the device itself, too.
+    
+    * selection_options: May be specified as a List(Any) or List(tuple(Any, str)).
+        The tuple form is to provide a human-readable display_name. Probably all
+        entries should shift to using the tuple form.
     """
     # TODO:SEEDSIGNER: Handle multi-language `display_name` and `help_text`
     category: str

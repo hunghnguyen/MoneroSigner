@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from PIL import Image, ImageDraw, ImageFilter
 from xmrsigner.helpers.pillow import get_font_size
 from typing import List
+from time import sleep
 
 from xmrsigner.gui.renderer import Renderer
 from xmrsigner.models.threads import BaseThread
@@ -55,10 +56,7 @@ class TxOverviewScreen(ButtonListScreen):
         else:
             spend_amount = self.spend_amount
 
-        self.components.append(XmrAmount(
-            total_sats=spend_amount,
-            screen_y=icon_text_lines_y,
-        ))
+        self.components.append(XmrAmount(total_atomic_units=spend_amount, screen_y=icon_text_lines_y,))
 
         # Prep the transaction flow chart
         self.chart_x = 0
@@ -450,12 +448,13 @@ class TxOverviewScreen(ButtonListScreen):
                     self.renderer.show_image()
 
                 # No need to CPU limit when running in its own thread?
-                time.sleep(0.02)
+                sleep(0.02)
 
 
 
 @dataclass
 class TxMathScreen(ButtonListScreen):
+
     input_amount: int = 0
     num_inputs: int = 0
     spend_amount: int = 0
@@ -472,11 +471,11 @@ class TxMathScreen(ButtonListScreen):
 
         super().__post_init__()
 
-        if self.input_amount > 1e10:
+        if self.input_amount > 10**10:
             denomination = "xmr"
-            self.input_amount /= 1e12
-            self.spend_amount /= 1e12
-            self.change_amount /= 1e12
+            self.input_amount /= 10**12
+            self.spend_amount /= 10**12
+            self.change_amount /= 10**12
             self.input_amount = f"{self.input_amount:,.12f}"
             self.spend_amount = f"{self.spend_amount:,.12f}"
             self.change_amount = f"{self.change_amount:,.12f}"
@@ -485,7 +484,7 @@ class TxMathScreen(ButtonListScreen):
             # lines up properly.
             self.fee_amount = f"{self.fee_amount:10}"
         else:
-            denomination = "atomicunits"
+            denomination = "pXMR"
             self.input_amount = f"{self.input_amount:,}"
             self.spend_amount = f"{self.spend_amount:,}"
             self.fee_amount = f"{self.fee_amount:,}"
@@ -603,7 +602,7 @@ class TxAddressDetailsScreen(ButtonListScreen):
         xmr_amount = XmrAmount(
             image_draw=draw,
             canvas=center_img,
-            total_sats=self.amount,
+            total_atomic_units=self.amount,
             screen_y=int(GUIConstants.COMPONENT_PADDING/2),
         )
 
@@ -620,7 +619,6 @@ class TxAddressDetailsScreen(ButtonListScreen):
         # Render each to the temp img we passed in
         xmr_amount.render()
         formatted_address.render()
-
         self.body_img = center_img.crop((
             0,
             0,
@@ -628,13 +626,11 @@ class TxAddressDetailsScreen(ButtonListScreen):
             formatted_address.screen_y + formatted_address.height
         ))
         body_img_y = self.top_nav.height + int((center_img_height - self.body_img.height - GUIConstants.COMPONENT_PADDING)/2)
-
         self.paste_images.append((self.body_img, (0, body_img_y)))
 
 
-
 @dataclass
-class PSXMRhangeDetailsScreen(ButtonListScreen):
+class TxChangeDetailsScreen(ButtonListScreen):
     title: str = "Your Change"
     amount: int = 0
     address: str = None
@@ -651,7 +647,7 @@ class PSXMRhangeDetailsScreen(ButtonListScreen):
         super().__post_init__()
 
         self.components.append(XmrAmount(
-            total_sats=self.amount,
+            total_atomic_units=self.amount,
             screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING,
         ))
 
@@ -683,7 +679,6 @@ class PSXMRhangeDetailsScreen(ButtonListScreen):
                 screen_x=GUIConstants.EDGE_PADDING,
                 screen_y=self.components[-1].screen_y + self.components[-1].height + GUIConstants.COMPONENT_PADDING,
             ))
-
 
 
 @dataclass

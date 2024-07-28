@@ -815,6 +815,7 @@ class XmrAmount(BaseComponent):
         self.paste_coords = None
         denomination = Settings.get_instance().get_value(SettingsConstants.SETTING__XMR_DENOMINATION)
         network = Settings.get_instance().get_value(SettingsConstants.SETTING__NETWORKS)[0]  # TODO: 2024-06-30, fix using network from parameter instead believing there can be only on network used at a time...
+        self.total_atomic_units = int(self.total_atomic_units)
 
         xmr_unit = "XMR"
         atomic_units_unit = "pXMR"
@@ -847,12 +848,13 @@ class XmrAmount(BaseComponent):
         )
         xmr_icon.render()
         cur_x = xmr_icon.width + int(GUIConstants.COMPONENT_PADDING / 4)
-
+        print(f'denomination: {denomination}')
+        print(f'total_atomic_units: {self.total_atomic_units}')
         if denomination == SettingsConstants.XMR_DENOMINATION__XMR or \
-            (denomination == SettingsConstants.XMR_DENOMINATION__THRESHOLD and self.total_atomic_units >= 1e10) or \
-                (denomination == SettingsConstants.XMR_DENOMINATION__XMRATOMICUNITHYBRID and self.total_atomic_units >= 1e6 and str(self.total_atomic_units)[-6:] == "0" * 6) or \
-                    self.total_atomic_units > 1e10:
-            decimal_xmr = Decimal(self.total_atomic_units / 1e12).quantize(Decimal("0.123456789012"))
+            (denomination == SettingsConstants.XMR_DENOMINATION__THRESHOLD and self.total_atomic_units >= 10**10) or \
+                (denomination == SettingsConstants.XMR_DENOMINATION__XMRATOMICUNITSHYBRID and self.total_atomic_units >= 10**6 and str(self.total_atomic_units)[-6:] == "0" * 6) or \
+                    self.total_atomic_units > 10**10:
+            decimal_xmr = Decimal(self.total_atomic_units / 10**12).quantize(Decimal("0.123456789012"))
             if str(self.total_atomic_units)[-12:] == "0" * 12:
                 # Only whole xmr units being displayed; truncate to a single decimal place
                 decimal_xmr = decimal_xmr.quantize(Decimal("0.1"))
@@ -860,22 +862,17 @@ class XmrAmount(BaseComponent):
             elif str(self.total_atomic_units)[-10:] == "0" * 10:
                 # Bottom six digits are all zeroes; trucate to two decimal places
                 decimal_xmr = decimal_xmr.quantize(Decimal("0.12"))
-            
             xmr_text = f"{decimal_xmr:,}"
-
             if len(xmr_text) >= 12:
                 # This is a large xmr value that won't fit; omit atomic_units
                 xmr_text = xmr_text.split(".")[0] + "." + xmr_text.split(".")[-1][:2] + "..."
-
             # Draw the xmr side
             font = digit_font
-            # if self.total_atomic_units > 1e9:
+            # if self.total_atomic_units > 10**9:
             #     font = smaller_digit_font
-
             (left, top, text_width, bottom) = font.getbbox(xmr_text, anchor="ls")
             text_height = -1 * top + bottom
             text_y = self.paste_image.height - int((self.paste_image.height - text_height)/2)
-
             draw.text(
                 xy=(
                     cur_x,
@@ -887,17 +884,14 @@ class XmrAmount(BaseComponent):
                 anchor="ls",
             )
             cur_x += text_width
-
             unit_text = xmr_unit
-        
-        elif denomination == SettingsConstants.XMR_DENOMINATION__ATOMICUNIT or \
-            (denomination == SettingsConstants.XMR_DENOMINATION__THRESHOLD and self.total_atomic_units < 1e6) or \
-                (denomination == SettingsConstants.XMR_DENOMINATION__XMRATOMICUNITHYBRID and self.total_atomic_units < 1e6):
+        elif denomination == SettingsConstants.XMR_DENOMINATION__ATOMICUNITS or \
+            (denomination == SettingsConstants.XMR_DENOMINATION__THRESHOLD and self.total_atomic_units < 10**10) or \
+                (denomination == SettingsConstants.XMR_DENOMINATION__XMRATOMICUNITSHYBRID and self.total_atomic_units < 10**6):
             # Draw the atomic_units side
             atomic_units_text = f"{self.total_atomic_units:,}"
-
             font = digit_font
-            if self.total_atomic_units > 1e9:
+            if self.total_atomic_units > 10**9:
                 font = smaller_digit_font
             (left, top, text_width, bottom) = font.getbbox(atomic_units_text, anchor="ls")
             text_height = -1 * top + bottom
@@ -913,17 +907,14 @@ class XmrAmount(BaseComponent):
                 anchor="ls",
             )
             cur_x += text_width
-
             unit_text = atomic_units_unit
-        
-        elif denomination == SettingsConstants.XMR_DENOMINATION__XMRATOMICUNITHYBRID:
-            decimal_xmr = Decimal(self.total_atomic_units / 1e8).quantize(Decimal("0.12345678"))
+        elif denomination == SettingsConstants.XMR_DENOMINATION__XMRATOMICUNITSHYBRID:
+            decimal_xmr = Decimal(self.total_atomic_units / 10**8).quantize(Decimal("0.12345678"))
             decimal_xmr = Decimal(str(decimal_xmr)[:-6])
             xmr_text = f"{decimal_xmr:,}"
             atomic_units_text = f"{self.total_atomic_units:,}"[-7:]
-            while atomic_units_text[0] == "0":
+            while atomic_units_text[0] == "0":  # TODO: 2024-07-27, change to strip
                 atomic_units_text = atomic_units_text[1:]
-
             xmr_icon = Icon(
                 image_draw=draw,
                 canvas=self.paste_image,
@@ -935,11 +926,9 @@ class XmrAmount(BaseComponent):
             )
             xmr_icon.render()
             cur_x = xmr_icon.width + int(GUIConstants.COMPONENT_PADDING/4)
-
             (left, top, text_width, bottom) = smaller_digit_font.getbbox(xmr_text, anchor="ls")
             text_height = -1 * top + bottom
             text_y = self.paste_image.height - int((self.paste_image.height - text_height)/2)
-            
             draw.text(
                 xy=(
                     cur_x,
@@ -951,7 +940,6 @@ class XmrAmount(BaseComponent):
                 anchor="ls",
             )
             cur_x += text_width - int(GUIConstants.COMPONENT_PADDING/2)
-
             # Draw the pipe separator
             pipe_font = Fonts.get_font(font_name=GUIConstants.BODY_FONT_NAME, size=self.icon_size - 4)
             (left, top, text_width, bottom) = pipe_font.getbbox("|", anchor="ls")
@@ -966,7 +954,6 @@ class XmrAmount(BaseComponent):
                 anchor="ls",
             )
             cur_x += text_width - int(GUIConstants.COMPONENT_PADDING/2)
-
             # Draw the atomic_units side
             (left, top, text_width, bottom) = smaller_digit_font.getbbox(atomic_units_text, anchor="ls")
             draw.text(
@@ -980,14 +967,11 @@ class XmrAmount(BaseComponent):
                 anchor="ls",
             )
             cur_x += text_width
-
             unit_text = atomic_units_unit
-
         # Draw the unit
         unit_font = Fonts.get_font(font_name=GUIConstants.BODY_FONT_NAME, size=unit_font_size)
         (left, top, unit_text_width, bottom) = unit_font.getbbox(unit_text, anchor="ls")
         unit_font_height = -1 * top
-
         unit_textarea = TextArea(
             image_draw=draw,
             canvas=self.paste_image,
@@ -1002,18 +986,14 @@ class XmrAmount(BaseComponent):
             screen_y=text_y - unit_font_height,
         )
         unit_textarea.render()
-
         final_x = cur_x + GUIConstants.COMPONENT_PADDING + unit_text_width
-
         self.paste_image = self.paste_image.crop((0, 0, final_x, self.paste_image.height))
         self.paste_coords = (
             int((self.canvas_width - final_x)/2),
             self.screen_y
         )
-
         self.width = self.canvas_width
         self.height = self.paste_image.height
-
 
     def render(self):
         self.canvas.paste(self.paste_image, self.paste_coords)

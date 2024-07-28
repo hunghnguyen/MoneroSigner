@@ -120,29 +120,19 @@ class DecodeQR:
                 self.complete = True
             return rt
 
-    # TODO:SEEDSIGNER: Refactor all of these specific `get_` to just something generic like
-    #   `get_data` and let each QRDecoder class return whatever it needs to as a
-    #   str, tuple, dict, etc?
-    def get_psbt(self):
-        if self.complete:
-            data = self.get_data_psbt()
-            if data != None:
-                try:
-                    # return psbt.PSBT.parse(data)  # TODO: 2024-06-14, needs to be adapted for monero
-                    raise Exception('fixme')  # TODO: 2024-06-14, needs to be adapted for monero
-                except:
-                    return None
-        return None
-
     def get_output(self):
         if self.complete:
             if self.qr_type == QRType.XMR_OUTPUT_UR:
                 cbor = self.decoder.result_message().cbor
                 return XmrOutput.from_cbor(cbor).data
-            else:
-                # All the other psbt decoder types use the same method signature
-                return self.decoder.get_data()
+        return None
 
+    def get_tx(self):
+        if self.complete:
+            if self.qr_type == QRType.XMR_TX_UNSIGNED_UR:
+                cbor = self.decoder.result_message().cbor
+                print(XmrTxUnsigned)
+                return XmrTxUnsigned.from_cbor(cbor).data
         return None
 
     def get_seed_phrase(self):

@@ -30,8 +30,13 @@ from xmrsigner.models.polyseed import PolyseedSeed
 from xmrsigner.models.settings import Settings, SettingsConstants
 from xmrsigner.models.settings_definition import SettingsDefinition
 from xmrsigner.models.threads import BaseThread, ThreadsafeCounter
-from xmrsigner.views.wallet_views import WalletViewKeyQRView, WalletViewKeyJsonQRView, LoadWalletView, ImportOutputsView
-
+from xmrsigner.views.wallet_views import (
+    WalletViewKeyQRView,
+    WalletViewKeyJsonQRView,
+    LoadWalletView,
+    ImportOutputsView,
+    ExportKeyImagesView
+)
 from xmrsigner.views.view import (
     NotYetImplementedView,
     OptionDisabledView,
@@ -619,6 +624,9 @@ class SeedOptionsView(View):
                     button_data=['OK'],
                 ).display()
                 return Destination(BackStackView, skip_current_view=True)
+
+        if button_data[selected_menu_num] == self.EXPORT_KEY_IMAGES:
+            return Destination(ExportKeyImagesView, view_args={'network': self.seed.network, 'seed_num': self.seed_num})
 
         if button_data[selected_menu_num] == self.VIEW_ONLY_WALLET:
             return Destination(WalletViewKeyQRView, view_args={'seed_num': self.seed_num})

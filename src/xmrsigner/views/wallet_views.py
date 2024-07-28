@@ -31,6 +31,7 @@ class WalletViewKeyQRView(View):
             QRDisplayScreen,
             qr_encoder=ViewOnlyWalletQrEncoder(self.wallet, self.height)
         )
+        return Destination(BackStackView)
 
 
 class WalletViewKeyJsonQRView(WalletViewKeyQRView):
@@ -40,6 +41,7 @@ class WalletViewKeyJsonQRView(WalletViewKeyQRView):
             QRDisplayScreen,
             qr_encoder=ViewOnlyWalletJsonQrEncoder(self.wallet, self.height)
         )
+        return Destination(BackStackView)
 
 
 class WalletRpcView(View):
@@ -100,14 +102,23 @@ class WalletMenuView(View):
 
 class ExportKeyImagesView(View):
 
-    def __init__(self, network: Union[str, Network]):
+    def __init__(self, network: Union[str, Network], seed_num: Optional[int] = None):
         super().__init__()
         self.network = Network.ensure(network)
-        self.wallet: MoneroWallet = self.controller.get_wallet(self.network)
+        self.wallet: Optional[MoneroWallet] = self.controller.get_wallet(self.network)
+        self.seed_num: Optional[int] = seed_num
 
     def run(self):
+        print(f'wallet: {self.wallet}')
+        print(f'seed_num: {self.seed_num}')
+        if self.wallet is None and self.seed_num is not None:
+            print('load wallet')
+            return Destination(LoadWalletView, view_args={'seed_num': self.seed_num})
+        if self.seed_num is not None and self.controller.get_seed(self.seed_num) != self.controller.get_wallet_seed(self.network):
+            return Destination(LoadWalletView, view_args={'seed_num': self.seed_num})
+        print('key images')
         try:
-            key_image = WalletRpcWrapper(self.wallet).get_encrypted_key_images()
+            key_image = WalletRpcWrapper(self.wallet).export_encrypted_key_images()
         except Exception as e:
             print(e)
             raise e
@@ -123,6 +134,19 @@ class ExportKeyImagesView(View):
             self.run_screen(WarningScreen, title='Key Images Export', text='Error on exporting key images from the wallet', status_headline='Failed!', status_color='red')
             return Destination(BackStackView)
         return Destination(MainMenuView)
+
+
+class NoOutputsImportedView(View):
+
+    def __init__(self, network: Union[str, Network]):
+        super().__init__()
+        self.network = Network.ensure(network)
+        self.seed: Seed = self.controller.get_wallet_seed(network)
+
+    def run(self):
+        self.run_screen(LargeIconStatusScreen, title='Load Outputs', text=f"Wallet {self.seed.fingerprint} has not received funds yet.", status_headline='No balance found!')
+        return Destination(MainMenuView)  # TODO: 2024-07-27, thought: redirect to address viewer as soon it exists
+
 
 class ImportOutputsView(View):
 
@@ -141,8 +165,11 @@ class ImportOutputsView(View):
         if not self.wallet and self.seed and self.controller.has_seed(self.seed):
             return Destination(LoadWalletView, view_args={'seed_num': self.controller.get_seed_num(self.seed)})
         try:
-            num_imported = WalletRpcWrapper(self.wallet).update_outputs(self.controller.outputs)
-            # TODO: 2024-07-24, handle num_imported == 0, probably inform user that no tx because 0 balance
+            num_imported = WalletRpcWrapper(self.wallet).import_outputs(self.controller.outputs)
+            if int(num_imported) == 0:  # we have a zero balance
+                if self.loading_screen:
+                    self.loading_screen.stop()
+                return Destination(NoOutputsImportedView, view_args={'network': self.network})
             if self.loading_screen:
                 self.loading_screen.stop()
             self.run_screen(LargeIconStatusScreen, title='Loaded Outputs', text=f"Loaded {num_imported} outputs for {self.seed.fingerprint} into wallet.", status_headline='Success!')

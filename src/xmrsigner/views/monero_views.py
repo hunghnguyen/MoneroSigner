@@ -5,11 +5,19 @@ from xmrsigner.controller import Controller
 from xmrsigner.gui.components import GUIConstants
 from xmrsigner.gui.components import FontAwesomeIconConstants, IconConstants
 from xmrsigner.models.monero_encoder import MoneroSignedTxQrEncoder
+from xmrsigner.helpers.monero import TxDescription, WalletRpcWrapper
 from xmrsigner.models.tx_parser import TxParser
 from xmrsigner.models.qr_type import QRType
 from xmrsigner.models.settings import SettingsConstants
 from xmrsigner.models.polyseed import PolyseedSeed
-from xmrsigner.gui.screens.monero_screens import TxOverviewScreen
+from xmrsigner.gui.screens.monero_screens import (
+    TxOverviewScreen,
+    TxMathScreen,
+    TxAddressDetailsScreen,
+    TxChangeDetailsScreen,
+    TxFinalizeScreen
+)
+from xmrsigner.views.wallet_views import LoadWalletView
 from xmrsigner.gui.screens.screen import (
     RET_CODE__BACK_BUTTON,
     ButtonListScreen,
@@ -95,65 +103,62 @@ class OverviewView(View):
 
     def __init__(self):
         super().__init__()
+        self.seed: Seed = self.controller.selected_seed
+        self.wallet: MoneroWallet = self.controller.get_wallet(self.seed.network)
 
         self.loading_screen = None
 
-        if not self.controller.tx_parser or self.controller.tx_parser.seed != self.controller.transaction_seed:
+        if not self.controller.tx_description:
             # Parsing could take a while. Run the loading screen while we wait.
             from xmrsigner.gui.screens.screen import LoadingScreenThread
             self.loading_screen = LoadingScreenThread(text="Parsing Transaction...")
             self.loading_screen.start()
 
-            try:
-                # TODO: 2024-07-23, if we have to setup something to parse
-                pass
-            except Exception as e:
-                self.loading_screen.stop()
-                raise e
-
-
     def run(self):
-        tx_parser = self.controller.tx_parser
-
-        change_data = tx_parser.change_data
-        """
-            change_data = [
-                {
-                    'address': 'bc1q............', 
-                    'amount': 397621401, 
-                    'fingerprint': ['22bde1a9', '73c5da0a'], 
-                    'derivation_path': ['m/48h/1h/0h/2h/1/0', 'm/48h/1h/0h/2h/1/0']
-                }, {},
-            ]
-        """
-        spend_amount = 0
-        change_amount = 0
-        fee_amount = 0
-        num_inputs = 0
-        num_change_outputs = 0
-        num_self_transfer_outputs = 0
-        destination_addresses = []
-
-        # Everything is set. Stop the loading screen
-        if self.loading_screen:
+        print(f'wallet: {self.wallet}')
+        print(f'seed: {self.seed}')
+        print(f'controller has seed: {self.controller.has_seed(self.seed)}')
+        if not self.wallet and self.seed and self.controller.has_seed(self.seed):
+            print('No wallet, but seed and controller has seed')
             self.loading_screen.stop()
-
+            return Destination(LoadWalletView, view_args={'seed_num': self.controller.get_seed_num(self.seed)})
+        if self.controller.get_wallet_seed(self.seed.network) != self.seed:
+            if self.loading_screen:
+                self.loading_screen.stop()
+                return Destination(LoadWalletView, view_args={'seed_num': self.controller.get_seed_num(self.seed)}) 
+        try:
+            txd: Optional[TxDescription] = WalletRpcWrapper(self.wallet).describe_transfer(self.controller.transaction)
+            # Everything is set. Stop the loading screen
+            if self.loading_screen:
+                self.loading_screen.stop()
+        except Exception as e:
+            self.loading_screen.stop()
+            raise e
+        self.loading_screen.stop()
+        if txd is None:
+            selected_menu_num = WarningScreen(
+                status_headline='No valid Transaction',
+                text="This Transaction seems to be invalid.",
+                button_data=["Continue"],
+            ).display()
+            return Destination(MainMenuView)
+        self.controller.tx_description = txd
         # Run the overview screen
         selected_menu_num = self.run_screen(
             TxOverviewScreen,
-            spend_amount=spend_amount,
-            change_amount=change_amount,
-            fee_amount=fee_amount,
-            num_inputs=num_inputs,
-            num_self_transfer_outputs=num_self_transfer_outputs,
-            num_change_outputs=num_change_outputs,
-            destination_addresses=destination_addresses
+            spend_amount=int(txd.amount_out),
+            change_amount=int(txd.change_amount),
+            fee_amount=int(txd.fee),
+            num_inputs=txd.inputs,
+            num_self_transfer_outputs=txd.outputs,
+            num_change_outputs=txd.change_outputs,
+            destination_addresses=[str(r.address) for r in txd.recipients]
         )
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             self.controller.transaction = None
             self.controller.selected_seed = None
             return Destination(BackStackView)
-        if change_amount == 0:
+        if txd.change_amount == 0:
             return Destination(NoChangeWarningView)
         return Destination(MathView)
 
@@ -186,199 +191,104 @@ class MathView(View):
         + change value
     """
     def run(self):
-        if not self.controller.transaction:  # pseudo variable for now
+        if not self.controller.transaction:
             # Should not be able to get here
             return Destination(MainMenuView)
-
-        input_amount = 0
-        num_inputs = 0
-        spend_amount = 0
-        num_recipients = 0
-        fee_amount = 0
-        change_amount = 0
-        destination_addresses = []
-        
+        txd: TxDescription = self.controller.tx_description
         selected_menu_num = self.run_screen(
             TxMathScreen,
-            input_amount=input_amount,
-            num_inputs=num_inputs,
-            spend_amount=spend_amount,
-            num_recipients=num_destinations,
-            fee_amount=fee_amount,
-            change_amount=change_amount,
+            input_amount=int(txd.amount_in),
+            num_inputs=1,
+            spend_amount=int(txd.amount_out),
+            num_recipients=len(txd.recipients),
+            fee_amount=int(txd.fee),
+            change_amount=int(txd.change_amount),
         )
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
-        if len(destination_addresses) > 0:
+        if len(txd.recipients) > 0:
             return Destination(TxAddressDetailsView, view_args={"address_num": 0})
         # This is a self-transfer
-        return Destination(XMRChangeDetailsView, view_args={"change_address_num": 0})
+        return Destination(TxChangeDetailsView, view_args={"change_address_num": 0})
 
 
-class DirectionsDetailsView(View):
+class TxAddressDetailsView(View):
     """
     Shows the recipient's address and amount they will receive
     """
-
-    def __init__(self, address_num):
+    def __init__(self, address_num: int):
         super().__init__()
-        self.address_num = address_num
-
+        self.address_num: int = address_num
 
     def run(self):
-        tx_parser: TxParser = self.controller.tx_parser
-
-        if not tx_parser:
+        if self.controller.tx_description is None:
             # Should not be able to get here
-            raise Exception("Routing error")
+            raise Exception('Routing error')
+        txd: TxDescription = self.controller.tx_description
+        title = 'Will Send'
+        if len(txd.recipients) > 1:
+            title += f' (#{self.address_num + 1})'
 
-        title = "Will Send"
-        if tx_parser.num_destinations > 1:
-            title += f" (#{self.address_num + 1})"
-
-        if self.address_num < tx_parser.num_destinations - 1:
-            button_data = ["Next Recipient"]
+        if self.address_num < len(txd.recipients) - 1:
+            button_data = ['Next Recipient']
         else:
-            button_data = ["Next"]
-
+            button_data = ['Next']
+        print(txd.recipients)
+        print(f'self.address_num: {self.address_num}')
+        print(txd.recipients[self.address_num])
         selected_menu_num = self.run_screen(
             TxAddressDetailsScreen,
             title=title,
             button_data=button_data,
-            address=tx_parser.destination_addresses[self.address_num],
-            amount=tx_parser.destination_amounts[self.address_num],
+            address=str(txd.recipients[self.address_num].address),
+            amount=str(txd.recipients[self.address_num].amount),
         )
-
+        
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
-        if self.address_num < len(tx_parser.destination_addresses) - 1:
+        if self.address_num < len(txd.recipients) - 1:
             # Show the next receive addr
             return Destination(TxAddressDetailsView, view_args={"address_num": self.address_num + 1})
-        elif tx_parser.change_amount > 0:
+        if txd.change_amount > 0 and False:  # TODO: 2024-07-27, decide what to do about
             # Move on to display change
             return Destination(TxChangeDetailsView, view_args={"change_address_num": 0})
-        else:
-            # There's no change output to verify. Move on to sign the Tx.
-            return Destination(FinalizeView)
+        # There's no change output to verify. Move on to sign the Tx.
+        return Destination(FinalizeView)
 
 
-class XMRChangeDetailsView(View):
-
+class TxChangeDetailsView(View):
 
     NEXT = "Next"
-    VERIFY_MULTISIG = "Verify Multisig Change"
 
     def __init__(self, change_address_num):
         super().__init__()
         self.change_address_num = change_address_num
-
+        loading_screen: Optional[LoadingScreenThread] = None
 
     def run(self):
-        tx_parser: TxParser = self.controller.tx_parser
-
-        if not tx_parser:
+        if not self.controller.tx_description:
             # Should not be able to get here
             return Destination(MainMenuView)
-
-        # Can we verify this change addr?
-        change_data = tx_parser.get_change_data(change_num=self.change_address_num)
-        """
-            change_data:
-            {
-                'address': 'bc1q............', 
-                'amount': 397621401, 
-                'fingerprint': ['22bde1a9', '73c5da0a'], 
-                'derivation_path': ['m/48h/1h/0h/2h/1/0', 'm/48h/1h/0h/2h/1/0']
-            }
-        """
-
-        # Single-sig verification is easy. We expect to find a single fingerprint
-        # and derivation path.
-        seed_fingerprint = self.controller.selected_seed.fingerprint
-
-        if seed_fingerprint not in change_data.get('fingerprint'):
-            # TODO:SEEDSIGNER: Something is wrong with this psbt(?). Reroute to warning?
-            return Destination(NotYetImplementedView)
-
-        i = change_data.get("fingerprint").index(seed_fingerprint)
-        derivation_path = change_data.get("derivation_path")[i]
-
-        # 'm/84h/1h/0h/1/0' would be a change addr while 'm/84h/1h/0h/0/0' is a self-receive
-        is_change_derivation_path = int(derivation_path.split("/")[-2]) == 1
-        derivation_path_addr_index = int(derivation_path.split("/")[-1])
-
-        if is_change_derivation_path:
-            title = "Your Change"
-            self.VERIFY_MULTISIG = "Verify Multisig Change"
-        else:
-            title = "Self-Transfer"
-            self.VERIFY_MULTISIG = "Verify Multisig Addr"
-        # if tx_parser.num_change_outputs > 1:
-        #     title += f" (#{self.change_address_num + 1})"
-
-        is_change_addr_verified = False
-        if tx_parser.is_multisig:
-            # if the known-good multisig descriptor is already onboard:
-            if self.controller.multisig_wallet_descriptor:
-                is_change_addr_verified = tx_parser.verify_multisig_output(self.controller.multisig_wallet_descriptor, change_num=self.change_address_num)
-                button_data = [self.NEXT]
-
+        txd: TxDescription = self.controller.tx_description
+        title = "Self-Transfer"
+        try:
+            if is_change_derivation_path:
+                loading_screen_text = "Verifying Change..."
             else:
-                # Have the Screen offer to load in the multisig descriptor.            
-                button_data = [self.VERIFY_MULTISIG, self.NEXT]
-
-        else:
-            # Single sig
-            try:
-                if is_change_derivation_path:
-                    loading_screen_text = "Verifying Change..."
-                else:
-                    loading_screen_text = "Verifying Self-Transfer..."
-                loading_screen = LoadingScreenThread(text=loading_screen_text)
-                loading_screen.start()
-
-                # convert change address to script pubkey to get script type
-                # pubkey = script.address_to_scriptpubkey(change_data["address"])  # TODO: 2024-06-14, removed to get rid of embit.script
-                script_type = pubkey.script_type()
-                
-                # extract derivation path to get wallet and change derivation
-                change_path = '/'.join(derivation_path.split("/")[-2:])
-                wallet_path = '/'.join(derivation_path.split("/")[:-2])
-                
-                # xpub = self.controller.selected_seed.get_xpub(
-                #     wallet_path=wallet_path,
-                #    network=self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]  # TODO: 2024-06-26, solve multi network issue
-                #)
-                
-                # take script type and call script method to generate address from seed / derivation
-                # xpub_key = xpub.derive(change_path).key
-                network = self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]  # TODO: 2024-06-26, solve multi network issue
-                # scriptcall = getattr(script, script_type)  # TODO: 2024-06-14, removed to get rid of embit.script
-                if script_type == "p2sh":
-                    # single sig only so p2sh is always p2sh-p2wpkh
-                    # calc_address = script.p2sh(script.p2wpkh(xpub_key)).address(  # TODO: 2024-06-14, removed to get rid of embit.script
-                    #    network=NETWORKS[SettingsConstants.network_name(network)]
-                    #)
-                    pass
-                else:
-                    # single sig so this handles p2wpkh and p2wpkh (and p2tr in the future)
-                    # calc_address = scriptcall(xpub_key).address(  # TODO: 2024-06-14, removed to get rid of embit.network.NETWORKS
-                    #    network=NETWORKS[SettingsConstants.network_name(network)]
-                    #)
-                    pass
-
-                if change_data["address"] == calc_address:
-                    is_change_addr_verified = True
-                    button_data = [self.NEXT]
-
-            finally:
-                loading_screen.stop()
-
-        if is_change_addr_verified == False and (not tx_parser.is_multisig or self.controller.multisig_wallet_descriptor is not None):
+                loading_screen_text = "Verifying Self-Transfer..."
+            self.loading_screen = LoadingScreenThread(text=loading_screen_text)
+            self.loading_screen.start()
+            network = self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]  # TODO: 2024-06-26, solve multi network issue
+            if txd.address == calc_address or True:  # TODO: 2024-07-27, decide to check or remove
+                is_change_addr_verified = True
+                button_data = [self.NEXT]
+        finally:
+            if self.loading_screen:
+                self.loading_screen.stop()
+        if is_change_addr_verified == False:
             return Destination(AddressVerificationFailedView, view_args=dict(is_change=is_change_derivation_path, is_multisig=tx_parser.is_multisig), clear_history=True)
-
         selected_menu_num = self.run_screen(
-            PSXMRhangeDetailsScreen,
+            TxChangeDetailsScreen,
             title=title,
             button_data=button_data,
             address=change_data.get("address"),
@@ -396,7 +306,7 @@ class XMRChangeDetailsView(View):
 
         elif button_data[selected_menu_num] == self.NEXT:
             if self.change_address_num < tx_parser.num_change_outputs - 1:
-                return Destination(XMRChangeDetailsView, view_args={"change_address_num": self.change_address_num + 1})
+                return Destination(TxChangeDetailsView, view_args={"change_address_num": self.change_address_num + 1})
             else:
                 # There's no more change to verify. Move on to sign the Tx.
                 return Destination(FinalizeView)
@@ -443,40 +353,54 @@ class FinalizeView(View):
     APPROVE_TX = "Approve Transaction"
 
     def run(self):
-        tx_parser: TxParser = self.controller.tx_parser
-        transaction: Transaction = self.controller.transaction
-
-        if not tx_parser:
+        if not self.controller.tx_description:
             # Should not be able to get here
             return Destination(MainMenuView)
+
+        tx_description: TxDescription = self.controller.tx_description
+        transaction: Transaction = self.controller.transaction
         selected_menu_num = self.run_screen(
             TxFinalizeScreen,
-            button_data=[self.APPROVE_Tx]
+            button_data=[self.APPROVE_TX]
         )
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
-            # Sign Tx
-            sig_cnt = TxParser.sig_count(transaction)
-            transaction.sign_with(tx_parser.root)
-            trimmed_psbt = TxParser.trim(transaction)
-
-            if sig_cnt == TxParser.sig_count(trimmed_psbt):
-                # Signing failed / didn't do anything
-                return Destination(SigningErrorView)
-            self.controller.transaction = trimmed_psbt
-            return Destination(SignedQRDisplayView)
+        return Destination(SignedQRDisplayView)
 
 
 class SignedQRDisplayView(View):
+
+    def __init__(self):
+        super().__init__()
+        self.seed: Seed = self.controller.selected_seed
+        self.wallet: MoneroWallet = self.controller.get_wallet(self.seed.network)
+
+        self.loading_screen = None
+
+        if not self.controller.transaction:
+            return Destination(MainMenuView)
+        # Parsing could take a while. Run the loading screen while we wait.
+        from xmrsigner.gui.screens.screen import LoadingScreenThread
+        self.loading_screen = LoadingScreenThread(text=f"Sign Tx for seed {self.seed.fingerprint}...")
+        self.loading_screen.start()
     
     def run(self):
-        signed_tx: str = ''  # TODO: the actual hex encoded signed transaction from rpc
-        qr_encoder = MoneroSignedTxQrEncoder(
-            signed_tx,
-            self.settings.get_value(SettingsConstants.SETTING__QR_DENSITY)
-        )
+        try:
+            signed_tx: str = WalletRpcWrapper(self.wallet).sign_transfer(self.controller.transaction)
+            if not signed_tx:
+                raise Exception('No valid transaction')
+            qr_encoder = MoneroSignedTxQrEncoder(
+                signed_tx,
+                self.settings.get_value(SettingsConstants.SETTING__QR_DENSITY)
+            )
+        except Exception as e:
+            if self.loading_screen:
+                self.loading_screen.stop()
+            print(f'SignedQRDisplayView.run(): {e}')
+            return Destination(SigningErrorView)
+        if self.loading_screen:
+            self.loading_screen.stop()
         self.run_screen(QRDisplayScreen, qr_encoder=qr_encoder)
- 
         # We're done with this Tx. Route back to MainMenuView which always
         #   clears all ephemeral data (except in-memory seeds).
         return Destination(MainMenuView, clear_history=True)
@@ -487,11 +411,10 @@ class SigningErrorView(View):
     SELECT_DIFF_SEED = "Select Diff Seed"
 
     def run(self):
-        tx_parser: TxParser = self.controller.tx_parser
-        if not tx_parser:
+        if not self.controller.tx_description:
             # Should not be able to get here
             return Destination(MainMenuView)
-
+        txd: TxDescription = self.controller.tx_description
         # Just a WarningScreen here; only use DireWarningScreen for true security risks.
         selected_menu_num = self.run_screen(
             WarningScreen,
@@ -502,6 +425,7 @@ class SigningErrorView(View):
             button_data=[self.SELECT_DIFF_SEED],
         )
 
+        # TODO: 2024-07-27, code missing here!
         if selected_menu_num == 0:
             # clear seed selected for psbt signing since it did not add a valid signature
             self.controller.selected_seed = None

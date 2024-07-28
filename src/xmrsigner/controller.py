@@ -13,11 +13,11 @@ from xmrsigner.views.view import Destination, NotYetImplementedView, UnhandledEx
 
 from xmrsigner.helpers.network import Network
 from xmrsigner.helpers.wallet import MoneroWalletRPCManager
+from xmrsigner.helpers.monero import TxDescription
 from xmrsigner.models.seed import Seed
 from xmrsigner.models.seed_storage import SeedStorage
 from xmrsigner.models.settings import Settings
 from xmrsigner.models.singleton import Singleton
-from xmrsigner.models.tx_parser import TxParser
 from xmrsigner.views.view import RemoveMicroSDWarningView
 
 from monero.wallet import Wallet as MoneroWallet
@@ -72,7 +72,7 @@ class Controller(Singleton):
     selected_seed: Optional[Seed] = None
     transaction: Optional[bytes] = None
     outputs: Optional[bytes] = None
-    tx_parser: TxParser = None
+    tx_description: TxDescription = None
 
     _wallet_rpc_manager: Optional[MoneroWalletRPCManager] = None
     wallets: Dict[Network, MoneroWallet] = {}
@@ -156,7 +156,7 @@ class Controller(Singleton):
         controller.outputs = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
         controller.transaction = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
         controller.selected_seed = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
-        controller.tx_parser = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
+        controller.tx_description = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
 
         # Configure the Renderer
         Renderer.configure_instance()
@@ -305,7 +305,7 @@ class Controller(Singleton):
                     self.selected_seed = None
                     self.outputs = None
                     self.transaction = None
-                    self.tx_parser = None
+                    self.tx_description = None
                 
                 print(f'back_stack: {self.back_stack}')
 

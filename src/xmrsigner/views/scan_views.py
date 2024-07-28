@@ -101,12 +101,11 @@ class ScanView(View):
                     self.controller.outputs = self.decoder.get_output()
                     from xmrsigner.views.monero_views import MoneroSelectSeedView
                     return Destination(MoneroSelectSeedView, view_args={'flow': Controller.FLOW__SYNC}, skip_current_view=True)
-                if self.decode.qr_type == QRType.XMR_TX_UNSIGNED_UR:
+                if self.decoder.qr_type == QRType.XMR_TX_UNSIGNED_UR:
                     from xmrsigner.views.monero_views import MoneroSelectSeedView
                     tx = self.decoder.get_tx()
                     self.controller.transaction = tx
-                    self.controller.tx_parser = None
-                    return Destination(MoneroSelectSeedView, skip_current_view=True)
+                    return Destination(MoneroSelectSeedView, view_args={'flow': Controller.FLOW__TX}, skip_current_view=True)
                 raise Exception('Not Implemented Yet!')
             if self.decoder.is_settings:
                 data = self.decoder.get_settings_data()
@@ -146,7 +145,7 @@ class ScanUR2View(ScanView):
 
     @property
     def is_valid_qr_type(self):
-        return self.decoder.is_psbt
+        return self.decoder.is_ur
 
 
 class ScanOutputsView(ScanUR2View):  # TODO: 2024-07-23, implement

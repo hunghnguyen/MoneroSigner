@@ -18,6 +18,12 @@ from xmrsigner.helpers.network import Network
 from hashlib import sha256
 
 
+WALLET_DIR='/tmp'
+WALLET_DAEMON_PATH = '/usr/bin/monero-wallet-rpc'
+PIDFILE_BASE_PATH = '/tmp/monero-wallet-rpc'
+WALLET_RPC_PORT_OFFSET = 0
+
+
 class WALLET_PORT(Enum):
     MAIN = 18082
     TEST = 28082
@@ -27,21 +33,16 @@ class WALLET_PORT(Enum):
     def forNetwork(cls, net: Union[str, Network]) -> int:
         net = Network.ensure(net)
         if net == Network.MAIN:
-            return cls.MAIN.value
+            return cls.MAIN.value + WALLET_RPC_PORT_OFFSET
         elif net == Network.TEST:
-            return cls.TEST.value
+            return cls.TEST.value + WALLET_RPC_PORT_OFFSET
         elif net == Network.STAGE:
-            return cls.STAGE.value
+            return cls.STAGE.value + WALLET_RPC_PORT_OFFSET
         else:
             raise ValueError("Invalid network type")
 
         def __int__(self) -> int:
             return self.value
-
-
-WALLET_DIR='/tmp'
-WALLET_DAEMON_PATH = '/usr/bin/monero-wallet-rpc'
-PIDFILE_BASE_PATH = '/tmp/monero-wallet-rpc'
 
 
 class MoneroWalletRPCManager:
@@ -194,9 +195,11 @@ class MoneroWalletRPCManager:
         return False
 
     def wallet_exists(self, wallet_name: str) -> bool:
+        print(f'check if wallet {wallet_name} exists on path: {Path(WALLET_DIR, wallet_name)}...')
         return Path(WALLET_DIR, wallet_name).exists() and Path(WALLET_DIR, f'{wallet_name}.key')
 
     def purge_wallet(self, wallet_name: str) -> bool:
+        print(f'purge wallet {wallet_name} on path: {Path(WALLET_DIR, wallet_name)}...', end='', flush=True)
         wallet_path: Path = Path(WALLET_DIR, wallet_name)
         wallet_key_path: Path = Path(WALLET_DIR, f'{wallet_name}.key')
         try:
@@ -204,11 +207,15 @@ class MoneroWalletRPCManager:
                 remove(wallet_path)
             if wallet_key_path.exists():
                 remove(wallet_key_path)
+            print('done')
             return True
         except FileNotFoundError:  # should never happen
-            return False
+            pass
+            # return False
         except OSError:  # should also not happen that path is not a file
-            return False
+            pass
+            # return False
+        print('failed')
         raise Exception('Something unexpected happend in MoneroWalletRPCManager.purge_wallet()')  # should never reach here
 
     def load_wallet_from_seed(self, seed: Seed) -> bool:

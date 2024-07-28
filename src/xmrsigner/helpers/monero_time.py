@@ -1,4 +1,4 @@
-# TODO: move this to monero-python
+# TODO: move this to monero-python, network related part should maybe move to .network?
 """
 Based on:
 https://github.com/monero-project/monero-gui/blob/master/js/Wizard.js#L134

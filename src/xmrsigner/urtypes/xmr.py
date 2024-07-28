@@ -20,14 +20,14 @@ class XmrKeyImage(Bytes):
         return XMR_KEY_IMAGE
 
 
-class XmrTxUnsigned(bytes):
+class XmrTxUnsigned(Bytes):
 
     @classmethod
     def register_type(cls):
         return XMR_TX_UNSIGNED
 
 
-class XmrTxSigned(bytes):
+class XmrTxSigned(Bytes):
 
     @classmethod
     def register_type(cls):

@@ -1,5 +1,7 @@
 from xmrsigner.models.seed import Seed, InvalidSeedException, SeedType
 from xmrsigner.models.settings_definition import SettingsConstants
+from xmrsigner.helpers.monero_time import MoneroTime
+from xmrsigner.helpers.network import Network
 from monero.const import NET_MAIN
 from polyseed import Polyseed
 from polyseed.lang import Language
@@ -65,7 +67,9 @@ class PolyseedSeed(Seed):
                 ps.crypt(self.passphrase)
             self.seed_bytes = ps.keygen()
             self.address = str(MoneroSeed(hexlify(self.seed_bytes).decode()).public_address())
-            self.height = ps.get_birthday()
+            net = Network.fromAddress(self.address).value
+            print(f'net: {net}')
+            self.height = MoneroTime(net).getBlockchainHeight(ps.get_birthday())
         except Exception as e:
             raise InvalidSeedException(repr(e))
     
