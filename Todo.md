@@ -3,8 +3,8 @@
 - [x] monero-python for monero seeds
 - [.] [monero-python](https://github.com/DiosDelRayo/monero-python/Todo.md): monero seed encryption/decryption * not part of the CCS, delayed how it seems a rabbit hole (>48h work)
 - [x] polyseed-python for Polyseeds
-- [ ] implementation for monero signing capability
-- [ ] is UR already provided by SeedSigner, or need to switch?
+- [x] implementation for monero signing capability
+- [x] UR
 - [ ] check what to do about [mnemonic_generation](src/seedsigner/helpers/mnemonic_generation.py)
 ## Start
 - [x] check partner logos, what to do about?
