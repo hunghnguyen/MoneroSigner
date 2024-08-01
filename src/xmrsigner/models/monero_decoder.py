@@ -1,7 +1,9 @@
 from xmrsigner.models.base_decoder import BaseSingleFrameQrDecoder
 from xmrsigner.models.qr_type import QRType
+from xmrsigner.models.base_decoder import DecodeQRStatus
 from monero.address import address as monero_address
 from monero.address import Address
+from monero.backends.offline import OfflineWallet
 
 from urllib.parse import urlparse, parse_qs
 from re import search
@@ -95,6 +97,12 @@ class MoneroWalletQrDecoder(BaseSingleFrameQrDecoder):
             except:
                 pass
         return DecodeQRStatus.INVALID
+
+    @property
+    def seed(self) -> Optional[List[str]]:
+        if self.is_view_only:
+            return None
+        return OfflineWallet(self.address, self.view_key, self.spend_key).seed().phrase.split()
 
     @property
     def is_valid(self):

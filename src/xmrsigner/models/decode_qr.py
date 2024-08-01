@@ -138,6 +138,8 @@ class DecodeQR:
     def get_seed_phrase(self):
         if self.is_seed:
             return self.decoder.get_seed_phrase()
+        if self.is_wallet:
+            return self.decoder.seed
 
     def get_settings_data(self):
         if self.is_settings:
@@ -196,6 +198,15 @@ class DecodeQR:
             QRType.SEED__MNEMONIC, 
             QRType.SEED__FOUR_LETTER_MNEMONIC
         ]
+
+    @property
+    def is_wallet(self):
+        print(f'DecodeQR.is_seed(): qr_type: {self.qr_type}')
+        return self.qr_type == QRType.MONERO_WALLET
+
+    @property
+    def is_view_only_wallet(self):
+        return self.is_wallet and self.decoder.is_view_only
 
     @property
     def is_json(self):

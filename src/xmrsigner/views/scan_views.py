@@ -77,7 +77,7 @@ class ScanView(View):
                     next_destination=Destination(BackStackView, skip_current_view=True),
                 ))
             print(f"is seed? {'yes' if self.decoder.is_seed else 'no'}")
-            if self.decoder.is_seed:
+            if self.decoder.is_seed or (self.decoder.is_wallet and not self.decoder.is_view_only_wallet):
                 print('Yeah, seed here!')
                 seed_mnemonic: Optional[List] = self.decoder.get_seed_phrase()
                 if not seed_mnemonic:
