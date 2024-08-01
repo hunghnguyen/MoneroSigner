@@ -522,7 +522,7 @@ class SeedOptionsView(View):
     """
 
     SCAN = ('Scan for Seed', IconConstants.SCAN)
-    EXPORT_KEY_IMAGES = ('Export Key Imags', IconConstants.QRCODE)
+    EXPORT_KEY_IMAGES = ('Export Key Images', IconConstants.QRCODE)
     VERIFY_ADDRESS = 'Verify Addr'
     EXPLORER = 'Address Explorer'
     SIGN_MESSAGE = 'Sign Message'
