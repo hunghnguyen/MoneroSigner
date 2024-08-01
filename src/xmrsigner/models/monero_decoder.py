@@ -3,6 +3,7 @@ from xmrsigner.models.qr_type import QRType
 from xmrsigner.models.base_decoder import DecodeQRStatus
 from monero.address import address as monero_address
 from monero.address import Address
+from monero.seed import Seed
 from monero.backends.offline import OfflineWallet
 
 from urllib.parse import urlparse, parse_qs
@@ -73,12 +74,24 @@ class MoneroWalletQrDecoder(BaseSingleFrameQrDecoder):
     def parse_monero_wallet_uri(self, uri: str):
         parsed_uri = urlparse(uri)
         query_params = parse_qs(parsed_uri.query)
-
-        address = parsed_uri.path.split(':')[-1]
-        view_key = query_params.get('view_key', [''])[0]
-        spend_key = query_params.get('spend_key', [''])[0]
+        if 'view_key' in query_params:
+            address = parsed_uri.path.split(':')[-1]
+            view_key = query_params.get('view_key', [''])[0]
+            spend_key = query_params.get('spend_key', [''])[0]
+            height = query_params.get('height', [''])[0]
+            return address, view_key, spend_key, height
+        mnemonic_seed: Optional[str] = None
+        if 'mnemonic_seed' in query_params:
+            mnemonic_seed = query_params.get('mnemonic_seed', [''])[0]
+        elif 'seed' in query_params:
+            mnemonic_seed = query_params.get('seed', [''])[0]
+        if mnemonic_seed is None or mnemonic_seed == '':
+            raise Exception('No valid mnemonic!')
+        seed = Seed(mnemonic_seed)
+        address = seed.public_address()
+        view_key = seed.secret_view_key()
+        spend_key = seed.secret_spend_key()
         height = query_params.get('height', [''])[0]
-
         return address, view_key, spend_key, height
 
     def add(self, segment, qr_type=QRType.MONERO_WALLET):
