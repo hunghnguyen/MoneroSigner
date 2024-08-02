@@ -18,3 +18,7 @@ minor:
 major:
 	tools/increment_version.py --major
 	tools/tag_version.py
+
+image:
+	@echo Build PiOS image with XmrSigner for Development...
+	tools/create_image_bookworm.sh
