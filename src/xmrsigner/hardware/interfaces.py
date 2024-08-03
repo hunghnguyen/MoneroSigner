@@ -1,23 +1,15 @@
-from numpy import array as NumpyArray
 from PIL import Image
-from xmrsigner.hardware.interfaces import CameraInterface
+from numpy import array as NumpyArray
 from typing import Tuple, Union
-try:
-    import picamera2
-    from xmrsigner.hardware.picamera2 import Camera as CameraImplementation
-    print('=> backend: picamera2')
-except Exception:
-    import picamera
-    from xmrsigner.hardware.picamera2 import Camera as CameraImplementation
-    print('=> backend: picamera')
+
+from xmrsigner.models.singleton import Singleton
 
 
-class Camera(CameraInterface):
+class CameraInterface(Singleton):
 
     @classmethod
-    def get_instance(cls) -> 'Camera':
-        print('=>get camera<=')
-		return CameraImplementation.get_instance()
+    def get_instance(cls) -> 'CameraInterface':
+		pass
 
     def start_video_stream_mode(
 		self,
@@ -41,3 +33,24 @@ class Camera(CameraInterface):
 
     def stop_single_frame_mode(self) -> None:
 		pass
+
+
+class PiVideoStreamInterface:
+
+    def __init__(
+        self,
+        resolution: Tuple[int, int] = (320, 240),
+        framerate: int = 32,
+        format: str = 'bgr',
+        **kwargs
+    ):
+        pass
+
+    def update(self) -> None:
+        pass
+
+    def read(self) -> NumpyArray:
+        pass
+
+    def stop(self) -> None:
+        pass
