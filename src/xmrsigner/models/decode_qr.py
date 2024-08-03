@@ -1,4 +1,5 @@
 from re import search, IGNORECASE
+from numpy import array as NumpyArray
 from logging import getLogger
 from binascii import hexlify
 from typing import List, Dict, Optional, Union
@@ -221,7 +222,7 @@ class DecodeQR:
         return self.qr_type == QRType.SETTINGS
 
     @staticmethod
-    def extract_qr_data(image, is_binary:bool = False) -> str:
+    def extract_qr_data(image: NumpyArray, is_binary:bool = False) -> str:
         if image is None:
             return None
         barcodes = pyzbar.decode(image, symbols=[ZBarSymbol.QRCODE], binary=is_binary)
