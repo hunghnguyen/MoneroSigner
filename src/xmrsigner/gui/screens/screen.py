@@ -1,8 +1,10 @@
+from xmrsigner.gui.button_data import ButtonData
 from time import sleep, time_ns, time
 from dataclasses import dataclass
 from PIL import Image, ImageDraw, ImageColor
-from typing import Any, List, Tuple
-from ..components import (
+from typing import Any, List, Tuple, Union
+
+from xmrsigner.gui.components import (
     GUIConstants,
     BaseComponent,
     Button,
@@ -17,12 +19,9 @@ from ..components import (
 )
 from xmrsigner.gui.keyboard import Keyboard, TextEntryDisplay
 from xmrsigner.gui.renderer import Renderer
-
 from xmrsigner.models.threads import BaseThread, ThreadsafeCounter
 from xmrsigner.models.base_encoder import BaseQrEncoder
 from xmrsigner.models.settings import Settings, SettingsConstants
-
-
 from xmrsigner.hardware.buttons import HardwareButtonsConstants, HardwareButtons
 
 
@@ -81,43 +80,40 @@ class BaseScreen(BaseComponent):
 
     def _render(self):
         self.clear_screen()
-
-        # TODO:SEEDSIGNER: Check self.scroll_y and only render visible elements
         for component in self.components:
             component.render()
-
         for img, coords in self.paste_images:
             self.canvas.paste(img, coords)
 
     def _run_callback(self):
         """
-            Optional implementation step that's called during each _run() loop.
+        Optional implementation step that's called during each _run() loop.
 
-            Loop will continue if it returns None.
-            If it returns a value, the Screen will exit and relay that return value to
-            its parent View.
+        Loop will continue if it returns None.
+        If it returns a value, the Screen will exit and relay that return value to
+        its parent View.
         """
         pass
 
     def _run(self):
         """
-            Screen can run on its own until it returns a final exit input from the user.
+        Screen can run on its own until it returns a final exit input from the user.
 
-            For example: A basic menu screen where the user can key up and down. The
-            Screen can handle the UI updates to light up the currently selected menu item
-            on its own. Only when the user clicks to make a selection would run() exit
-            and returns the selected option.
+        For example: A basic menu screen where the user can key up and down. The
+        Screen can handle the UI updates to light up the currently selected menu item
+        on its own. Only when the user clicks to make a selection would run() exit
+        and returns the selected option.
 
-            But an alternate use case returns immediately after each user input so the
-            View can update its controlling logic accordingly (e.g. as the user joysticks
-            over different letters in the keyboard UI, we need to make matching changes
-            to the list of mnemonic seed words that match the new letter).
+        But an alternate use case returns immediately after each user input so the
+        View can update its controlling logic accordingly (e.g. as the user joysticks
+        over different letters in the keyboard UI, we need to make matching changes
+        to the list of mnemonic seed words that match the new letter).
 
-            In this case, it would be called repeatedly in a loop:
-            * run() and wait for it to handle user input
-            * run() exits and returns the user input (e.g. KEY_UP)
-            * View updates its state of the world accordingly
-            * loop and call run() again
+        In this case, it would be called repeatedly in a loop:
+        * run() and wait for it to handle user input
+        * run() exits and returns the user input (e.g. KEY_UP)
+        * View updates its state of the world accordingly
+        * loop and call run() again
         """
         raise Exception("Must implement in a child class")
 
@@ -338,59 +334,34 @@ class ButtonListScreen(BaseTopNavScreen):
             self.has_scroll_arrows = True
 
         self.buttons: List[Button] = []
-        for i, button_label in enumerate(self.button_data):
-            icon_name = None
-            icon_color = None
-            right_icon_name = None
-            button_label_color = None
+        for i, button_data in enumerate(self.button_data):
+            button_data = ButtonData.ensure(button_data)
+            button_data.position = i
 
-            # TODO: 2024-08-01, Define an actual class for button_data
-            if type(button_label) == tuple:
-                if len(button_label) == 2:
-                    (button_label, icon_name) = button_label
-                    icon_color = GUIConstants.BUTTON_FONT_COLOR
-
-                elif len(button_label) == 3:
-                    (button_label, icon_name, icon_color) = button_label
-
-                elif len(button_label) == 4:
-                    (button_label, icon_name, icon_color, button_label_color) = button_label
-
-                elif len(button_label) == 5:
-                    (button_label, icon_name, icon_color, button_label_color, right_icon_name) = button_label
-
-            button_kwargs = dict(
-                text=button_label,
-                icon_name=icon_name,
-                icon_color=icon_color if icon_color else GUIConstants.BUTTON_FONT_COLOR,
-                is_icon_inline=True,
-                right_icon_name=right_icon_name,
-                screen_x=GUIConstants.EDGE_PADDING,
-                screen_y=button_list_y + i * (button_height + GUIConstants.LIST_ITEM_PADDING),
-                scroll_y=self.scroll_y_initial_offset if self.scroll_y_initial_offset is not None else 0,
-                width=self.canvas_width - (2 * GUIConstants.EDGE_PADDING),
-                height=button_height,
-                is_text_centered=self.is_button_text_centered,
-                font_name=self.button_font_name,
-                font_size=self.button_font_size,
-                font_color=button_label_color if button_label_color else GUIConstants.BUTTON_FONT_COLOR,
-                selected_color=self.button_selected_color
+            button_kwargs = button_data.button_kwargs(
+                button_list_y,
+                button_height,
+                self.scroll_y_initial_offset,
+                self.canvas_width,
+                self.is_button_text_centered,
+                self.button_font_name,
+                self.button_font_size,
+                self.button_selected_color,
+                self.checked_buttons and i in self.checked_buttons
             )
-            if self.checked_buttons and i in self.checked_buttons:
-                button_kwargs["is_checked"] = True
             button = self.Button_cls(**button_kwargs)
             self.buttons.append(button)
         
         if self.has_scroll_arrows:
             self.arrow_half_width = 10
             self.cur_scroll_y = self.scroll_y_initial_offset if self.scroll_y_initial_offset is not None else 0
-            self.up_arrow_img = Image.new("RGBA", size=(2 * self.arrow_half_width, 8), color="black")
+            self.up_arrow_img = Image.new('RGBA', size=(2 * self.arrow_half_width, 8), color=GUIConstants.ARROW_COLOR)
             self.up_arrow_img_y = self.top_nav.height - 12
             arrow_draw = ImageDraw.Draw(self.up_arrow_img)
             arrow_draw.line((self.arrow_half_width, 1, 0, 7), fill=GUIConstants.BUTTON_FONT_COLOR)
             arrow_draw.line((self.arrow_half_width, 1, 2 * self.arrow_half_width, 7), fill=GUIConstants.BUTTON_FONT_COLOR)
 
-            self.down_arrow_img = Image.new("RGBA", size=(2 * self.arrow_half_width, 8), color="black")
+            self.down_arrow_img = Image.new('RGBA', size=(2 * self.arrow_half_width, 8), color=GUIConstants.ARROW_COLOR)
             self.down_arrow_img_y = self.canvas_height - 16 + 2
             arrow_draw = ImageDraw.Draw(self.down_arrow_img)
             center_x = int(self.canvas_width / 2)
@@ -571,7 +542,7 @@ class SelectNetworkScreen(ButtonListScreen):
 
 @dataclass
 class LargeButtonScreen(BaseTopNavScreen):
-    button_data: list = None                  # list can be a mix of str or tuple(label: str, icon_name: str)
+    button_data: List[Union[str, Tuple]] = None  # List can be a mix of str or tuple(label: str, icon_name: str)
     button_font_name: str = GUIConstants.BUTTON_FONT_NAME
     button_font_size: int = 20
     button_selected_color: str = GUIConstants.ACCENT_COLOR
@@ -579,32 +550,26 @@ class LargeButtonScreen(BaseTopNavScreen):
 
     def __post_init__(self):
         super().__post_init__()
-
         if len(self.button_data) not in [2, 4]:
             raise Exception("LargeButtonScreen only supports 2 or 4 buttons")
-
         # Maximize 2-across width; calc height with a 4:3 aspect ratio
         button_width = int((self.canvas_width - (2 * GUIConstants.EDGE_PADDING) - GUIConstants.COMPONENT_PADDING) / 2)
         button_height = int(button_width * (3.0 / 4.0))
-
         # Vertically center the buttons
         if len(self.button_data) == 2:
             button_start_y = self.top_nav.height + int((self.canvas_height - (self.top_nav.height + GUIConstants.COMPONENT_PADDING) - button_height) / 2)
         else:
             button_start_y = self.top_nav.height + int((self.canvas_height - (self.top_nav.height + GUIConstants.COMPONENT_PADDING) - (2 * button_height) - GUIConstants.COMPONENT_PADDING) / 2)
-
         self.buttons = []
         for i, button_label in enumerate(self.button_data):
             if type(button_label) == tuple:
                 (button_label, icon_name) = button_label
             else:
                 icon_name = None
-
             if i % 2 == 0:
                 button_start_x = GUIConstants.EDGE_PADDING
             else:
                 button_start_x = GUIConstants.EDGE_PADDING + button_width + GUIConstants.COMPONENT_PADDING
-
             button_args = {
                 "text": button_label,
                 "screen_x": button_start_x,
@@ -622,13 +587,10 @@ class LargeButtonScreen(BaseTopNavScreen):
                 button = LargeIconButton(**button_args)
             else:
                 button = Button(**button_args)
-
             self.buttons.append(button)
             self.components.append(button)
-
             if i == 1:
                 button_start_y += button_height + GUIConstants.COMPONENT_PADDING
-
         self.buttons[self.selected_button].is_selected = True
 
     def _run(self):
@@ -995,13 +957,12 @@ class WarningEdgesMixin:
 class WarningScreen(WarningEdgesMixin, LargeIconStatusScreen):
     title: str = "Caution"
     status_icon_name: str = IconConstants.WARNING
-    status_color: str = "yellow"  # TODO: 2024-06-20, WTF hardcoded, substitute with constant
+    status_color: str = GUIConstants.WARNING_COLOR
     status_headline: str = "Privacy Leak!"     # The colored text under the alert icon
 
     def __post_init__(self):
         if not self.button_data:
             self.button_data = ["I Understand"]
-
         super().__post_init__()
 
 
