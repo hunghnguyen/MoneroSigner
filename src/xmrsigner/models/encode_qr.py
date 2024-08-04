@@ -1,5 +1,4 @@
 from monero.wallet import Wallet
-
 from binascii import b2a_base64, hexlify
 from dataclasses import dataclass
 from typing import List, Optional
@@ -8,10 +7,8 @@ from xmrsigner.helpers.ur2.ur import UR
 from xmrsigner.helpers.qr import QR
 from xmrsigner.models.qr_type import QRType
 from xmrsigner.models.seed import Seed
-
 from xmrsigner.models.base_encoder import BaseQrEncoder
 from xmrsigner.models.seed_encoder import SeedQrEncoder, CompactSeedQrEncoder
-
 from xmrsigner.urtypes.xmr import XmrKeyImage, XmrTxSigned
 from xmrsigner.models.settings import SettingsConstants
 
@@ -19,9 +16,6 @@ from xmrsigner.models.settings import SettingsConstants
 
 @dataclass
 class EncodeQR(BaseQrEncoder):
-    # TODO: Refactor so that this is a base class with implementation classes for each
-    # QR type. No reason exterior code can't directly instantiate the encoder it needs.
-
     # Dataclass input vars on __init__()
     seed_phrase: List[str] = None
     passphrase: Optional[str] = None
@@ -62,7 +56,7 @@ class EncodeQR(BaseQrEncoder):
                                 height=self.height
                             )
         # Misc formats
-        elif self.qr_type == QRType.MONERO_ADDRESS:  # TODO: 2024-06-20, do we need that? For what purpose? Added with rebase from main to 0.7.0 from seedsigner
+        elif self.qr_type == QRType.MONERO_ADDRESS:
             self.encoder = MoneroAddressEncoder(address=self.monero_address)
         else:
             raise Exception('QR Type not supported')
@@ -80,7 +74,6 @@ class EncodeQR(BaseQrEncoder):
         else:
             return self.qr.qrimage_io(part, width, height, border, background_color=background_color)
 
-    # TODO: Make these properties?
     @property
     def is_complete(self):
         return self.encoder.is_complete

@@ -93,7 +93,6 @@ class DecodeQR:
         # Convert to string data
         # Should always be bytes, but the test suite has some manual datasets that
         # are strings.
-        # TODO:SEEDSIGNER: Convert the test suite rather than handle here?
         qr_str = data.decode() if type(data) == bytes else data
         if self.qr_type == QRType.SEED__SEEDQR:
             rt = self.decoder.add(data, QRType.SEED__SEEDQR)
@@ -155,7 +154,6 @@ class DecodeQR:
         This provides a single access point for external code to retrieve the QR data,
         regardless of which decoder is actually instantiated.
         """
-        # TODO:SEEDSIGNER: Implement this approach across all decoders, COMMENT: probably unnecesary with a refactoring
         return self.decoder.get_qr_data()
 
     def get_address_type(self):
@@ -258,7 +256,7 @@ class DecodeQR:
                 return QRType.MONERO_WALLET
             # Seed
             print(f'search: ({len(s)}){s}')
-            if (decimals := search(r'(\d{52,100})', s)) and len(decimals.group(1)) in (52, 64, 100):  # TODO: 2024-06-15, handle Polyseed different from here? 52 decimals (13 words, 100 decimals (25 words), 16 polyseed words would be 64 decimals
+            if (decimals := search(r'(\d{52,100})', s)) and len(decimals.group(1)) in (52, 64, 100):
                 return QRType.SEED__SEEDQR
             # Monero Address
             if MoneroAddressQrDecoder.is_monero_address(s):
@@ -267,7 +265,7 @@ class DecodeQR:
             if s.startswith("settings::"):
                 return QRType.SETTINGS
             # Seed
-            # create 4 letter wordlist only if not PSBT (performance gain)  # TODO: 2024-07-24, why not at compile time, if it matters?
+            # create 4 letter wordlist only if not PSBT (performance gain)
             wordlist = Seed.get_wordlist(wordlist_language_code)
             if all(x in wordlist for x in s.strip().split(" ")):
                 # checks if all words in list are in bip39 word list
@@ -283,16 +281,13 @@ class DecodeQR:
             # Probably this isn't meant to be string data; check if it's valid byte data
             # below.
             pass
-        
         # Is it byte data?
-        # 32 bytes for 24-word CompactSeedQR; 16 bytes for 12-word CompactSeedQR
-        if len(s) == 32 or len(s) == 16:  # TODO: 2024-07-17, check for monero!
+        # 32 bytes for 24-word CompactSeedQR; 16 bytes for 12-word CompactSeedQR, 22 for polyseed
+        if len(s) in (32, 16, 22):
             try:
                 bitstream = ""
                 for b in s:
                     bitstream += bin(b).lstrip('0b').zfill(8)
-                # print(bitstream)
-
                 return QRType.SEED__COMPACTSEEDQR
             except Exception as e:
                 # Couldn't extract byte data; assume it's not a byte format

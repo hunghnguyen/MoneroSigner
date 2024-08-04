@@ -17,21 +17,37 @@ from xmrsigner.resources import get as res
 from io import BytesIO
 
 
-# TODO:SEEDSIGNER: Remove all pixel hard coding
 class GUIConstants:
     EDGE_PADDING = 8
     COMPONENT_PADDING = 8
     LIST_ITEM_PADDING = 4
 
-    BACKGROUND_COLOR = "#000000"
-    WARNING_COLOR = "#FFD60A"
-    DIRE_WARNING_COLOR = "#FF453A"
-    SUCCESS_COLOR = "#30D158"
-    ACCENT_COLOR = "#ED5F00"
-    ACCENT_COLOR_FADED = "#F06D36";
-    TESTNET_COLOR = "#00F100"
-    STAGENET_COLOR = "#00CAF1"
-    INFO_COLOR = '#0000FF'
+    BLACK = '#000000'
+    BLACK_FADED = '#2C2C2C'
+    WHITE = '#FFFFFF'
+    WHITE_FADED = '#FCFCFC'
+    YELLOW = '#FFD60A'
+    RED = '#FF0000'
+    RED_FADED = '#FF453A'
+    GREEN = '#30D158'
+    GREEN_PASTEL = '#00F1CA'
+    BLUE = '#0000FF'
+    BLUE_PASTEL = '#00CAF1'
+    PURPLE = '#FF00FF'
+    MONERO_ORANGE = '#ED5F00'
+    MONERO_ORANGE_FADED = "#F06D36"
+    GRAY = '#777777'
+
+    BACKGROUND_COLOR = BLACK
+    WARNING_COLOR = YELLOW
+    DIRE_WARNING_COLOR = RED_FADED
+    SUCCESS_COLOR = GREEN
+    ACCENT_COLOR = MONERO_ORANGE
+    ACCENT_COLOR_FADED = MONERO_ORANGE_FADED
+    MAINNET_COLOR = ACCENT_COLOR
+    TESTNET_COLOR = GREEN_PASTEL
+    STAGENET_COLOR = BLUE_PASTEL
+    INFO_COLOR = BLUE
     VERSION_COLOR = ACCENT_COLOR
 
     ICON_FONT_NAME__FONT_AWESOME = "Font_Awesome_6_Free-Solid-900"
@@ -50,73 +66,88 @@ class GUIConstants:
     BODY_FONT_SIZE = 17
     BODY_FONT_MAX_SIZE = TOP_NAV_TITLE_FONT_SIZE
     BODY_FONT_MIN_SIZE = 15
-    BODY_FONT_COLOR = "#FCFCFC"
+    BODY_FONT_COLOR = WHITE_FADED
     BODY_LINE_SPACING = COMPONENT_PADDING
 
     FIXED_WIDTH_FONT_NAME = "Inconsolata-Regular"
     FIXED_WIDTH_EMPHASIS_FONT_NAME = "Inconsolata-SemiBold"
 
     LABEL_FONT_SIZE = BODY_FONT_MIN_SIZE
-    LABEL_FONT_COLOR = "#777777"
+    LABEL_FONT_COLOR = GRAY
 
     BUTTON_FONT_NAME = "OpenSans-SemiBold"
     BUTTON_FONT_SIZE = 18
-    BUTTON_FONT_COLOR = "#FCFCFC"
-    BUTTON_BACKGROUND_COLOR = "#2C2C2C"
+    BUTTON_FONT_COLOR = WHITE_FADED
+    BUTTON_BACKGROUND_COLOR = BLACK_FADED
     BUTTON_HEIGHT = 32
     BUTTON_SELECTED_FONT_COLOR = BACKGROUND_COLOR
 
-    FINGERPRINT_MONERO_SEED_COLOR = '#0000FF'
-    FINGERPRINT_POLYSEED_COLOR = '#FF00FF'
-    FINGERPRINT_MY_MONERO_SEED_COLOR = '#FF0000'
+    FINGERPRINT_MONERO_SEED_COLOR = BLUE
+    FINGERPRINT_POLYSEED_COLOR = PURPLE
+    FINGERPRINT_MY_MONERO_SEED_COLOR = RED
     LOADING_SCREEN_LOGO_IMAGE = 'xmr_logo_60x60.png'
     LOADING_SCREEN_ARC_COLOR = ACCENT_COLOR
     LOADING_SCREEN_ARC_TRAILING_COLOR = ACCENT_COLOR_FADED
+    BRIGHTNESS_TEXT_COLOR = BLACK
+    ARROW_COLOR = BLACK
+    QRCODE_FILL_COLOR = BLACK
     # LOADING_SCREEN_ARC_COLOR = '#ff9416'
     # LOADING_SCREEN_ARC_TRAILING_COLOR = '#80490b'
+    XMRSIGNER_DOMAIN = 'xmrsigner.org'
+    XMRSIGNER_DONATION_TEXT = 'XmrSigner is 100% free & open source, funded solely by the Monero community.\n\nDonate onchain at: xmrsigner.org/donate'
+
+    XMRSIGNER_UPDATE_URL = f'{XMRSIGNER_DOMAIN}/download'
+
+    @classmethod
+    @property
+    def XMRSIGNER_ABOUT_TEXT(cls) -> str:
+        from xmrsigner.controller import Controller
+        version = Controller.VERSION
+        return f'XmrSigner Version {Controller.VERSION}\n\nYou can find the newest version always at: {cls.XMRSIGNER_UPDATE_URL}'
+
 
 
 class FontAwesomeIconConstants:
-    ANGLE_DOWN = "\uf107"
-    ANGLE_LEFT = "\uf104"
-    ANGLE_RIGHT = "\uf105"
-    ANGLE_UP = "\uf106"
-    CAMERA = "\uf030"
-    CARET_DOWN = "\uf0d7"
-    CARET_LEFT = "\uf0d9"
-    CARET_RIGHT = "\uf0da"
-    CARET_UP = "\uf0d8"
-    SOLID_CIRCLE_CHECK = "\uf058"
-    CIRCLE = "\uf111"
-    CIRCLE_CHEVRON_RIGHT = "\uf138"
-    DICE = "\uf522"
-    DICE_ONE = "\uf525"
-    DICE_TWO = "\uf528"
-    DICE_THREE = "\uf527"
-    DICE_FOUR = "\uf524"
-    DICE_FIVE = "\uf523"
-    DICE_SIX = "\uf526"
-    GEAR = "\uf013"
-    KEY = "\uf084"
-    KEYBOARD = "\uf11c"
-    LOCK = "\uf023"
-    MAP = "\uf279"
-    PAPER_PLANE = "\uf1d8"
-    PEN = "\uf304"
-    PLUS = "+"
-    POWER_OFF = "\uf011"
-    ROTATE_RIGHT = "\uf2f9"
-    SCREWDRIVER_WRENCH = "\uf7d9"
-    SQUARE = "\uf0c8"
-    SQUARE_CARET_DOWN = "\uf150"
-    SQUARE_CARET_LEFT = "\uf191"
-    SQUARE_CARET_RIGHT = "\uf152"
-    SQUARE_CARET_UP = "\uf151"
-    SQUARE_CHECK = "\uf14a"
-    TRIANGLE_EXCLAMATION = "\uf071"
-    UNLOCK = "\uf09c"
-    QRCODE = "\uf029"
-    X = "\u0058"
+    ANGLE_DOWN = '\uf107'
+    ANGLE_LEFT = '\uf104'
+    ANGLE_RIGHT = '\uf105'
+    ANGLE_UP = '\uf106'
+    CAMERA = '\uf030'
+    CARET_DOWN = '\uf0d7'
+    CARET_LEFT = '\uf0d9'
+    CARET_RIGHT = '\uf0da'
+    CARET_UP = '\uf0d8'
+    SOLID_CIRCLE_CHECK = '\uf058'
+    CIRCLE = '\uf111'
+    CIRCLE_CHEVRON_RIGHT = '\uf138'
+    DICE = '\uf522'
+    DICE_ONE = '\uf525'
+    DICE_TWO = '\uf528'
+    DICE_THREE = '\uf527'
+    DICE_FOUR = '\uf524'
+    DICE_FIVE = '\uf523'
+    DICE_SIX = '\uf526'
+    GEAR = '\uf013'
+    KEY = '\uf084'
+    KEYBOARD = '\uf11c'
+    LOCK = '\uf023'
+    MAP = '\uf279'
+    PAPER_PLANE = '\uf1d8'
+    PEN = '\uf304'
+    PLUS = '+'
+    POWER_OFF = '\uf011'
+    ROTATE_RIGHT = '\uf2f9'
+    SCREWDRIVER_WRENCH = '\uf7d9'
+    SQUARE = '\uf0c8'
+    SQUARE_CARET_DOWN = '\uf150'
+    SQUARE_CARET_LEFT = '\uf191'
+    SQUARE_CARET_RIGHT = '\uf152'
+    SQUARE_CARET_UP = '\uf151'
+    SQUARE_CHECK = '\uf14a'
+    TRIANGLE_EXCLAMATION = '\uf071'
+    UNLOCK = '\uf09c'
+    QRCODE = '\uf029'
+    X = '\u0058'
     WALLET = '\uf555'
     TRASH_CAN = '\uf2ed'
     VAULT = '\ue2c5'
@@ -126,75 +157,52 @@ class FontAwesomeIconConstants:
     EYE_LIGHT = '\uf06e'
     COINS = '\uf51e'
     CONVERT = '\uf30b'
-
-
-class FontAwesomeIconConstantsV2:  # TODO: 2024-06-20, at the moment only an anotation from refactoring, see how to resolve the clusterfuck :D
-    ANGLE_RIGHT = "\uf105"
-    ANGLE_UP = "\uf106"
-    CAMERA = "\uf030"
-    CHEVRON_UP = "\uf077"
-    CHEVRON_DOWN = "\uf078"
-    CIRCLE = "\uf111"
-    CIRCLE_CHEVRON_RIGHT = "\uf138"
-    DICE = "\uf522"
-    DICE_FOUR = "\uf524"
-    DICE_FIVE = "\uf523"
-    DICE_SIX = "\uf526"
-    KEYBOARD = "\uf11c"
-    LOCK = "\uf023"
-    MAP = "\uf279"
-    PAPER_PLANE = "\uf1d8"
-    PEN = "\uf304"
-    SQUARE_CARET_DOWN = "\uf150"
-    SQUARE_CARET_LEFT = "\uf191"
-    SQUARE_CARET_RIGHT = "\uf152"
-    SQUARE_CARET_UP = "\uf151"
-    UNLOCK = "\uf09c"
-    X = "\u0058"
+    CHEVRON_UP = '\uf077'
+    CHEVRON_DOWN = '\uf078'
 
 
 class IconConstants:
     # Menu icons
-    SCAN = "\ue900"
-    SEEDS = "\ue901"
-    SETTINGS = "\ue902"
-    TOOLS = "\ue903"
+    SCAN = '\ue900'
+    SEEDS = '\ue901'
+    SETTINGS = '\ue902'
+    TOOLS = '\ue903'
 
     # Utility icons
-    BACK = "\ue904"
-    CHECK = "\ue905"
-    CHECKBOX = "\ue906"
-    CHECKBOX_SELECTED = "\ue907"
-    CHEVRON_DOWN = "\ue908"
-    CHEVRON_LEFT = "\ue909"
-    CHEVRON_RIGHT = "\ue90a"
-    CHEVRON_UP = "\ue90b"
-    CLOSE = "\ue90c"
-    PAGE_DOWN = "\ue90d"
-    PAGE_UP = "\ue90e"
-    PLUS = "\ue90f"
-    POWER = "\ue910"
-    RESTART = "\ue911"
+    BACK = '\ue904'
+    CHECK = '\ue905'
+    CHECKBOX = '\ue906'
+    CHECKBOX_SELECTED = '\ue907'
+    CHEVRON_DOWN = '\ue908'
+    CHEVRON_LEFT = '\ue909'
+    CHEVRON_RIGHT = '\ue90a'
+    CHEVRON_UP = '\ue90b'
+    CLOSE = '\ue90c'
+    PAGE_DOWN = '\ue90d'
+    PAGE_UP = '\ue90e'
+    PLUS = '\ue90f'
+    POWER = '\ue910'
+    RESTART = '\ue911'
 
     # Messaging icons
-    ERROR = "\ue912"
-    SUCCESS = "\ue913"
-    WARNING = "\ue914"
+    ERROR = '\ue912'
+    SUCCESS = '\ue913'
+    WARNING = '\ue914'
 
     # Informational icons
-    ADDRESS = "\ue915"
-    CHANGE = "\ue916"
-    DERIVATION = "\ue917"
-    FEE = "\ue918"
-    FINGERPRINT = "\ue919"
-    PASSPHRASE = "\ue91a"
+    ADDRESS = '\ue915'
+    CHANGE = '\ue916'
+    DERIVATION = '\ue917'
+    FEE = '\ue918'
+    FINGERPRINT = '\ue919'
+    PASSPHRASE = '\ue91a'
 
     # Misc icons
-    MONERO = "\ue91b"  # TODO: don't need BTC, need XMR glyph is still Bitcoin
-    MONERO_ALT = "\ue91c"  # TODO: don't need BTC, need XMR glyph is still Bitcoin
-    BRIGHTNESS = "\ue91d"
-    MICROSD = "\ue91e"
-    QRCODE = "\ue91f"
+    MONERO = '\ue91b'  # TODO: don't need BTC, need XMR glyph is still Bitcoin
+    MONERO_ALT = '\ue91c'  # TODO: don't need BTC, need XMR glyph is still Bitcoin
+    BRIGHTNESS = '\ue91d'
+    MICROSD = '\ue91e'
+    QRCODE = '\ue91f'
 
     MIN_VALUE = SCAN
     MAX_VALUE = QRCODE
@@ -302,7 +310,7 @@ class TextArea(BaseComponent):
     Attrs with defaults must be listed last.
     """
     text: str = "My text content"
-    width: int = None       # TODO:SEEDSIGNER: Implement autosize width?
+    width: int = None
     height: int = None      # None = special case: autosize to min height
     screen_x: int = 0
     screen_y: int = 0
@@ -332,7 +340,7 @@ class TextArea(BaseComponent):
         # Do initial calcs without worrying about supersampling.
         self.text_lines = reflow_text_for_width(
             text=self.text,
-            width=self.width - 2*self.edge_padding,
+            width=self.width - 2 * self.edge_padding,
             font_name=self.font_name,
             font_size=self.font_size,
             allow_text_overflow=self.allow_text_overflow,
@@ -728,6 +736,7 @@ class XmrAmount(BaseComponent):
     font_size: int = 24
     screen_x: int = 0
     screen_y: int = None
+    network: Optional[str] = None
 
     def __post_init__(self):
         super().__post_init__()
@@ -735,15 +744,16 @@ class XmrAmount(BaseComponent):
         self.paste_image: Image.Image = None
         self.paste_coords = None
         denomination = Settings.get_instance().get_value(SettingsConstants.SETTING__XMR_DENOMINATION)
-        network = Settings.get_instance().get_value(SettingsConstants.SETTING__NETWORKS)[0]  # TODO: 2024-06-30, fix using network from parameter instead believing there can be only on network used at a time...
+        if not self.network:
+            self.network = Settings.get_instance().get_value(SettingsConstants.SETTING__NETWORKS)[0]
         self.total_atomic_units = int(self.total_atomic_units)
         xmr_unit = "XMR"
         atomic_units_unit = "pXMR"
-        if network == SettingsConstants.MAINNET:
-            xmr_color = GUIConstants.ACCENT_COLOR
-        elif network == SettingsConstants.TESTNET:
+        if self.network == SettingsConstants.MAINNET:
+            xmr_color = GUIConstants.MAINNET_COLOR
+        elif self.network == SettingsConstants.TESTNET:
             xmr_color = GUIConstants.TESTNET_COLOR
-        elif network == SettingsConstants.STAGENET:
+        elif self.network == SettingsConstants.STAGENET:
             xmr_color = GUIConstants.STAGENET_COLOR
         digit_font = Fonts.get_font(font_name=GUIConstants.BODY_FONT_NAME, size=self.font_size)
         smaller_digit_font = Fonts.get_font(font_name=GUIConstants.BODY_FONT_NAME, size=self.font_size - 2)
@@ -751,7 +761,7 @@ class XmrAmount(BaseComponent):
         # Render to a temp surface
         self.paste_image = Image.new(mode="RGB", size=(self.canvas_width, self.icon_size), color=GUIConstants.BACKGROUND_COLOR)
         draw = ImageDraw.Draw(self.paste_image)
-        # Render the circular Monero icon  # TODO:change to Monero icon
+        # Render the circular Monero icon  # TODO: 2024-08-02, change to Monero icon
         xmr_icon = Icon(
             image_draw=draw,
             canvas=self.paste_image,
@@ -828,8 +838,7 @@ class XmrAmount(BaseComponent):
             decimal_xmr = Decimal(str(decimal_xmr)[:-6])
             xmr_text = f"{decimal_xmr:,}"
             atomic_units_text = f"{self.total_atomic_units:,}"[-7:]
-            while atomic_units_text[0] == "0":  # TODO: 2024-07-27, change to strip
-                atomic_units_text = atomic_units_text[1:]
+            atomic_units_text = atomic_units_text.lstrip('0')
             xmr_icon = Icon(
                 image_draw=draw,
                 canvas=self.paste_image,
@@ -925,7 +934,7 @@ class Button(BaseComponent):
     scroll_y: int = 0
     width: int = None
     height: int = None
-    icon_name: str = Optional[None]   # Optional icon to accompany the text
+    icon_name: Optional[str] = None   # Optional icon to accompany the text
     icon_size: int = GUIConstants.ICON_INLINE_FONT_SIZE
     icon_color: str = GUIConstants.BUTTON_FONT_COLOR
     selected_icon_color: str = 'black'
@@ -975,7 +984,6 @@ class Button(BaseComponent):
             # ignore any chars below the baseline for consistent vertical positioning
             # regardless of the Button text.
             self.text_height = -1 * top
-            # TODO:SEEDSIGNER: Only apply screen_y at render
             if self.text_y_offset:
                 self.text_y = self.text_y_offset + self.text_height
             else:
@@ -1015,7 +1023,7 @@ class Button(BaseComponent):
                 icon_color=self.selected_icon_color
             )
             self.right_icon_x = self.width - self.right_icon.width - GUIConstants.COMPONENT_PADDING
-            self.right_icon_y = math.ceil((self.height - self.right_icon.height)/2)
+            self.right_icon_y = math.ceil((self.height - self.right_icon.height) / 2)
 
     def render(self):
         if self.is_selected:
@@ -1311,7 +1319,6 @@ def reflow_text_for_width(text: str,
                     words = words[index:]
     return text_lines
 
-# TODO: 2024-06-16, seems like not needed, check and remove
 def reflow_text_into_pages(text: str,
                            width: int,
                            height: int,

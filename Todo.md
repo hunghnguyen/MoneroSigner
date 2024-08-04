@@ -55,7 +55,7 @@
 - [ ] Adapt documentation
 - [x] Implement [Polyseed](https://github.com/DiosDelRayo/polyseed-python)
 - [W] Implement [Companion Application](https://github.com/DiosDelRayo/XmrSignerCompanion)
-- [ ] Implement UR [foundation-ur-py](https://github.com/DiosDelRayo/foundation-ur-py)
+- [x] Implement UR [foundation-ur-py](https://github.com/DiosDelRayo/foundation-ur-py)
 - [ ] Modify [Monero GUI](https://github.com/DiosDelRayo/monero-gui)
 - [x] tools/increment_version.py needs also to update the version in setup.py
 - [x] setup.py needs further modification

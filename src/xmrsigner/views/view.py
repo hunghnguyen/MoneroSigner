@@ -64,7 +64,6 @@ class View:
         self.controller: Controller = Controller.get_instance()
         self.settings = Settings.get_instance()
 
-        # TODO:SEEDSIGNER: Pull all rendering-related code out of Views and into gui.screens implementations
         self.renderer = Renderer.get_instance()
         self.canvas_width = self.renderer.canvas_width
         self.canvas_height = self.renderer.canvas_height

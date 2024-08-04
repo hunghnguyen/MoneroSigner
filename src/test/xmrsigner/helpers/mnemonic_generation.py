@@ -1,5 +1,6 @@
 from unittest import TestCase
-from xmrsigner.helpers.mnemonic_generation import generate_mnemonic_from_bytes, generate_mnemonic_from_dice
+from xmrsigner.helpers.entropy import DiceEntropy
+from xmrsigner.helpers.mnemonic_generation import generate_mnemonic_from_bytes
 
 
 class TestMnemonicGeneration(TestCase):
@@ -32,4 +33,4 @@ class TestMnemonicGeneration(TestCase):
             'august unveil kennel cinema alpine unveil sequence dusted zoom hippo byline poaching poaching'
         )
         for i, o in zip(roll_data, expexted):
-            self.assertEqual(generate_mnemonic_from_dice(i), o.split())
+            self.assertEqual(generate_mnemonic_from_bytes(DiceEntropy(i, 6**len(i))[:32 if len(i)>50 else 16]), o.split())

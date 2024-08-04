@@ -7,7 +7,6 @@ from xmrsigner.hardware.ST7789 import ST7789
 from xmrsigner.models.singleton import ConfigurableSingleton
 
 
-
 class Renderer(ConfigurableSingleton):
     buttons = None
     canvas_width = 0
@@ -23,12 +22,10 @@ class Renderer(ConfigurableSingleton):
         # Instantiate the one and only Renderer instance
         renderer = cls.__new__(cls)
         cls._instance = renderer
-
         # Eventually we'll be able to plug in other display controllers
         renderer.disp = ST7789()
         renderer.canvas_width = renderer.disp.width
         renderer.canvas_height = renderer.disp.height
-
         renderer.canvas = Image.new('RGB', (renderer.canvas_width, renderer.canvas_height))
         renderer.draw = ImageDraw.Draw(renderer.canvas)
 

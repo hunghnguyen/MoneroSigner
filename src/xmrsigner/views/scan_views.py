@@ -9,7 +9,6 @@ from xmrsigner.models.qr_type import QRType
 from xmrsigner.models.decode_qr import DecodeQR
 from xmrsigner.models.settings import SettingsConstants
 from xmrsigner.views.settings_views import SettingsIngestSettingsQRView
-from xmrsigner.views.seed_views import SeedSelectSeedView
 from xmrsigner.views.view import (
     BackStackView,
     ErrorView,
@@ -57,36 +56,28 @@ class ScanView(View):
             instructions_text=self.instructions_text,
             decoder=self.decoder
         )
- 
-        print(f'scan view: decoder: {self.decoder}')
-        print(f'scan view: decoder type: {type(self.decoder)}')
         # Handle the results
-        print(f"is complete? {'yes' if self.decoder.is_complete else 'no'}")
         if self.decoder.is_complete:
-            print(f"is valid? {'yes' if self.is_valid_qr_type else 'no'}")
             if not self.is_valid_qr_type:
                 # We recognized the QR type but it was not the type expected for the
                 # current flow.
                 # Report QR types in more human-readable text (e.g. QRType
                 # `seed__compactseedqr` as "seed: compactseedqr").
                 return Destination(ErrorView, view_args=dict(
-                    title="Error",
-                    status_headline="Wrong QR Type",
+                    title='Error',
+                    status_headline='Wrong QR Type',
                     text=self.invalid_qr_type_message + f""", received "{self.decoder.qr_type.replace("__", ": ").replace("_", " ")}\" format""",
-                    button_text="Back",
+                    button_text='Back',
                     next_destination=Destination(BackStackView, skip_current_view=True),
                 ))
-            print(f"is seed? {'yes' if self.decoder.is_seed else 'no'}")
             if self.decoder.is_seed or (self.decoder.is_wallet and not self.decoder.is_view_only_wallet):
-                print('Yeah, seed here!')
                 seed_mnemonic: Optional[List] = self.decoder.get_seed_phrase()
                 if not seed_mnemonic:
                     # seed is not valid, Exit if not valid with message
-                    raise Exception("Not yet implemented!")
+                    raise Exception('Not yet implemented!')
                 # Found a valid mnemonic seed! All new seeds should be considered
                 #   pending (might set a passphrase, SeedXOR, etc) until finalized.
                 from xmrsigner.views.seed_views import SeedFinalizeView
-                print(f'language code: {self.wordlist_language_code}')
                 self.controller.storage.set_pending_seed(
                     Seed(mnemonic=seed_mnemonic, wordlist_language_code=self.wordlist_language_code)
                     if len(seed_mnemonic) != 16 else
@@ -110,29 +101,16 @@ class ScanView(View):
             if self.decoder.is_settings:
                 data = self.decoder.get_settings_data()
                 return Destination(SettingsIngestSettingsQRView, view_args=dict(data=data))
-            if self.decoder.is_address:
-                from xmrsigner.views.seed_views import AddressVerificationStartView
-                address = self.decoder.get_address()
-                (script_type, network) = self.decoder.get_address_type()
-                return Destination(
-                    AddressVerificationStartView,
-                    skip_current_view=True,
-                    view_args={
-                        "address": address,
-                        "script_type": script_type,
-                        "network": network,
-                    }
-                )
             return Destination(NotYetImplementedView)
         if self.decoder.is_invalid:
             # For now, don't even try to re-do the attempted operation, just reset and
             # start everything over.
             self.controller.resume_main_flow = None
             return Destination(ErrorView, view_args=dict(
-                title="Error",
-                status_headline="Unknown QR Type",
-                text="QRCode is invalid or is a data format not yet supported.",
-                button_text="Done",
+                title='Error',
+                status_headline='Unknown QR Type',
+                text='QRCode is invalid or is a data format not yet supported.',
+                button_text='Done',
                 next_destination=Destination(MainMenuView, clear_history=True),
             ))
         return Destination(MainMenuView)

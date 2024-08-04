@@ -1,4 +1,5 @@
 # TODO: 2024-07-26, this should be in monero-python
+from xmrsigner.helpers.network import Network
 from monero.wallet import Wallet
 from monero.backends.offline import OfflineWallet
 from monero.address import Address
@@ -106,7 +107,9 @@ class TxDescription:
     summary: Optional[TxSummary] = None
     estimated_tx_size_kb: Optional[int] = None
     _recipients: Optional[List[Recipient]] = None
+    _recipients_addresses: Optional[List[Recipient]] = None
     _change_addresses: Optional[List[Address]] = None
+    _network: Optional[Network] = None
 
     def __init__(self, response: Dict, estimated_tx_size_kb: Optional[int] = None):
         self.estimated_tx_size_kb = estimated_tx_size_kb
@@ -142,18 +145,29 @@ class TxDescription:
         return XmrAmount(out)
 
     @property
+    def network(self) -> Network:
+        if self._network is None:
+            self._network = Network.ensure(self.details[0].recipients[0].address.net)
+        return self._network
+
+    @property
     def recipients(self) -> List[Recipient]:
-        if self._recipients is not None:
-            return self._recipients
-        out: Dict[Address, int] = {}
-        for d in self.details:
-            for r in d.recipients:
-                if r.address not in out:
-                    out[r.address] = Recipient(r.address, int(r.amount))
-                else:
-                    out[r.address].amount = XmrAmount(int(out[r.address].amount) + int(r.amount))
-        self._recipients = list(out.values())
+        if self._recipients is None:
+            out: Dict[Address, int] = {}
+            for d in self.details:
+                for r in d.recipients:
+                    if r.address not in out:
+                        out[r.address] = Recipient(r.address, int(r.amount))
+                    else:
+                        out[r.address].amount = XmrAmount(int(out[r.address].amount) + int(r.amount))
+            self._recipients = list(out.values())
         return self._recipients
+
+    @property
+    def recipients_addresses(self) -> List[Address]:
+        if self._recipients_addresses is None:
+            self._recipients_addresses = [r.address for r in self.recipients]
+        return self._recipients_addresses
 
     @property
     def change_addresses(self) -> List[Address]:

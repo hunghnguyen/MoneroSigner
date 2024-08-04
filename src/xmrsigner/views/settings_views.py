@@ -1,5 +1,6 @@
 from logging import getLogger
  
+from xmrsigner.gui.button_data import ButtonData
 from xmrsigner.gui.components import FontAwesomeIconConstants, IconConstants
 from xmrsigner.models.decode_qr import DecodeQR
 from xmrsigner.views.view import View, Destination, MainMenuView
@@ -16,9 +17,10 @@ logger = getLogger(__name__)
 
 class SettingsMenuView(View):
 
-    IO_TEST = 'I/O test'
-    DONATE = 'Donate'
-    WALLET_RPC = 'Wallet RPC'
+    IO_TEST = ButtonData('I/O test')
+    DONATE = ButtonData('Donate')
+    WALLET_RPC = ButtonData('Wallet RPC')
+    ABOUT = ButtonData('About')
 
     def __init__(self, visibility: str = SettingsConstants.VISIBILITY__GENERAL, selected_attr: str = None, initial_scroll: int = 0):
         super().__init__()
@@ -48,8 +50,9 @@ class SettingsMenuView(View):
             next_destination = Destination(SettingsMenuView, view_args={"visibility": SettingsConstants.VISIBILITY__ADVANCED})
  
             button_data.append(self.IO_TEST)
-            # button_data.append(self.DONATE)  # TODO: 2024-06-27, don't display until we know what to do about
+            button_data.append(self.DONATE)
             button_data.append(self.WALLET_RPC)
+            button_data.append(self.ABOUT)
 
         elif self.visibility == SettingsConstants.VISIBILITY__ADVANCED:
             title = "Advanced"
@@ -69,33 +72,27 @@ class SettingsMenuView(View):
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             if self.visibility == SettingsConstants.VISIBILITY__GENERAL:
                 return Destination(MainMenuView)
-            elif self.visibility == SettingsConstants.VISIBILITY__ADVANCED:
+            if self.visibility == SettingsConstants.VISIBILITY__ADVANCED:
                 return Destination(SettingsMenuView)
-            else:
-                return Destination(SettingsMenuView, view_args={"visibility": SettingsConstants.VISIBILITY__ADVANCED})
-        
-        elif selected_menu_num == len(settings_entries):
+            return Destination(SettingsMenuView, view_args={"visibility": SettingsConstants.VISIBILITY__ADVANCED})
+        if selected_menu_num == len(settings_entries):
             return next_destination
-
-        elif len(button_data) > selected_menu_num and button_data[selected_menu_num] == self.IO_TEST:
+        if len(button_data) > selected_menu_num and button_data[selected_menu_num] == self.IO_TEST:
             return Destination(IOTestView)
-
-        elif len(button_data) > selected_menu_num and button_data[selected_menu_num] == self.DONATE:
+        if len(button_data) > selected_menu_num and button_data[selected_menu_num] == self.DONATE:
             return Destination(DonateView)
-
-        elif len(button_data) > selected_menu_num and button_data[selected_menu_num] == self.WALLET_RPC:
+        if len(button_data) > selected_menu_num and button_data[selected_menu_num] == self.WALLET_RPC:
             return Destination(WalletRpcView)
-
-        else:
-            # TODO:SEEDSIGNER: Free-entry types (are there any?) will need their own SettingsEntryUpdateFreeEntryView(?).
-            return Destination(SettingsEntryUpdateSelectionView, view_args={"attr_name": settings_entries[selected_menu_num].attr_name})
+        if len(button_data) > selected_menu_num and button_data[selected_menu_num] == self.ABOUT:
+            return Destination(AboutView)
+        return Destination(SettingsEntryUpdateSelectionView, view_args={"attr_name": settings_entries[selected_menu_num].attr_name})
 
 
 
 class SettingsEntryUpdateSelectionView(View):
     """
-        Handles changes to all selection-type settings (Multiselect, SELECT_1,
-        Enabled/Disabled, etc).
+    Handles changes to all selection-type settings (Multiselect, SELECT_1,
+    Enabled/Disabled, etc).
     """
 
     def __init__(self, attr_name: str, parent_initial_scroll: int = 0, selected_button: int = None):
@@ -116,15 +113,12 @@ class SettingsEntryUpdateSelectionView(View):
             button_data.append(display_name)
             if (type(initial_value) == list and value in initial_value) or value == initial_value:
                 checked_buttons.append(i)
-
                 if self.selected_button is None:
                     # Highlight the selection (for multiselect highlight the first
                     # selected option).
                     self.selected_button = i
-        
         if self.selected_button is None:
             self.selected_button = 0
-
         ret_value = self.run_screen(
             settings_screens.SettingsEntryUpdateSelectionScreen,
             display_name=self.settings_entry.display_name,
@@ -134,7 +128,6 @@ class SettingsEntryUpdateSelectionView(View):
             checked_buttons=checked_buttons,
             settings_entry_type=self.settings_entry.type,
         )
-
         destination = None
         settings_menu_view_destination = Destination(
             SettingsMenuView,
@@ -144,16 +137,12 @@ class SettingsEntryUpdateSelectionView(View):
                 "initial_scroll": self.parent_initial_scroll
             }
         )
-
         if ret_value == RET_CODE__BACK_BUTTON:
             return settings_menu_view_destination
-
         value = self.settings_entry.get_selection_option_value(ret_value)
-
         if self.settings_entry.type == SettingsConstants.TYPE__FREE_ENTRY:
             updated_value = ret_value
             destination = settings_menu_view_destination
-
         elif self.settings_entry.type == SettingsConstants.TYPE__MULTISELECT:
             updated_value = list(initial_value)
             if ret_value not in checked_buttons:
@@ -162,7 +151,6 @@ class SettingsEntryUpdateSelectionView(View):
             else:
                 # This is a de-select to remove
                 updated_value.remove(value)
-
         else:
             # All other types are single selects (e.g. Enabled/Disabled, SELECT_1)
             if value == initial_value:
@@ -170,15 +158,12 @@ class SettingsEntryUpdateSelectionView(View):
                 return settings_menu_view_destination
             else:
                 updated_value = value
-
         self.settings.set_value(
             attr_name=self.settings_entry.attr_name,
             value=updated_value
         )
-
         if destination:
             return destination
-
         # All selects stay in place; re-initialize where in the list we left off
         self.selected_button = ret_value
         return Destination(
@@ -190,7 +175,6 @@ class SettingsEntryUpdateSelectionView(View):
             },
             skip_current_view=True
         )
-
 
 
 class SettingsIngestSettingsQRView(View):
@@ -247,4 +231,10 @@ class IOTestView(View):
 class DonateView(View):
     def run(self):
         self.run_screen(settings_screens.DonateScreen)
+        return Destination(SettingsMenuView)
+
+
+class AboutView(View):
+    def run(self):
+        self.run_screen(settings_screens.AboutScreen)
         return Destination(SettingsMenuView)

@@ -23,13 +23,12 @@ from xmrsigner.hardware.buttons import HardwareButtonsConstants
 
 @dataclass
 class ToolsImageEntropyLivePreviewScreen(BaseScreen):
+
     def __post_init__(self):
         # Customize defaults
         self.title = "Initializing Camera..."
-
         # Initialize the base class
         super().__post_init__()
-
         self.camera = Camera.get_instance()
         self.camera.start_video_stream_mode(resolution=(self.canvas_width, self.canvas_height), framerate=24, format="rgb")
 
@@ -38,7 +37,6 @@ class ToolsImageEntropyLivePreviewScreen(BaseScreen):
         preview_images = []
         max_entropy_frames = 50
         instructions_font = Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BUTTON_FONT_SIZE)
-
         while True:
             # Check for BACK button press
             if self.hw_inputs.check_for_low(HardwareButtonsConstants.KEY_LEFT):
@@ -47,25 +45,20 @@ class ToolsImageEntropyLivePreviewScreen(BaseScreen):
                 self.words = []
                 self.camera.stop_video_stream_mode()
                 return RET_CODE__BACK_BUTTON
-
             frame = self.camera.read_video_stream(as_image=True)
-
             if frame is None:
                 # Camera probably isn't ready yet
                 sleep(0.01)
                 continue
-
             # Check for joystick click to take final entropy image
             if self.hw_inputs.check_for_low(HardwareButtonsConstants.KEY_PRESS):
                 # Have to manually update last input time since we're not in a wait_for loop
                 self.hw_inputs.update_last_input_time()
                 self.camera.stop_video_stream_mode()
-
                 self.renderer.canvas.paste(frame)
-
                 self.renderer.draw.text(
                     xy=(
-                        int(self.renderer.canvas_width/2),
+                        int(self.renderer.canvas_width / 2),
                         self.renderer.canvas_height - GUIConstants.EDGE_PADDING
                     ),
                     text="Capturing image...",
@@ -76,11 +69,9 @@ class ToolsImageEntropyLivePreviewScreen(BaseScreen):
                     anchor="ms"
                 )
                 self.renderer.show_image()
-
                 return preview_images
             # If we're still here, it's just another preview frame loop
             self.renderer.canvas.paste(frame)
-
             self.renderer.draw.text(
                 xy=(
                     int(self.renderer.canvas_width/2),
@@ -94,7 +85,6 @@ class ToolsImageEntropyLivePreviewScreen(BaseScreen):
                 anchor="ms"
             )
             self.renderer.show_image()
-
             if len(preview_images) == max_entropy_frames:
                 # Keep a moving window of the last n preview frames; pop the oldest
                 # before we add the currest frame.
@@ -104,6 +94,7 @@ class ToolsImageEntropyLivePreviewScreen(BaseScreen):
 
 @dataclass
 class ToolsImageEntropyFinalImageScreen(BaseScreen):
+
     final_image: Image = None
 
     def _run(self):
@@ -112,7 +103,7 @@ class ToolsImageEntropyFinalImageScreen(BaseScreen):
         self.renderer.canvas.paste(self.final_image)
         self.renderer.draw.text(
             xy=(
-                int(self.renderer.canvas_width/2),
+                int(self.renderer.canvas_width / 2),
                 self.renderer.canvas_height - GUIConstants.EDGE_PADDING
             ),
             text=" < reshoot  |  accept > ",
@@ -129,9 +120,9 @@ class ToolsImageEntropyFinalImageScreen(BaseScreen):
             return RET_CODE__BACK_BUTTON
 
 
-
 @dataclass
 class ToolsDiceEntropyEntryScreen(KeyboardScreen):
+
     def __post_init__(self):
         # Override values set by the parent class
         self.title = f"Dice Roll 1/{self.return_after_n_chars}"

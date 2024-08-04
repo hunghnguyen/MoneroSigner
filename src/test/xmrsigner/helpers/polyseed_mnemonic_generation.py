@@ -1,5 +1,6 @@
 from unittest import TestCase
-from xmrsigner.helpers.polyseed_mnemonic_generation import generate_mnemonic_from_bytes, generate_mnemonic_from_dice
+from xmrsigner.helpers.entropy import DiceEntropy
+from xmrsigner.helpers.polyseed_mnemonic_generation import generate_mnemonic_from_bytes
 
 
 class TestPolyseedMnemonicGeneration(TestCase):
@@ -24,9 +25,9 @@ class TestPolyseedMnemonicGeneration(TestCase):
             b'|d>0\x03\xd0\xb2\xe8|\xd6\xf9#\x14\xd7\xae\r\xb6\\\x08\x15\xd4\xa6u+\xa8/!\xa10\xce\x1b\x16',
             b'(\xe7\x96\x8e3\x1f.\xde\xf0\x97\xf2\xc6\xda=\xbf\x88\xd0-\x06\x83uSB\x85\xdf\xae\x1f\xcc\xd6\xd2\xaa\x90'
         )
-        expexted = (  # TODO: 2024-07-02, continue here!
+        expexted = (
             'emerge labor move toast absorb spatial slide march culture weekend midnight essence twist assault sun search',
             'either churn oxygen hand mimic business robust upper chair version bread phrase hurt match dog spice'
         )
         for i, o in zip(roll_data, expexted):
-            self.assertEqual(generate_mnemonic_from_dice(i, 'en', 1719924943), o.split())
+            self.assertEqual(generate_mnemonic_from_bytes(DiceEntropy(i), 'en', 1719924943), o.split())

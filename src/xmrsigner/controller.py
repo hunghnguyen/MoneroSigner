@@ -7,15 +7,15 @@ from time import sleep
 from sys import exit
 
 from xmrsigner.gui.renderer import Renderer
-from xmrsigner.hardware.buttons import HardwareButtons  # TODO: 2024-06-20, don't like faster code paying with ugly code, search better solution
-from xmrsigner.views.screensaver import ScreensaverScreen  # TODO: 2024-06-20, don't like faster code paying with ugly code, search better solution
+from xmrsigner.hardware.buttons import HardwareButtons
+from xmrsigner.views.screensaver import ScreensaverScreen
 from xmrsigner.views.view import Destination, NotYetImplementedView, UnhandledExceptionView
 
 from xmrsigner.helpers.network import Network
 from xmrsigner.helpers.wallet import MoneroWalletRPCManager
 from xmrsigner.helpers.monero import TxDescription
 from xmrsigner.models.seed import Seed
-from xmrsigner.models.seed_storage import SeedStorage
+from xmrsigner.models.seed_storage import SeedJar
 from xmrsigner.models.settings import Settings
 from xmrsigner.models.singleton import Singleton
 from xmrsigner.views.view import RemoveMicroSDWarningView
@@ -62,13 +62,11 @@ class Controller(Singleton):
     VERSION = "0.7.2"
 
     buttons: HardwareButtons = None
-    storage: SeedStorage = None
+    jar: SeedJar = None
     settings: Settings = None
     renderer: Renderer = None
 
-    # TODO:SEEDSIGNER: Refactor these flow-related attrs that survive across multiple Screens.
-    # TODO:SEEDSIGNER: Should all in-memory flow-related attrs get wiped on MainMenuView?
-    # TODO: 2024-07-24, holy clustefuck, improve this sh*t - but later
+    # TODO: 2024-07-24, holy clusterfuck, improve this sh*t - but later
     selected_seed: Optional[Seed] = None
     transaction: Optional[bytes] = None
     outputs: Optional[bytes] = None
@@ -80,12 +78,8 @@ class Controller(Singleton):
 
     unverified_address = None
 
-    multisig_wallet_descriptor = None
-    # multisig_wallet_descriptor: Descriptor = None
-
     image_entropy_preview_frames: List[Image] = None
     image_entropy_final_image: Image = None
-    # TODO:SEEDSIGNER: end refactor section
 
     # Destination placeholder for when we need to jump out to a side flow but intend to
     # return navigation to the main flow (e.g. TX flow, load something,
@@ -129,7 +123,6 @@ class Controller(Singleton):
 
             each time you try to re-initialize a Controller.
         """
-        # from xmrsigner.gui.renderer import Renderer  # TODO: 2024-06-17 @see up import statement
         from xmrsigner.hardware.microsd import MicroSD
 
         # Must be called before the first get_instance() call
@@ -147,21 +140,19 @@ class Controller(Singleton):
             controller.buttons = HardwareButtons.get_instance()
 
         # models
-        controller.storage = SeedStorage()  # TODO:SEEDSIGNER: Rename "storage" to something more indicative of its temp, in-memory state
+        controller.jar = SeedJar()
         controller.settings = Settings.get_instance()
         controller.microsd = MicroSD.get_instance()
         controller.microsd.start_detection()
 
         # Store one working incomming data in memory
-        controller.outputs = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
-        controller.transaction = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
-        controller.selected_seed = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
-        controller.tx_description = None  # TODO: 2024-07-23, temp variable, figure out how to do it better
+        controller.outputs = None
+        controller.transaction = None
+        controller.selected_seed = None
+        controller.tx_description = None
 
         # Configure the Renderer
         Renderer.configure_instance()
-
-        # controller.screensaver = ScreensaverScreen(controller.buttons)  # TODO: 2024-06-20, don't like faster code on the expense of ugly code, search a better solution
 
         controller.back_stack = BackStack()
 
@@ -172,36 +163,44 @@ class Controller(Singleton):
 
 
     @property
+    def storage(self) -> Optional[SeedJar]:  # TODO: 2024-08-02, for temporary use until refactoring is finished
+        return self.jar
+
+    @property
     def camera(self):
         from .hardware.camera import Camera
         return Camera.get_instance()
 
+    @property
+    def seeds(self) -> Optional[List[Seed]]:
+        return self.jar.seeds
+
     def has_seed(self, seed: Seed) -> bool:
-        return seed in self.storage.seeds
+        return seed in self.jar.seeds
 
     def get_seed_num(self, seed: Seed) -> Optional[int]:
-        idx = self.storage.seeds.index(seed)
+        idx = self.jar.seeds.index(seed)
         if idx >= 0:
             return idx
         return None
 
     def get_seed(self, seed_num: int) -> Seed:
-        if seed_num < len(self.storage.seeds):
-            return self.storage.seeds[seed_num]
+        if seed_num < len(self.jar.seeds):
+            return self.jar.seeds[seed_num]
         else:
-            raise Exception(f"There is no seed_num {seed_num}; only {len(self.storage.seeds)} in memory.")
+            raise Exception(f"There is no seed_num {seed_num}; only {len(self.jar.seeds)} in memory.")
 
     def replace_seed(self, seed_num: int, seed: Seed) -> None:
-        if seed_num < len(self.storage.seeds):
-            self.storage.seeds[seed_num] = seed
+        if seed_num < len(self.jar.seeds):
+            self.jar.seeds[seed_num] = seed
         else:
-            raise Exception(f"There is no seed_num {seed_num}; only {len(self.storage.seeds)} in memory.")
+            raise Exception(f"There is no seed_num {seed_num}; only {len(self.jar.seeds)} in memory.")
 
     def discard_seed(self, seed_num: int):
-        if seed_num < len(self.storage.seeds):
-            del self.storage.seeds[seed_num]
+        if seed_num < len(self.jar.seeds):
+            del self.jar.seeds[seed_num]
         else:
-            raise Exception(f"There is no seed_num {seed_num}; only {len(self.storage.seeds)} in memory.")
+            raise Exception(f"There is no seed_num {seed_num}; only {len(self.jar.seeds)} in memory.")
 
     @property
     def wallet_rpc_manager(self):
@@ -299,7 +298,6 @@ class Controller(Singleton):
                     
                     # Home always wipes the back_stack/state of temp vars
                     self.resume_main_flow = None
-                    self.multisig_wallet_descriptor = None
                     self.unverified_address = None
                     self.address_explorer_data = None
                     self.selected_seed = None
@@ -365,9 +363,6 @@ class Controller(Singleton):
     def start_screensaver(self):
         print("Controller: Starting screensaver")
         if not self.screensaver:
-            # Do a lazy/late import and instantiation to reduce Controller initial startup time
-            # from xmrsigner.views.screensaver import ScreensaverScreen  # TODO: 2024-06-15, don't like speed over ugly code, there must be a better solution
-            # from xmrsigner.hardware.buttons import HardwareButtons  # TODO: 2024-06-20, maybe this should not be imported here, check
             self.screensaver = ScreensaverScreen(HardwareButtons.get_instance())
 
         # Start the screensaver, but it will block until it can acquire the Renderer.lock.

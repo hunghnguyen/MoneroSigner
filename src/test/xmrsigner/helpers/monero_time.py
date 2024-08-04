@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from xmrsigner.helpers.monero_time import MoneroTime, NetData
+from xmrsigner.helpers.monero_time import MoneroTime, NetData, TestData, StageData
 from typing import Union
 from datetime import date, datetime, timedelta
 
@@ -127,6 +127,10 @@ class TestMoneroTime(TestCase):
         self.assertEqual(mt.getDate(0), date.fromisoformat('2014-04-18'))
         self.assertEqual(tt.getDate(0), date.fromtimestamp(1410295020))
         self.assertEqual(st.getDate(0), date.fromtimestamp(1518932025))
-        self.assertEqual(mt.getDate(1009827), date.fromtimestamp(1458748658))  # TODO: 2024-07-15, WTF is the issue?
-        self.assertEqual(tt.getDate(624634), date.fromtimestamp(1448285909))
-        self.assertEqual(st.getDate(32000), date.fromtimestamp(1520937818))
+        self.assertEqual(mt.getDate(1009827), date.fromtimestamp(1458748658))
+        self.assertEqual(tt.getDate(624634 + TestData.rollback), date.fromtimestamp(1448285909))  # we add the rollback blocks to check
+        self.assertEqual(st.getDate(32000 + StageData.rollback), date.fromtimestamp(1520937818))  # we add the rollback blocks to check
+
+if __name__ == '__main__':
+    from unittest import main
+    main()

@@ -1,4 +1,5 @@
 from xmrsigner.models.qr_type import QRType
+from xmrsigner.models.polyseed import PolyseedSeed
 from xmrsigner.models.monero_encoder import MoneroKeyImageQrEncoder
 from xmrsigner.views.view import NotYetImplementedView, View, Destination, BackStackView, MainMenuView
 from xmrsigner.models.monero_encoder import ViewOnlyWalletQrEncoder, ViewOnlyWalletJsonQrEncoder
@@ -7,7 +8,9 @@ from xmrsigner.helpers.wallet import MoneroWalletRPCManager, WALLET_PORT
 from xmrsigner.helpers.network import Network
 from xmrsigner.helpers.monero import WalletRpcWrapper
 from xmrsigner.models.settings_definition import SettingsConstants
-from xmrsigner.gui.components import IconConstants, FontAwesomeIconConstants
+from xmrsigner.gui.button_data import ButtonData
+from xmrsigner.gui.components import IconConstants, FontAwesomeIconConstants, GUIConstants
+from xmrsigner.gui.screens.wallet_screens import WalletOptionsScreen
 from xmrsigner.gui.screens.screen import RET_CODE__BACK_BUTTON, QRDisplayScreen
 
 from monero.wallet import Wallet as MoneroWallet
@@ -187,15 +190,16 @@ class WalletOptionsView(View):
     Views for actions on individual seeds:
     """
 
-    SCAN = ('Scan for Wallet', IconConstants.SCAN)
-    EXPORT_KEY_IMAGES = ('Export Key Imags', IconConstants.QRCODE)
-    VIEW_ONLY_WALLET = ('View only Wallet', IconConstants.QRCODE)
-    PURGE_WALLET = ('Purge from Wallet', FontAwesomeIconConstants.TRASH_CAN, 'red', 'red')
+    SCAN = ButtonData('Scan for Wallet').with_icon(IconConstants.SCAN)
+    EXPORT_KEY_IMAGES = ButtonData('Export Key Imags').with_icon(IconConstants.QRCODE)
+    VIEW_ONLY_WALLET = ButtonData('View only Wallet').with_icon(IconConstants.QRCODE)
+    PURGE_WALLET = ButtonData('Purge from Wallet').with_icon(FontAwesomeIconConstants.TRASH_CAN).with_icon_color(GUIConstants.RED).with_label_color(GUIConstants.RED)
 
     def __init__(self, network: Union[str, Network]):
         super().__init__()
         self.network = Network.ensure(network)
         self.fingerprint: str = self.controller.wallet_rpc_manager.get_fingerprint(self.network)
+        self.seed = self.controller.get_wallet_seed(self.network)
 
     def run(self):
         button_data = []
@@ -204,28 +208,23 @@ class WalletOptionsView(View):
         button_data.append(self.VIEW_ONLY_WALLET)
         button_data.append(self.PURGE_WALLET)
         selected_menu_num = self.run_screen(
-            seed_screens.SeedOptionsScreen,  # TODO: 2024-07-23, create a WalletOptionsScreen!
+            WalletOptionsScreen,
             button_data=button_data,
             fingerprint=self.fingerprint,
-            polyseed=False,
-            my_monero=False,
-            has_passphrase=False
+            polyseed=isinstance(self.seed, PolyseedSeed),
+            my_monero=self.seed.is_my_monero,
+            has_passphrase=self.seed.has_passphrase
         )
-
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
-
         if button_data[selected_menu_num] == self.SCAN:
             from xmrsigner.views.scan_views import ScanUR2View
             return Destination(ScanUR2View)
-
-        if button_data[selected_menu_num] == self.VIEW_ONLY_WALLET:  # TODO: 2024-06-10: finish implementation
-            return Destination(WalletViewKeyQRView, view_args={'seed_num': self.seed_num})
-
-        if button_data[selected_menu_num] == self.PURGE_WALLET:
+        if button_data[selected_menu_num] == self.VIEW_ONLY_WALLET:
+            return Destination(WalletViewKeyQRView, view_args={'seed_num': self.controller.get_seed_num(self.seed)})
+        if button_data[selected_menu_num] == self.PURGE_WALLET:  # TODO: 2024-08-04, implement
             # return Destination(PurgeWalletView, view_args={'seed_num': self.seed_num})
             pass
-
         if button_data[selected_menu_num] == self.EXPORT_KEY_IMAGES:
             return Destination(ExportKeyImagesView, view_args={'network': self.network})
 
@@ -242,12 +241,6 @@ class LoadWalletView(View):
             from xmrsigner.gui.screens.screen import EtaLoadingScreenThread
             self.loading_screen = EtaLoadingScreenThread(text="Loading Wallet...", eta=180)
             self.loading_screen.start()
-            # try:  # TODO: 2024-07-24, to remove
-            #    # load wallet
-            #    pass
-            #except Exception as e:
-            #    self.loading_screen.stop()
-            #    raise e
 
     def run(self):
         if self.controller.get_wallet(self.wallet_seed.network) and self.controller.get_wallet_seed(self.wallet_seed.network) == self.wallet_seed:

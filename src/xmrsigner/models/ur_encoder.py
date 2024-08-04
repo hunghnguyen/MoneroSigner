@@ -6,11 +6,11 @@ from xmrsigner.helpers.ur2.ur import UR
 
 class UrQrEncoder(BaseQrEncoder):
 
-    def __init__(self, ur_type: str, ur_payload: str, qr_density):  # TODO: 2024-07-21, rename ur_type and ur_payload
+    def __init__(self, ur_type: str, ur_payload: str, qr_density):
         super().__init__()
         self.qr_max_fragment_size = 20
-        self.ur_type: str = ur_type  # TODO: 2024-07-21, probably not a good var name
-        self.ur_payload: str = ur_payload  # TODO 2024-07-21, name of var and inner working, was: UR_PSBT(self.psbt.serialize()).to_cbor()
+        self.ur_type: str = ur_type
+        self.ur_payload: str = ur_payload
         qr_ur_bytes = UR(self.ur_type, self.ur_payload)
         if qr_density == SettingsConstants.DENSITY__LOW:
             self.qr_max_fragment_size = 10
@@ -20,7 +20,7 @@ class UrQrEncoder(BaseQrEncoder):
             self.qr_max_fragment_size = 120
         self.ur2_encode = UREncoder(ur=qr_ur_bytes, max_fragment_len=self.qr_max_fragment_size)
 
-    def next_part_image(self, width=240, height=240, border=3, background_color="bdbdbd"):
+    def next_part_image(self, width=240, height=240, border=3, background_color='bdbdbd'):
         return self.qr.qrimage_io(self.next_part(), width, height, border, background_color=background_color)
 
     def seq_len(self):

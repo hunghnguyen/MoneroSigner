@@ -90,14 +90,6 @@ class SettingsConstants:
             return NET_TEST
         if network == SettingsConstants.STAGENET:
             return NET_STAGE
-    
-
-    SINGLE_SIG = "ss"
-    MULTISIG = "ms"
-    ALL_SIG_TYPES = [
-        (SINGLE_SIG, "Single Sig"),
-        (MULTISIG, "Multisig"),
-    ]
 
     WORDLIST_LANGUAGE__ENGLISH = "en"  # TODO: remove comment before 2024-06-10 handle differences in wordlist languages in monero seed and polyseed, think should be handled in the wordlist implementations instead
     WORDLIST_LANGUAGE__CHINESE_SIMPLIFIED = "zh_Hans_CN"
@@ -145,7 +137,7 @@ class SettingsConstants:
     SETTING__PERSISTENT_SETTINGS = "persistent_settings"
     SETTING__XMR_DENOMINATION = "denomination"
 
-    SEETING__LOW_SECURITY = 'low_security'
+    SETTING__LOW_SECURITY = 'low_security'
     SETTING__NETWORKS = "networks"
     SETTING__QR_DENSITY = "qr_density"
     SETTING__SIG_TYPES = "sig_types"
@@ -166,7 +158,6 @@ class SettingsConstants:
 
 
     # Structural constants
-    # TODO:SEEDSIGNER: Not using these for display purposes yet (ever?)
     CATEGORY__SYSTEM = "system"
     CATEGORY__DISPLAY = "display"
     CATEGORY__WALLET = "wallet"
@@ -176,7 +167,6 @@ class SettingsConstants:
     VISIBILITY__ADVANCED = "advanced"
     VISIBILITY__HIDDEN = "hidden"   # For data-only (e.g. custom_derivation), not configurable by the user
 
-    # TODO:SEEDSIGNER: Is there really a difference between ENABLED and PROMPT?
     TYPE__ENABLED_DISABLED = "enabled_disabled"
     TYPE__ENABLED_DISABLED_PROMPT = "enabled_disabled_prompt"
     TYPE__ENABLED_DISABLED_PROMPT_REQUIRED = "enabled_disabled_prompt_required"
@@ -376,15 +366,6 @@ class SettingsDefinition:
                       default_value=SettingsConstants.DENSITY__MEDIUM),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
-                      attr_name=SettingsConstants.SETTING__SIG_TYPES,
-                      abbreviated_name="sigs",
-                      display_name="Sig types",
-                      type=SettingsConstants.TYPE__MULTISELECT,
-                      visibility=SettingsConstants.VISIBILITY__HIDDEN,
-                      selection_options=SettingsConstants.ALL_SIG_TYPES,
-                      default_value=SettingsConstants.ALL_SIG_TYPES[:1]),
-
-        SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
                       attr_name=SettingsConstants.SETTING__MONERO_SEED_PASSPHRASE,
                       display_name="Monero seed passphrase",
                       type=SettingsConstants.TYPE__SELECT_1,
@@ -429,7 +410,7 @@ class SettingsDefinition:
                       default_value=SettingsConstants.OPTION__ENABLED),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__FEATURES,
-                      attr_name=SettingsConstants.SEETING__LOW_SECURITY ,
+                      attr_name=SettingsConstants.SETTING__LOW_SECURITY ,
                       abbreviated_name="low_sec",
                       display_name="Low security",
                       visibility=SettingsConstants.VISIBILITY__ADVANCED,

@@ -8,11 +8,8 @@ from xmrsigner.models.settings import Settings
 
 
 class MicroSD(Singleton, BaseThread):
-    MOUNT_POINT = "/mnt/microsd"  # TODO: 2024-06-16, move to SettingsConstants
-    FIFO_PATH = "/tmp/mdev_fifo"  # TODO: 2024-06-16, move to SettingsConstants
-    FIFO_MODE = 0o600
-    ACTION__INSERTED = "add"
-    ACTION__REMOVED = "remove"
+    ACTION__INSERTED = 'add'
+    ACTION__REMOVED = 'remove'
 
 
     @classmethod
@@ -32,40 +29,28 @@ class MicroSD(Singleton, BaseThread):
     @property
     def is_inserted(self):
         if Settings.HOSTNAME == Settings.XMRSIGNER_OS:
-            return path.exists(MicroSD.MOUNT_POINT)
-        else:
-            # Always True for Raspi OS
-            return True
-
+            return path.exists(Settings.MICROSD_MOUNT_POINT)
+        # Always True for Raspi OS
+        return True
 
     def start_detection(self):
         self.start()
 
-
     def run(self):
         from xmrsigner.controller import Controller
-        action = ""
-        
-        action = ""
-        
+        action = ''
         # explicitly only microsd add/remove detection in seedsigner-os
         if Settings.HOSTNAME == Settings.XMRSIGNER_OS:
-
             # at start-up, get current status and inform Settings
             Settings.handle_microsd_state_change(
                 action=MicroSD.ACTION__INSERTED if self.is_inserted else MicroSD.ACTION__REMOVED
             )
-
-            if path.exists(self.FIFO_PATH):
-                remove(self.FIFO_PATH)
-            
-            mkfifo(self.FIFO_PATH, self.FIFO_MODE)
-
+            if path.exists(Settings.MICROSD_FIFO_PATH):
+                remove(Settings.MICROSD_FIFO_PATH)
+            mkfifo(Settings.MICROSD_FIFO_PATH, Settings.MICROSD_FIFO_MODE)
             while self.keep_running:
-                with open(self.FIFO_PATH) as fifo:
+                with open(Settings.MICROSD_FIFO_PATH) as fifo:
                     action = fifo.read()
                     print(f"fifo message: {action}")
-
                     Settings.handle_microsd_state_change(action=action)
-
                 sleep(0.1)

@@ -16,6 +16,9 @@ class Settings(Singleton):
     HOSTNAME = uname()[1]  # TODO: 2024-06-30 don't know what will uname return on win32, check
     XMRSIGNER_OS = "xmrsigner-os"
     SETTINGS_FILENAME = "/mnt/microsd/settings.json" if HOSTNAME == XMRSIGNER_OS else "settings.json"
+    MICROSD_MOUNT_POINT = '/mnt/microsd'
+    MICROSD_FIFO_PATH = '/tmp/mdev_fifo'
+    MICROSD_FIFO_MODE = 0o600
 
     @classmethod
     def get_instance(cls):

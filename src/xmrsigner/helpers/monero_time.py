@@ -84,7 +84,7 @@ def get_approximate_date(block: int, net: Union[NetData, str] = 'main', suppress
             return 0
         raise ValueError('block needs to be a positive int')
     if block >= data.v2_block:
-        return timestamp_to_date(data.v2_time + data.v2_seconds_per_block * block)
+        return timestamp_to_date(data.v2_time + data.v2_seconds_per_block * (block - data.v2_block))
     return timestamp_to_date(data.birth + data.v1_seconds_per_block * block)
 
 

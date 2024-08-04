@@ -129,7 +129,6 @@ class TxOverviewScreen(ButtonListScreen):
         # Now let's maximize the actual destination col by adjusting our addr truncation
         def calculate_destination_col_width(truncate_at: int = 0):
             def truncate_destination_addr(addr):
-                # TODO:SEEDSIGNER: Properly handle the ellipsis truncation in different languages
                 if len(addr) <= truncate_at + len("..."):
                     # No point in truncating
                     return addr
@@ -504,15 +503,14 @@ class TxMathScreen(ButtonListScreen):
             self.change_amount = " " * (longest_amount - len(self.change_amount)) + self.change_amount
 
         # Render the info to temp Image
-        # TODO:SEEDSIGNER: Test rendering the numeric amounts without the supersampling
-        body_width = self.canvas_width - 2*GUIConstants.EDGE_PADDING
-        body_height = self.buttons[0].screen_y - self.top_nav.height - 2*GUIConstants.COMPONENT_PADDING
+        body_width = self.canvas_width - 2 * GUIConstants.EDGE_PADDING
+        body_height = self.buttons[0].screen_y - self.top_nav.height - 2 * GUIConstants.COMPONENT_PADDING
         ssf = 2  # Super-sampling factor
         image = Image.new("RGB", (body_width*ssf, body_height*ssf))
         draw = ImageDraw.Draw(image)
 
-        body_font = Fonts.get_font(GUIConstants.BODY_FONT_NAME, (GUIConstants.BODY_FONT_SIZE)*ssf)
-        fixed_width_font = Fonts.get_font(GUIConstants.FIXED_WIDTH_FONT_NAME, (GUIConstants.BODY_FONT_SIZE + 6)*ssf)
+        body_font = Fonts.get_font(GUIConstants.BODY_FONT_NAME, (GUIConstants.BODY_FONT_SIZE) * ssf)
+        fixed_width_font = Fonts.get_font(GUIConstants.FIXED_WIDTH_FONT_NAME, (GUIConstants.BODY_FONT_SIZE + 6) * ssf)
         digits_width, digits_height = get_font_size(fixed_width_font, self.input_amount + "+")
 
         # Draw each line of the equation
@@ -631,12 +629,10 @@ class TxAddressDetailsScreen(ButtonListScreen):
 
 @dataclass
 class TxChangeDetailsScreen(ButtonListScreen):
-    title: str = "Your Change"
+    title: str = 'Your Change'
     amount: int = 0
     address: str = None
-    is_multisig: bool = False
     fingerprint: str = None
-    derivation_path: str = None
     is_change_derivation_path: bool = True
     derivation_path_addr_index: int = 0
     is_change_addr_verified: bool = False
@@ -645,31 +641,24 @@ class TxChangeDetailsScreen(ButtonListScreen):
         # Customize defaults
         self.is_bottom_list = True
         super().__post_init__()
-
         self.components.append(XmrAmount(
             total_atomic_units=self.amount,
             screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING,
         ))
-
         self.components.append(FormattedAddress(
             screen_y=self.components[-1].screen_y + self.components[-1].height + GUIConstants.COMPONENT_PADDING,
             address=self.address,
             max_lines=1,
         ))
-
         screen_y = self.components[-1].screen_y + self.components[-1].height + 2*GUIConstants.COMPONENT_PADDING
-        if self.is_multisig and not self.is_change_addr_verified:
-            # Adjust the vertical spacing
-            screen_y -= GUIConstants.COMPONENT_PADDING
         self.components.append(IconTextLine(
             icon_name=IconConstants.FINGERPRINT,
             icon_color=GUIConstants.INFO_COLOR,  # TODO: 2024-06-20, probably should change to purple if polyseed?
-            value_text=f"""{"Multisig" if self.is_multisig else self.fingerprint}: {"Change" if self.is_change_derivation_path else "Addr"} #{self.derivation_path_addr_index}""",
+            value_text=f"""{self.fingerprint}: {"Change" if self.is_change_derivation_path else "Addr"} #{self.derivation_path_addr_index}""",
             is_text_centered=False,
             screen_x=GUIConstants.EDGE_PADDING,
             screen_y=screen_y,
         ))
-
         if self.is_change_addr_verified:
             self.components.append(IconTextLine(
                 icon_name=IconConstants.SUCCESS,

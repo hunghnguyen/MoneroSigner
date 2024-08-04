@@ -4,7 +4,7 @@ from xmrsigner.models.polyseed import PolyseedSeed
 from xmrsigner.models.settings_definition import SettingsConstants
 
 
-class SeedStorage:
+class SeedJar:
 
     def __init__(self) -> None:
         self.seeds: List[Seed] = []

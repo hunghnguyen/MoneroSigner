@@ -7,15 +7,14 @@ from typing import List, Tuple
 from PIL import Image, ImageDraw, ImageFilter
 from xmrsigner.helpers.pillow import get_font_size
 from xmrsigner.gui.renderer import Renderer
-from xmrsigner.gui.components import GUIConstants
-from xmrsigner.helpers.qr import QR  # TODO: 2024-06-15, remove?
+from xmrsigner.helpers.qr import QR
 from xmrsigner.models.qr_type import QRType
 from xmrsigner.models.threads import BaseThread, ThreadsafeCounter
 
 from xmrsigner.models.seed import Seed, SeedType
 from xmrsigner.models.settings_definition import SettingsConstants, SettingsDefinition
 
-from .screen import (
+from xmrsigner.gui.screens import (
     RET_CODE__BACK_BUTTON,
     BaseScreen,
     BaseTopNavScreen,
@@ -23,7 +22,9 @@ from .screen import (
     KeyboardScreen,
     WarningEdgesMixin
 )
-from ..components import (Button,
+from xmrsigner.gui.components import (
+    GUIConstants,
+    Button,
     FontAwesomeIconConstants,
     Fonts,
     FormattedAddress,
@@ -58,7 +59,6 @@ class SeedMnemonicEntryScreen(BaseTopNavScreen):
         self.arrow_up_is_active = False
         self.arrow_down_is_active = False
 
-        # TODO:SEEDSIGNER: support other BIP39 languages/charsets
         self.keyboard = Keyboard(
             draw=self.image_draw,
             charset=self.possible_alphabet,
@@ -563,22 +563,6 @@ class SeedWordsBackupTestPromptScreen(ButtonListScreen):
         ))
 
 
-
-@dataclass
-class SeedExportXpubCustomDerivationScreen(KeyboardScreen):  # TODO: 2024-06-10, remove: Xpub related
-    def __post_init__(self):
-        self.title = "Derivation Path"
-        self.user_input = "m/"
-
-        # Specify the keys in the keyboard
-        self.rows = 3
-        self.cols = 6
-        self.keys_charset = "/'0123456789"
-        self.show_save_button = True
-
-        super().__post_init__()
-
-
 @dataclass
 class SeedAddPassphraseScreen(BaseTopNavScreen):
     title: str = 'Add Passphrase'
@@ -980,8 +964,8 @@ class SeedReviewPassphraseScreen(ButtonListScreen):
             screen_y = self.buttons[0].screen_y - GUIConstants.COMPONENT_PADDING - int(GUIConstants.BODY_FONT_SIZE*2.5)
         ))
 
-        if self.passphrase != self.passphrase.strip() or '  ' in self.passphrase:  # TODO: 2024-06-20, what is there going on? Why would you modify a password, and loose accenss? Double check. From rebasing from main to 0.7.0 of seedsigner
-            self.passphrase = self.passphrase.replace(' ', "\u2589")
+        if self.passphrase != self.passphrase.strip() or '  ' in self.passphrase:
+            self.passphrase = self.passphrase.replace(' ', '\u2589')
 
         available_height = self.components[-1].screen_y - self.top_nav.height + GUIConstants.COMPONENT_PADDING
         max_font_size = GUIConstants.TOP_NAV_TITLE_FONT_SIZE + 8
@@ -1308,119 +1292,3 @@ class SelectSeedScreen(ButtonListScreen):
             text=self.text,
             screen_y=self.top_nav.height,
         ))
-
-
-@dataclass
-class LoadMultisigWalletDescriptorScreen(ButtonListScreen):
-    def __post_init__(self):
-        self.title = "Multisig Verification"
-        self.is_bottom_list = True
-        super().__post_init__()
-
-        self.components.append(TextArea(
-            text="Load your multisig wallet descriptor to verify your receive/self-transfer or change address.",
-            screen_y=self.top_nav.height,
-            height=self.buttons[0].screen_y - self.top_nav.height,
-        ))
-
-
-
-@dataclass
-class MultisigWalletDescriptorScreen(ButtonListScreen):
-    policy: str = None
-    fingerprints: List[str] = None
-
-    def __post_init__(self):
-        self.title = "Descriptor Loaded"
-        self.is_bottom_list = True
-        super().__post_init__()
-
-        self.components.append(IconTextLine(
-            label_text="Policy",
-            value_text=self.policy,
-            font_size=GUIConstants.TOP_NAV_TITLE_FONT_SIZE,
-            screen_y=self.top_nav.height,
-            is_text_centered=True,
-        ))
-
-        self.components.append(IconTextLine(
-            label_text="Signing Keys",
-            value_text=" ".join(self.fingerprints),
-            font_size=GUIConstants.TOP_NAV_TITLE_FONT_SIZE + 4,
-            font_name=GUIConstants.FIXED_WIDTH_EMPHASIS_FONT_NAME,
-            screen_y=self.components[-1].screen_y + self.components[-1].height + 2*GUIConstants.COMPONENT_PADDING,
-            is_text_centered=True,
-            auto_line_break=True,
-            allow_text_overflow=True,
-        ))
-
-
-@dataclass
-class SeedSignMessageConfirmMessageScreen(ButtonListScreen):  # TODO: 2024-06-15, check if used, if not remove, added with rebase from main to 0.7.0 of seedsigner
-    page_num: int = None
-
-    def __post_init__(self):
-        from xmrsigner.controller import Controller
-        renderer = Renderer.get_instance()
-        start_y = GUIConstants.TOP_NAV_HEIGHT + GUIConstants.COMPONENT_PADDING
-        end_y = renderer.canvas_height - GUIConstants.EDGE_PADDING - GUIConstants.BUTTON_HEIGHT - GUIConstants.COMPONENT_PADDING
-        message_height = end_y - start_y
-
-        self.sign_message_data = Controller.get_instance().sign_message_data
-        if "paged_message" not in self.sign_message_data:
-            paged = reflow_text_into_pages(
-                text=self.sign_message_data["message"],
-                width=renderer.canvas_width - 2*GUIConstants.EDGE_PADDING,
-                height=message_height,
-            )
-            self.sign_message_data["paged_message"] = paged
-
-        if self.page_num >= len(self.sign_message_data["paged_message"]):
-            raise Exception("Bug in paged_message calculation")
-
-        if len(self.sign_message_data["paged_message"]) == 1:
-            self.title = "Review Message"
-        else:
-            self.title = f"""Message (pt {self.page_num + 1}/{len(self.sign_message_data["paged_message"])})"""
-        self.is_bottom_list = True
-        self.is_button_text_centered = True
-        self.button_data = ["Next"]
-        super().__post_init__()
-
-        message_display = TextArea(
-            text=self.sign_message_data["paged_message"][self.page_num],
-            is_text_centered=False,
-            allow_text_overflow=True,
-            screen_y=start_y,
-        )
-        self.components.append(message_display)
-
-
-@dataclass
-class SeedSignMessageConfirmAddressScreen(ButtonListScreen):  # TODO: 2024-06-15, check if used, if not remove, added with rebase from main to 0.7.0 of seedsigner
-    derivation_path: str = None
-    address: str = None
-
-    def __post_init__(self):
-        self.title = "Confirm Address"
-        self.is_bottom_list = True
-        self.is_button_text_centered = True
-        self.button_data = ["Sign Message"]
-        super().__post_init__()
-
-        derivation_path_display = IconTextLine(
-            icon_name=IconConstants.DERIVATION,
-            icon_color=GUIConstants.INFO_COLOR,
-            label_text="derivation path",
-            value_text=self.derivation_path,
-            is_text_centered=True,
-            screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING,
-        )
-        self.components.append(derivation_path_display)
-
-        address_display = FormattedAddress(
-            address=self.address,
-            max_lines=3,
-            screen_y=derivation_path_display.screen_y + derivation_path_display.height + 2*GUIConstants.COMPONENT_PADDING,
-        )
-        self.components.append(address_display)

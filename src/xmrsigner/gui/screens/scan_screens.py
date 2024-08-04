@@ -43,20 +43,16 @@ class ScanScreen(BaseScreen):
     decoder: DecodeQR = None
     instructions_text: str = None
     resolution: Tuple[int,int] = (480, 480)
-    framerate: int = 6  # TODO:SEEDSIGNER: alternate optimization for Pi Zero 2W?
+    framerate: int = 5
     render_rect: Tuple[int,int,int,int] = None
-
 
     def __post_init__(self):
         from xmrsigner.hardware.camera import Camera
         # Initialize the base class
         super().__post_init__()
-
         self.instructions_text = "< back  |  " + self.instructions_text
-
         self.camera = Camera.get_instance()
         self.camera.start_video_stream_mode(resolution=self.resolution, framerate=self.framerate, format="rgb")
-
         self.threads.append(ScanScreen.LivePreviewThread(
             camera=self.camera,
             decoder=self.decoder,
@@ -67,6 +63,7 @@ class ScanScreen(BaseScreen):
 
 
     class LivePreviewThread(BaseThread):
+
         def __init__(self, camera: Camera, decoder: DecodeQR, renderer: renderer.Renderer, instructions_text: str, render_rect: Tuple[int,int,int,int]):
             self.camera = camera
             self.decoder = decoder
@@ -101,16 +98,12 @@ class ScanScreen(BaseScreen):
                             # Note: shadowed text (adding a 'stroke' outline) can
                             # significantly slow down the rendering.
                             # Temp solution: render a slight 1px shadow behind the text
-                            # TODO:SEEDSIGNER: Replace the instructions_text with a disappearing
-                            # toast/popup (see: QR Brightness UI)?
-                            #
-                            # COMMENT: IMO toast is on of the worse UI/UX ever. Don't think on implementing toast/popup
                             draw.text(xy=(
-                                        int(self.renderer.canvas_width/2 + 2),
+                                        int(self.renderer.canvas_width / 2 + 2),
                                         self.renderer.canvas_height - GUIConstants.EDGE_PADDING + 2
                                      ),
                                      text=scan_text,
-                                     fill="black",  # TODO: 2024-06-20, replace with constant!
+                                     fill=GUIConstants.BRIGHTNESS_TEXT_COLOR,
                                      font=instructions_font,
                                      anchor="ms")
                             # Render the onscreen instructions
@@ -123,7 +116,7 @@ class ScanScreen(BaseScreen):
                                      font=instructions_font,
                                      anchor="ms")
                         self.renderer.show_image(frame, show_direct=True)
-                sleep(0.05) # turn this up or down to tune performance while decoding psbt
+                sleep(0.05) # turn this up or down to tune performance while decoding UR
                 if self.camera._video_stream is None:
                     break
 
@@ -138,11 +131,9 @@ class ScanScreen(BaseScreen):
             frame = self.camera.read_video_stream()
             if frame is not None:
                 status = self.decoder.add_image(frame)
-
                 if status in (DecodeQRStatus.COMPLETE, DecodeQRStatus.INVALID):
                     self.camera.stop_video_stream_mode()
                     break
-                
                 if self.hw_inputs.check_for_low(HardwareButtonsConstants.KEY_RIGHT) or self.hw_inputs.check_for_low(HardwareButtonsConstants.KEY_LEFT):
                     self.camera.stop_video_stream_mode()
                     break
