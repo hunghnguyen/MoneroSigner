@@ -118,13 +118,13 @@ class LoadSeedView(View):
             from xmrsigner.views.scan_views import ScanSeedQRView
             return Destination(ScanSeedQRView)
         if button_data[selected_menu_num] == self.TYPE_13WORD:
-            self.controller.storage.init_pending_mnemonic(num_words=13)
+            self.controller.jar.init_pending_mnemonic(num_words=13)
             return Destination(SeedMnemonicEntryView)
         if button_data[selected_menu_num] == self.TYPE_25WORD:
-            self.controller.storage.init_pending_mnemonic(num_words=25)
+            self.controller.jar.init_pending_mnemonic(num_words=25)
             return Destination(SeedMnemonicEntryView)
         if button_data[selected_menu_num] == self.TYPE_POLYSEED:
-            self.controller.storage.init_pending_mnemonic(num_words=16)
+            self.controller.jar.init_pending_mnemonic(num_words=16)
             return Destination(PolyseedMnemonicEntryView)
         if button_data[selected_menu_num] == self.CREATE:
             from .tools_views import ToolsMenuView
@@ -136,7 +136,7 @@ class SeedMnemonicEntryView(View):
     def __init__(self, cur_word_index: int = 0, is_calc_final_word: bool=False):
         super().__init__()
         self.cur_word_index = cur_word_index
-        self.cur_word = self.controller.storage.get_pending_mnemonic_word(cur_word_index)
+        self.cur_word = self.controller.jar.get_pending_mnemonic_word(cur_word_index)
         self.is_calc_final_word = is_calc_final_word
 
     def run(self):
@@ -149,22 +149,22 @@ class SeedMnemonicEntryView(View):
         if ret == RET_CODE__BACK_BUTTON:
             if self.cur_word_index > 0:
                 return Destination(BackStackView)
-            self.controller.storage.discard_pending_mnemonic()
+            self.controller.jar.discard_pending_mnemonic()
             return Destination(MainMenuView)
         # ret will be our new mnemonic word
-        self.controller.storage.update_pending_mnemonic(ret, self.cur_word_index)
-        if self.is_calc_final_word and self.cur_word_index == self.controller.storage.pending_mnemonic_length - 2:  # TODO: 2024-06-30, clean up, this code is now functional but uggly as fuck!
+        self.controller.jar.update_pending_mnemonic(ret, self.cur_word_index)
+        if self.is_calc_final_word and self.cur_word_index == self.controller.jar.pending_mnemonic_length - 2:  # TODO: 2024-06-30, clean up, this code is now functional but uggly as fuck!
             # Time to calculate the last word. User must decide how they want to specify
             # the last bits of entropy for the final word.
             from xmrsigner.views.tools_views import ToolsCalcFinalWordShowFinalWordView
             # return Destination(ToolsCalcFinalWordFinalizePromptView)  # TODO: expire 2024-06-30, lean it up
             return Destination(ToolsCalcFinalWordShowFinalWordView, view_args=dict(coin_flips="0" * 7))
-        if self.is_calc_final_word and self.cur_word_index == self.controller.storage.pending_mnemonic_length - 1:
+        if self.is_calc_final_word and self.cur_word_index == self.controller.jar.pending_mnemonic_length - 1:
             # Time to calculate the last word. User must either select a final word to
             # contribute entropy to the checksum word OR we assume 0 ("abandon").
             from xmrsigner.views.tools_views import ToolsCalcFinalWordShowFinalWordView
             return Destination(ToolsCalcFinalWordShowFinalWordView)
-        if self.cur_word_index < self.controller.storage.pending_mnemonic_length - 1:
+        if self.cur_word_index < self.controller.jar.pending_mnemonic_length - 1:
             return Destination(
                 SeedMnemonicEntryView,
                 view_args={
@@ -174,7 +174,7 @@ class SeedMnemonicEntryView(View):
             )
         # Attempt to finalize the mnemonic
         try:
-            self.controller.storage.convert_pending_mnemonic_to_pending_seed()
+            self.controller.jar.convert_pending_mnemonic_to_pending_seed()
         except InvalidSeedException:
             return Destination(SeedMnemonicInvalidView)
         return Destination(SeedFinalizeView)
@@ -195,11 +195,11 @@ class PolyseedMnemonicEntryView(SeedMnemonicEntryView):
         if ret == RET_CODE__BACK_BUTTON:
             if self.cur_word_index > 0:
                 return Destination(BackStackView)
-            self.controller.storage.discard_pending_mnemonic()
+            self.controller.jar.discard_pending_mnemonic()
             return Destination(MainMenuView)
         # ret will be our new mnemonic word
-        self.controller.storage.update_pending_mnemonic(ret, self.cur_word_index)
-        if self.cur_word_index < self.controller.storage.pending_mnemonic_length - 1:
+        self.controller.jar.update_pending_mnemonic(ret, self.cur_word_index)
+        if self.cur_word_index < self.controller.jar.pending_mnemonic_length - 1:
             return Destination(
                 PolyseedMnemonicEntryView,
                 view_args={
@@ -208,7 +208,7 @@ class PolyseedMnemonicEntryView(SeedMnemonicEntryView):
             )
         # Attempt to finalize the mnemonic
         try:
-            self.controller.storage.convert_pending_mnemonic_to_pending_polyseed()
+            self.controller.jar.convert_pending_mnemonic_to_pending_polyseed()
         except InvalidSeedException:
             return Destination(SeedMnemonicInvalidView, view_args={'polyseed': True})
         return Destination(SeedFinalizeView)
@@ -221,7 +221,7 @@ class SeedMnemonicInvalidView(View):
 
     def __init__(self, polyseed: bool = False):
         super().__init__()
-        self.mnemonic: List[str] = self.controller.storage.pending_mnemonic
+        self.mnemonic: List[str] = self.controller.jar.pending_mnemonic
         self.polyseed = polyseed
 
     def run(self):
@@ -240,7 +240,7 @@ class SeedMnemonicInvalidView(View):
                 view_args={"cur_word_index": 0}
             )
         if button_data[selected_menu_num] == self.DISCARD:
-            self.controller.storage.discard_pending_mnemonic()
+            self.controller.jar.discard_pending_mnemonic()
             return Destination(MainMenuView)
 
 
@@ -251,7 +251,7 @@ class SeedFinalizeView(View):
 
     def __init__(self):
         super().__init__()
-        self.seed = self.controller.storage.get_pending_seed()
+        self.seed = self.controller.jar.get_pending_seed()
         self.fingerprint = self.seed.fingerprint
         self.polyseed = isinstance(self.seed, PolyseedSeed)
 
@@ -274,7 +274,7 @@ class SeedFinalizeView(View):
             button_data=button_data,
         )
         if button_data[selected_menu_num] == self.FINALIZE:
-            seed_num = self.controller.storage.finalize_pending_seed()
+            seed_num = self.controller.jar.finalize_pending_seed()
             return Destination(SeedOptionsView, view_args={'seed_num': seed_num}, clear_history=True)
         if button_data[selected_menu_num] == self.PASSPHRASE:
             return Destination(SeedAddPassphraseView)
@@ -284,7 +284,7 @@ class SeedAddPassphraseView(View):
 
     def __init__(self):
         super().__init__()
-        self.seed = self.controller.storage.get_pending_seed()
+        self.seed = self.controller.jar.get_pending_seed()
 
     def run(self):
         ret = self.run_screen(seed_screens.SeedAddPassphraseScreen, passphrase=self.seed.passphrase_str)
@@ -307,7 +307,7 @@ class SeedReviewPassphraseView(View):
 
     def __init__(self):
         super().__init__()
-        self.seed = self.controller.storage.get_pending_seed()
+        self.seed = self.controller.jar.get_pending_seed()
 
     def run(self):
         # Get the before/after fingerprints
@@ -333,7 +333,7 @@ class SeedReviewPassphraseView(View):
         if button_data[selected_menu_num] == self.EDIT:
             return Destination(SeedAddPassphraseView)
         if button_data[selected_menu_num] == self.DONE:
-            seed_num = self.controller.storage.finalize_pending_seed()
+            seed_num = self.controller.jar.finalize_pending_seed()
             return Destination(SeedOptionsView, view_args={"seed_num": seed_num}, clear_history=True)
             
             
@@ -348,7 +348,7 @@ class SeedDiscardView(View):
         if self.seed_num is not None:
             self.seed = self.controller.get_seed(self.seed_num)
         else:
-            self.seed = self.controller.storage.pending_seed
+            self.seed = self.controller.jar.pending_seed
 
     def run(self):
         button_data = [self.KEEP, self.DISCARD]
@@ -378,7 +378,7 @@ class SeedDiscardView(View):
                         print(f'Unexcpected issue on purging wallet for seed: {seed.fingerprint}: {e}')
                 self.controller.discard_seed(self.seed_num)
             else:
-                self.controller.storage.clear_pending_seed()
+                self.controller.jar.clear_pending_seed()
             return Destination(MainMenuView, clear_history=True)
 
 
@@ -528,7 +528,7 @@ class SeedWordsView(View):
         super().__init__()
         self.seed_num = seed_num
         if self.seed_num is None:
-            self.seed = self.controller.storage.get_pending_seed()
+            self.seed = self.controller.jar.get_pending_seed()
         else:
             self.seed = self.controller.get_seed(self.seed_num)
         self.page_index = page_index
@@ -595,7 +595,7 @@ class SeedWordsBackupTestView(View):
         super().__init__()
         self.seed_num = seed_num
         if self.seed_num is None:
-            self.seed = self.controller.storage.get_pending_seed()
+            self.seed = self.controller.jar.get_pending_seed()
         else:
             self.seed = self.controller.get_seed(self.seed_num)
         self.mnemonic_list = self.seed.mnemonic_display_list

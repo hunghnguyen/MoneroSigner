@@ -78,7 +78,7 @@ class ScanView(View):
                 # Found a valid mnemonic seed! All new seeds should be considered
                 #   pending (might set a passphrase, SeedXOR, etc) until finalized.
                 from xmrsigner.views.seed_views import SeedFinalizeView
-                self.controller.storage.set_pending_seed(
+                self.controller.jar.set_pending_seed(
                     Seed(mnemonic=seed_mnemonic, wordlist_language_code=self.wordlist_language_code)
                     if len(seed_mnemonic) != 16 else
                     PolyseedSeed(mnemonic=seed_mnemonic, wordlist_language_code=self.wordlist_language_code)

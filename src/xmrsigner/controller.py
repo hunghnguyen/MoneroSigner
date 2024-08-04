@@ -163,10 +163,6 @@ class Controller(Singleton):
 
 
     @property
-    def storage(self) -> Optional[SeedJar]:  # TODO: 2024-08-02, for temporary use until refactoring is finished
-        return self.jar
-
-    @property
     def camera(self):
         from .hardware.camera import Camera
         return Camera.get_instance()

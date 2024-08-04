@@ -83,9 +83,9 @@ class MoneroSelectSeedView(View):
         if button_data[selected_menu_num] in [self.TYPE_13WORD, self.TYPE_25WORD]:
             from xmrsigner.views.seed_views import SeedMnemonicEntryView
             if button_data[selected_menu_num] == self.TYPE_13WORD:
-                self.controller.storage.init_pending_mnemonic(num_words=13)
+                self.controller.jar.init_pending_mnemonic(num_words=13)
             else:
-                self.controller.storage.init_pending_mnemonic(num_words=25)
+                self.controller.jar.init_pending_mnemonic(num_words=25)
             return Destination(SeedMnemonicEntryView)
 
 

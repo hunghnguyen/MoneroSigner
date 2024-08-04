@@ -170,7 +170,7 @@ class ToolsImageEntropyMnemonicLengthView(View):
         self.controller.image_entropy_final_image = None
         # Add the mnemonic as an in-memory Seed
         seed = Seed(mnemonic, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE))  # TODO: expire 2024-07-01, see #todo in xmrsigner.helpers.mnemonic_generation, and fix language together...
-        self.controller.storage.set_pending_seed(seed)
+        self.controller.jar.set_pending_seed(seed)
         # Cannot return BACK to this View
         return Destination(SeedWordsWarningView, view_args={"seed_num": None}, clear_history=True)
 
@@ -184,7 +184,7 @@ class ToolsImagePolyseedView(View):
         self.controller.image_entropy_final_image = None
         # Add the mnemonic as an in-memory Seed
         seed = PolyseedSeed(mnemonic, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE))  # TODO: expire 2024-07-01, see #todo in xmrsigner.helpers.mnemonic_generation, and fix language together...
-        self.controller.storage.set_pending_seed(seed)
+        self.controller.jar.set_pending_seed(seed)
         # Cannot return BACK to this View
         return Destination(SeedWordsWarningView, view_args={"seed_num": None}, clear_history=True)
 
@@ -249,7 +249,7 @@ class ToolsDiceEntropyEntryView(View):
         dice_seed_phrase = mnemonic_generation.generate_mnemonic_from_bytes(bytes(DiceEntropy(ret, 128 if self.total_rolls < 100 else 256)))
         # Add the mnemonic as an in-memory Seed
         seed = Seed(dice_seed_phrase, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE))
-        self.controller.storage.set_pending_seed(seed)
+        self.controller.jar.set_pending_seed(seed)
         # Cannot return BACK to this View
         return Destination(SeedWordsWarningView, view_args={"seed_num": None}, clear_history=True)
 
@@ -271,7 +271,7 @@ class ToolsDicePolyseedView(View):
         print(f"""Mnemonic: "{dice_seed_phrase}" """)
         # Add the mnemonic as an in-memory Seed
         seed = PolyseedSeed(dice_seed_phrase, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE))
-        self.controller.storage.set_pending_seed(seed)
+        self.controller.jar.set_pending_seed(seed)
         # Cannot return BACK to this View
         return Destination(SeedWordsWarningView, view_args={"seed_num": None}, clear_history=True)
 
@@ -330,12 +330,12 @@ class ToolsCalcFinalWordNumWordsView(View):
             if selected_menu_num == RET_CODE__BACK_BUTTON:
                 return Destination(BackStackView)
             if button_data[selected_menu_num] == THIRTEEN:
-                self.controller.storage.init_pending_mnemonic(13)
+                self.controller.jar.init_pending_mnemonic(13)
                 return Destination(SeedMnemonicEntryView, view_args=dict(is_calc_final_word=True))
             if button_data[selected_menu_num] == TWENTY_FIVE:
-                self.controller.storage.init_pending_mnemonic(25)
+                self.controller.jar.init_pending_mnemonic(25)
                 return Destination(SeedMnemonicEntryView, view_args=dict(is_calc_final_word=True))
-        self.controller.storage.init_pending_mnemonic(25)
+        self.controller.jar.init_pending_mnemonic(25)
         return Destination(SeedMnemonicEntryView, view_args=dict(is_calc_final_word=True))
 
 
@@ -346,20 +346,20 @@ class ToolsCalcFinalWordShowFinalWordView(View):  # TODO: 2024-06-04, rename, be
         self.coin_flips = coin_flips
 
     def run(self):
-        mnemonic = self.controller.storage.pending_mnemonic
+        mnemonic = self.controller.jar.pending_mnemonic
         mnemonic_length = len(mnemonic)
         wordlist_language_code = self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE)
         wordlist = Seed.get_wordlist(wordlist_language_code)
 
-        final_mnemonic = MoneroSeed(MoneroSeed(' '.join(self.controller.storage.pending_mnemonic[:(mnemonic_length - 1)])).hex).phrase.split(' ')
-        self.controller.storage.update_pending_mnemonic(final_mnemonic[-1], mnemonic_length - 1)
+        final_mnemonic = MoneroSeed(MoneroSeed(' '.join(self.controller.jar.pending_mnemonic[:(mnemonic_length - 1)])).hex).phrase.split(' ')
+        self.controller.jar.update_pending_mnemonic(final_mnemonic[-1], mnemonic_length - 1)
         return Destination(ToolsCalcFinalWordDoneView)
 
 
 class ToolsCalcFinalWordDoneView(View):
 
     def run(self):
-        mnemonic = self.controller.storage.pending_mnemonic
+        mnemonic = self.controller.jar.pending_mnemonic
         mnemonic_word_length = len(mnemonic)
         final_word = mnemonic[-1]
         LOAD = ButtonData('Load seed')
@@ -368,12 +368,12 @@ class ToolsCalcFinalWordDoneView(View):
         selected_menu_num = ToolsCalcFinalWordDoneScreen(
             final_word=final_word,
             mnemonic_word_length=mnemonic_word_length,
-            fingerprint=self.controller.storage.get_pending_mnemonic_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]),  # TODO: 2024-06-26, solve multi network issue
+            fingerprint=self.controller.jar.get_pending_mnemonic_fingerprint(self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]),  # TODO: 2024-06-26, solve multi network issue
             button_data=button_data,
         ).display()
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
-        self.controller.storage.convert_pending_mnemonic_to_pending_seed()
+        self.controller.jar.convert_pending_mnemonic_to_pending_seed()
         if button_data[selected_menu_num] == LOAD:
             return Destination(SeedFinalizeView)
         if button_data[selected_menu_num] == DISCARD:
@@ -392,7 +392,7 @@ class ToolsAddressExplorerSelectSourceView(View):
     TYPE_POLYSEED = ("Enter Polyseed", FontAwesomeIconConstants.KEYBOARD)
 
     def run(self):
-        seeds = self.controller.storage.seeds
+        seeds = self.controller.jar.seeds
         button_data = []
         for seed in seeds:
             button_str = seed.fingerprint
@@ -433,9 +433,9 @@ class ToolsAddressExplorerSelectSourceView(View):
         if button_data[selected_menu_num] in [self.TYPE_13WORD, self.TYPE_25WORD]:
             from xmrsigner.views.seed_views import SeedMnemonicEntryView
             if button_data[selected_menu_num] == self.TYPE_13WORD:
-                self.controller.storage.init_pending_mnemonic(num_words=13)
+                self.controller.jar.init_pending_mnemonic(num_words=13)
             else:
-                self.controller.storage.init_pending_mnemonic(num_words=25)
+                self.controller.jar.init_pending_mnemonic(num_words=25)
             return Destination(SeedMnemonicEntryView)
         if button_data[selected_menu_num] == self.TYPE_POLYSEED:
             from xmrsigner.views.seed_views import PolyseedMnemonicEntryView
@@ -466,7 +466,7 @@ class ToolsAddressExplorerAddressTypeView(View):  # TODO: 2024-06-17, holy clust
             'network': self.settings.get_value(SettingsConstants.SETTING__NETWORKS)[0]  # TODO: 2024-06-26, solve multi network issue
         }
         if self.seed_num is not None:
-            self.seed = self.controller.storage.seeds[seed_num]
+            self.seed = self.controller.jar.seeds[seed_num]
             data["seed_num"] = self.seed
         else:
             data["wallet_descriptor"] = self.controller.multisig_wallet_descriptor
