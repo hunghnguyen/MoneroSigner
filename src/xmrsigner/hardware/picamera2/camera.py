@@ -1,7 +1,10 @@
 from picamera2 import Picamera2
 from PIL import Image
 from typing import Tuple, Union
+from numpy import array as NumpyArray
 from xmrsigner.hardware.interfaces import CameraInterface
+from xmrsigner.models.settings import Settings, SettingsConstants
+from xmrsigner.hardware.picamera2.pivideostream import PiVideoStream2
 
 
 class Camera(CameraInterface):
@@ -13,7 +16,6 @@ class Camera(CameraInterface):
             cls._instance = cls.__new__(cls)
             cls._instance._video_stream = None
             cls._instance._picamera = Picamera2()
-            cls._instance._camera_rotation = camera_rotation
         cls._instance._camera_rotation = int(Settings.get_instance().get_value(SettingsConstants.SETTING__CAMERA_ROTATION))
         return cls._instance
 

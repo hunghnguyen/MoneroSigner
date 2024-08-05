@@ -5,7 +5,6 @@ from PIL import Image
 from xmrsigner.hardware.interfaces import CameraInterface
 from xmrsigner.hardware.pivideostream import PiVideoStream
 from xmrsigner.models.settings import Settings, SettingsConstants
-from xmrsigner.models.singleton import Singleton
 from typing import Tuple, Union
 
 

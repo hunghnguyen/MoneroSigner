@@ -184,7 +184,7 @@ class MoneroWalletRPCManager:
 
     def open_wallet(self, wallet_name: str, network: Union[str, Network]) -> bool:
         try:
-            rpc = jsonrpc.JSONRPCWallet(host='127.0.0.1', port=WALLET_PORT.forNetwork(network))
+            rpc = jsonrpc.JSONRPCWallet(host='127.0.0.1', port=WALLET_PORT.forNetwork(network), timeout=300)
             result = rpc.raw_request('open_wallet', {'filename': wallet_name})
             if 'result' in result and 'error' not in result:
                 return True
@@ -225,7 +225,7 @@ class MoneroWalletRPCManager:
         # if wallet could not be opened let's wipe the wallet file and/or wallet key file to avoid issues
         self.purge_wallet(wallet_name)
         try:
-            rpc = jsonrpc.JSONRPCWallet(host='127.0.0.1', port=WALLET_PORT.forNetwork(Network.fromString(seed.network)))
+            rpc = jsonrpc.JSONRPCWallet(host='127.0.0.1', port=WALLET_PORT.forNetwork(Network.fromString(seed.network)), timeout=300)
             response = rpc.raw_request(
                 'restore_deterministic_wallet',
                 {
@@ -263,7 +263,7 @@ class MoneroWalletRPCManager:
         # if wallet could not be opened let's purge the wallet file and/or wallet key file to avoid issues
         self.purge_wallet(wallet_name)
         try:
-            rpc = jsonrpc.JSONRPCWallet(host='127.0.0.1', port=WALLET_PORT.forNetwork(network))
+            rpc = jsonrpc.JSONRPCWallet(host='127.0.0.1', port=WALLET_PORT.forNetwork(network), timeout=300)
             response = rpc.raw_request(
                 'generate_from_keys',
                 {

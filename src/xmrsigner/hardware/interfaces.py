@@ -9,41 +9,41 @@ class CameraInterface(Singleton):
 
     @classmethod
     def get_instance(cls) -> 'CameraInterface':
-		pass
+        pass
 
     def start_video_stream_mode(
-		self,
-		resolution: Tuple[int, int] = (512, 384),
-		framerate: int = 12,
-		format: str = 'bgr'
-	) -> None:
-		pass
+        self,
+        resolution: Tuple[int, int] = (512, 384),
+        framerate: int = 12,
+        format: str = 'bgr'
+    ) -> None:
+        pass
 
     def read_video_stream(self, as_image: bool = False) -> Union[Image, NumpyArray]:
-		pass
+        pass
 
     def stop_video_stream_mode(self) -> None:
-		pass
+        pass
 
     def start_single_frame_mode(self, resolution: Tuple[int, int] = (720, 480)) -> None:
-		pass
+        pass
 
     def capture_frame(self) -> Image:
-		pass
+        pass
 
     def stop_single_frame_mode(self) -> None:
-		pass
+        pass
 
 
 class PiVideoStreamInterface:
 
     def __init__(
-        self,
-        resolution: Tuple[int, int] = (320, 240),
-        framerate: int = 32,
-        format: str = 'bgr',
-        **kwargs
-    ):
+            self,
+            resolution: Tuple[int, int] = (320, 240),
+            framerate: int = 32,
+            format: str = 'bgr',
+            **kwargs
+            ):
         pass
 
     def update(self) -> None:

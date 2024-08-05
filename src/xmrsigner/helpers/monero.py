@@ -1,4 +1,3 @@
-# TODO: 2024-07-26, this should be in monero-python
 from xmrsigner.helpers.network import Network
 from monero.wallet import Wallet
 from monero.backends.offline import OfflineWallet
@@ -232,7 +231,7 @@ class TxDescription:
         return self.unlock_time_warning or self.unusual_high_fee_warning  # self.no_change_warning not included
 
 
-class WalletRpcWrapper:
+class WalletRpcWrapper:  # TODO: 2024-07-26, this should be in monero-python
 
     wallet: Optional[Wallet] = None
 

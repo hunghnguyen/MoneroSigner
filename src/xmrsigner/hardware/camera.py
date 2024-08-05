@@ -4,11 +4,11 @@ from xmrsigner.hardware.interfaces import CameraInterface
 from typing import Tuple, Union
 try:
     import picamera2
-    from xmrsigner.hardware.picamera2 import Camera as CameraImplementation
+    from xmrsigner.hardware.picamera2.camera import Camera as CameraImplementation
     print('=> backend: picamera2')
 except Exception:
     import picamera
-    from xmrsigner.hardware.picamera2 import Camera as CameraImplementation
+    from xmrsigner.hardware.picamera.camera import Camera as CameraImplementation
     print('=> backend: picamera')
 
 
@@ -17,27 +17,27 @@ class Camera(CameraInterface):
     @classmethod
     def get_instance(cls) -> 'Camera':
         print('=>get camera<=')
-		return CameraImplementation.get_instance()
+        return CameraImplementation.get_instance()
 
     def start_video_stream_mode(
-		self,
-		resolution: Tuple[int, int] = (512, 384),
-		framerate: int = 12,
-		format: str = 'bgr'
-	) -> None:
-		pass
+        self,
+        resolution: Tuple[int, int] = (512, 384),
+        framerate: int = 12,
+        format: str = 'bgr'
+    ) -> None:
+        pass
 
     def read_video_stream(self, as_image: bool = False) -> Union[Image, NumpyArray]:
-		pass
+        pass
 
     def stop_video_stream_mode(self) -> None:
-		pass
+        pass
 
     def start_single_frame_mode(self, resolution: Tuple[int, int] = (720, 480)) -> None:
-		pass
+        pass
 
     def capture_frame(self) -> Image:
-		pass
+        pass
 
     def stop_single_frame_mode(self) -> None:
-		pass
+        pass

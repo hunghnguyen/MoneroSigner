@@ -633,6 +633,8 @@ class TxChangeDetailsScreen(ButtonListScreen):
     amount: int = 0
     address: str = None
     fingerprint: str = None
+    is_polyseed: bool = False
+    is_my_monero: bool = False
     is_change_derivation_path: bool = True
     derivation_path_addr_index: int = 0
     is_change_addr_verified: bool = False
@@ -650,10 +652,10 @@ class TxChangeDetailsScreen(ButtonListScreen):
             address=self.address,
             max_lines=1,
         ))
-        screen_y = self.components[-1].screen_y + self.components[-1].height + 2*GUIConstants.COMPONENT_PADDING
+        screen_y = self.components[-1].screen_y + self.components[-1].height + 2 * GUIConstants.COMPONENT_PADDING
         self.components.append(IconTextLine(
             icon_name=IconConstants.FINGERPRINT,
-            icon_color=GUIConstants.INFO_COLOR,  # TODO: 2024-06-20, probably should change to purple if polyseed?
+            icon_color=GUIConstants.FINGERPRINT_POLYSEED_COLOR if self.is_polyseed else GUIConstants.FINGERPRINT_MONERO_SEED_COLOR if not self.is_my_monero else GUIConstants.FINGERPRINT_MY_MONERO_SEED_COLOR,
             value_text=f"""{self.fingerprint}: {"Change" if self.is_change_derivation_path else "Addr"} #{self.derivation_path_addr_index}""",
             is_text_centered=False,
             screen_x=GUIConstants.EDGE_PADDING,

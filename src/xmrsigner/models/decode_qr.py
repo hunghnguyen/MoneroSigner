@@ -110,7 +110,6 @@ class DecodeQR:
             self.decoder.receive_part(qr_str)
             if self.decoder.is_complete():
                 self.complete = True
-                print(f'data: {self.decoder.result_message().cbor}')  # TODO: 2024-07-24, remove DEBUG only
                 return DecodeQRStatus.COMPLETE
             return DecodeQRStatus.PART_COMPLETE # segment added to ur2 decoder
         else:

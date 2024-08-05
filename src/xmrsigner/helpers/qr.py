@@ -42,7 +42,7 @@ class QR:
             border_str = str(border)
         else:
             border_str = "3"
-        cmd = f"""qrencode -m {border_str} -s 3 -l L --foreground=000000 --background={background_color} -t PNG -o "/tmp/qrcode.png" "{str(data)}" """  # TODO: 2024-07-30, WTF, implement in python?
+        cmd = f"""qrencode -m {border_str} -s 3 -l L --foreground=000000 --background={background_color} -t PNG -o "/tmp/qrcode.png" "{str(data)}" """  # WTF, implement in python?
         rv = call(cmd, shell=True)
         # if qrencode fails, fall back to only encoder
         if rv != 0:

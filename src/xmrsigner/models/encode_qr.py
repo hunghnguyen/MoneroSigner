@@ -71,8 +71,7 @@ class EncodeQR(BaseQrEncoder):
         part = self.next_part()
         if self.qr_type == QRType.SEED__SEEDQR:
             return self.qr.qrimage(part, width, height, border)
-        else:
-            return self.qr.qrimage_io(part, width, height, border, background_color=background_color)
+        return self.qr.qrimage_io(part, width, height, border, background_color=background_color)  # why
 
     @property
     def is_complete(self):
