@@ -26,7 +26,7 @@ checksums: clean
 	@sha256sum --tag Makefile >> SHA256
 	@sha256sum --tag README.md >> SHA256
 	@sha256sum --tag LICENSE.md >> SHA256
-	@rm SHA256.sig
+	@rm -f SHA256.sig
 	@git add SHA256
 
 sign: checksums
