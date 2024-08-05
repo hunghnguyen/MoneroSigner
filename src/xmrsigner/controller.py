@@ -59,14 +59,13 @@ class Controller(Singleton):
         rather than at the top in order avoid circular imports.
     """
 
-    VERSION = "0.7.3"
+    VERSION = "0.7.4"
 
     buttons: HardwareButtons = None
     jar: SeedJar = None
     settings: Settings = None
     renderer: Renderer = None
 
-    # TODO: 2024-07-24, holy clusterfuck, improve this sh*t - but later
     selected_seed: Optional[Seed] = None
     transaction: Optional[bytes] = None
     outputs: Optional[bytes] = None
