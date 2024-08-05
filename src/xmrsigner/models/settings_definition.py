@@ -3,7 +3,6 @@ from typing import Any, List, Tuple, Union
 from monero.const import NET_MAIN, NET_TEST, NET_STAGE, NETS
 
 
-
 class SettingsConstants:
     # Basic defaults
     OPTION__ENABLED = "E"
@@ -91,49 +90,102 @@ class SettingsConstants:
         if network == SettingsConstants.STAGENET:
             return NET_STAGE
 
-    WORDLIST_LANGUAGE__ENGLISH = "en"  # TODO: remove comment before 2024-06-10 handle differences in wordlist languages in monero seed and polyseed, think should be handled in the wordlist implementations instead
-    WORDLIST_LANGUAGE__CHINESE_SIMPLIFIED = "zh_Hans_CN"
-    WORDLIST_LANGUAGE__CHINESE_TRADITIONAL = "zh_Hant_TW"
-    WORDLIST_LANGUAGE__FRENCH = "fr"
-    WORDLIST_LANGUAGE__ITALIAN = "it"
-    WORDLIST_LANGUAGE__JAPANESE = "jp"
-    WORDLIST_LANGUAGE__KOREAN = "kr"
-    WORDLIST_LANGUAGE__PORTUGUESE = "pt"
-    WORDLIST_LANGUAGE__DUTCH = "nl"
-    WORDLIST_LANGUAGE__GERMAN = "de"
-    WORDLIST_LANGUAGE__RUSSIAN = "ru"
-    WORDLIST_LANGUAGE__SPANISH = "es"
-    WORDLIST_LANGUAGE__LOJBAN = "lojban"
-    WORDLIST_LANGUAGE__ESPERANTO = "esperanto"
+    WORDLIST_LANGUAGE__ENGLISH = 'en'
+    WORDLIST_LANGUAGE__CHINESE_SIMPLIFIED = 'zh_Hans_CN'
+    WORDLIST_LANGUAGE__CHINESE_TRADITIONAL = 'zh_Hant_TW'
+    WORDLIST_LANGUAGE__FRENCH = 'fr'
+    WORDLIST_LANGUAGE__ITALIAN = 'it'
+    WORDLIST_LANGUAGE__JAPANESE = 'jp'
+    WORDLIST_LANGUAGE__KOREAN = 'kr'
+    WORDLIST_LANGUAGE__PORTUGUESE = 'pt'
+    WORDLIST_LANGUAGE__DUTCH = 'nl'
+    WORDLIST_LANGUAGE__GERMAN = 'de'
+    WORDLIST_LANGUAGE__RUSSIAN = 'ru'
+    WORDLIST_LANGUAGE__CZECH = 'cs'
+    WORDLIST_LANGUAGE__SPANISH = 'es'
+    WORDLIST_LANGUAGE__LOJBAN = 'lojban'
+    WORDLIST_LANGUAGE__ESPERANTO = 'esperanto'
     ALL_WORDLIST_LANGUAGE_ENGLISH__NAMES = {
         WORDLIST_LANGUAGE__ENGLISH: 'English',
-        WORDLIST_LANGUAGE__CHINESE_SIMPLIFIED: "Chinese (simplified)",
-        WORDLIST_LANGUAGE__FRENCH: "French",
-        WORDLIST_LANGUAGE__ITALIAN: "Italian",
-        WORDLIST_LANGUAGE__JAPANESE: "Japanese",
-        WORDLIST_LANGUAGE__PORTUGUESE: "Portuguese",
-        WORDLIST_LANGUAGE__DUTCH: "Dutch",
-        WORDLIST_LANGUAGE__GERMAN: "German",
-        WORDLIST_LANGUAGE__RUSSIAN: "Russian",
-        WORDLIST_LANGUAGE__SPANISH: "Spanish",
-        WORDLIST_LANGUAGE__LOJBAN: "Lojban",
-        WORDLIST_LANGUAGE__ESPERANTO: "Esperanto"
+        WORDLIST_LANGUAGE__CHINESE_SIMPLIFIED: 'Chinese (simplified)',
+        WORDLIST_LANGUAGE__CHINESE_TRADITIONAL: 'Chinese Traditional',
+        WORDLIST_LANGUAGE__FRENCH: 'French',
+        WORDLIST_LANGUAGE__ITALIAN: 'Italian',
+        WORDLIST_LANGUAGE__JAPANESE: 'Japanese',
+        WORDLIST_LANGUAGE__PORTUGUESE: 'Portuguese',
+        WORDLIST_LANGUAGE__DUTCH: 'Dutch',
+        WORDLIST_LANGUAGE__GERMAN: 'German',
+        WORDLIST_LANGUAGE__RUSSIAN: 'Russian',
+        WORDLIST_LANGUAGE__CZECH: 'Czech',
+        WORDLIST_LANGUAGE__SPANISH: 'Spanish',
+        WORDLIST_LANGUAGE__LOJBAN: 'Lojban',
+        WORDLIST_LANGUAGE__ESPERANTO: 'Esperanto'
     }
-    ALL_WORDLIST_LANGUAGES = [
-        (WORDLIST_LANGUAGE__ENGLISH, "English"),
-        # (WORDLIST_LANGUAGE__CHINESE_SIMPLIFIED, "简体中文"),
-        # (WORDLIST_LANGUAGE__CHINESE_TRADITIONAL, "繁體中文"),
-        # (WORDLIST_LANGUAGE__FRENCH, "Français"),
-        # (WORDLIST_LANGUAGE__ITALIAN, "Italiano"),
-        # (WORDLIST_LANGUAGE__JAPANESE, "日本語"),
-        # (WORDLIST_LANGUAGE__KOREAN, "한국어"),
-        # (WORDLIST_LANGUAGE__PORTUGUESE, "Português"),
+
+    ALL_WORDLIST_LANGUAGE_NAMES = {
+        WORDLIST_LANGUAGE__ENGLISH: 'English',
+        WORDLIST_LANGUAGE__CHINESE_SIMPLIFIED: '简体中文',
+        WORDLIST_LANGUAGE__CHINESE_TRADITIONAL: '繁體中文',
+        WORDLIST_LANGUAGE__FRENCH: 'Français',
+        WORDLIST_LANGUAGE__ITALIAN: 'Italiano',
+        WORDLIST_LANGUAGE__JAPANESE: '日本語',
+        WORDLIST_LANGUAGE__KOREAN: '한국어',
+        WORDLIST_LANGUAGE__PORTUGUESE: 'Português',
+        WORDLIST_LANGUAGE__DUTCH: 'Nederlands',
+        WORDLIST_LANGUAGE__GERMAN: 'Deutsch',
+        WORDLIST_LANGUAGE__RUSSIAN: 'Русский',
+        WORDLIST_LANGUAGE__CZECH: 'Čeština',
+        WORDLIST_LANGUAGE__SPANISH: 'Español',
+        WORDLIST_LANGUAGE__LOJBAN: 'Lojban',
+        WORDLIST_LANGUAGE__ESPERANTO: 'Esperanto'
+    }
+
+    MONERO_SUPPORTED_LANGUAGES = [
+        WORDLIST_LANGUAGE__ENGLISH, 
+        # WORDLIST_LANGUAGE__CHINESE_SIMPLIFIED, # disabled because of font
+        WORDLIST_LANGUAGE__DUTCH,
+        WORDLIST_LANGUAGE__ESPERANTO, 
+        WORDLIST_LANGUAGE__FRENCH, 
+        WORDLIST_LANGUAGE__GERMAN, 
+        WORDLIST_LANGUAGE__ITALIAN, 
+        # WORDLIST_LANGUAGE__JAPANESE, # disabled because of font
+        WORDLIST_LANGUAGE__LOJBAN, 
+        WORDLIST_LANGUAGE__PORTUGUESE, 
+        WORDLIST_LANGUAGE__RUSSIAN, 
+        WORDLIST_LANGUAGE__SPANISH
     ]
 
+    @classmethod
+    @property
+    def MONERO_LANGUAGE_NAMES(cls) -> List[Tuple[str, str]]:
+        return [(lang, cls.ALL_WORDLIST_LANGUAGE_NAMES[lang]) for lang in cls.MONERO_SUPPORTED_LANGUAGES]
+
+    POLYSEED_SUPPORTED_LANGUAGES = [
+        WORDLIST_LANGUAGE__ENGLISH,
+        # WORDLIST_LANGUAGE__JAPANESE,  # disabled because of font
+        # WORDLIST_LANGUAGE__KOREAN,  # disabled because of font
+        WORDLIST_LANGUAGE__SPANISH,
+        # WORDLIST_LANGUAGE__CHINESE_SIMPLIFIED,  # disabled because of font
+        # WORDLIST_LANGUAGE__CHINESE_TRADITIONAL,  # disabled because of font
+        WORDLIST_LANGUAGE__FRENCH,
+        WORDLIST_LANGUAGE__ITALIAN,
+        WORDLIST_LANGUAGE__GERMAN,
+        WORDLIST_LANGUAGE__LOJBAN,
+        WORDLIST_LANGUAGE__PORTUGUESE,
+        WORDLIST_LANGUAGE__RUSSIAN,
+        WORDLIST_LANGUAGE__SPANISH,
+        WORDLIST_LANGUAGE__CZECH
+    ]
+
+    @classmethod
+    @property
+    def POLYSEED_LANGUAGE_NAMES(cls) -> List[Tuple[str, str]]:
+        return [(lang, cls.ALL_WORDLIST_LANGUAGE_NAMES[lang]) for lang in cls.POLYSEED_SUPPORTED_LANGUAGES]
     
     # Individual SettingsEntry attr_names
     SETTING__LANGUAGE = "language"
-    SETTING__WORDLIST_LANGUAGE = "wordlist_language"  # TODO: remove after 2024-06-10, maybe there should be SETTING__WORDLIST_LANGUAGE_MONERO and SETTING__WORDLIST_LANGUAGE_POLYSEED? Makes this even sense, should it not be more dynamic letting the responsibility to the monero, polyseed implementation to have it more future proof?
+    SETTING__MONERO_WORDLIST_LANGUAGE = "monero_wordlist_language"
+    SETTING__POLYSEED_WORDLIST_LANGUAGE = "monero_wordlist_language"
     SETTING__PERSISTENT_SETTINGS = "persistent_settings"
     SETTING__XMR_DENOMINATION = "denomination"
 
@@ -323,14 +375,22 @@ class SettingsDefinition:
                       selection_options=SettingsConstants.ALL_LANGUAGES,
                       default_value=SettingsConstants.LANGUAGE__ENGLISH),
 
-        # TODO:SEEDSIGNER: Support wordlist languages! Until then, type == HIDDEN
         SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
-                      attr_name=SettingsConstants.SETTING__WORDLIST_LANGUAGE,
-                      abbreviated_name="wordlist_lang",
+                      attr_name=SettingsConstants.SETTING__MONERO_WORDLIST_LANGUAGE,
+                      abbreviated_name="m_wl_lang",
                       display_name="Mnemonic language",
                       type=SettingsConstants.TYPE__SELECT_1,
-                      visibility=SettingsConstants.VISIBILITY__HIDDEN,
-                      selection_options=SettingsConstants.ALL_WORDLIST_LANGUAGES,
+                      visibility=SettingsConstants.VISIBILITY__HIDDEN,  # HIDDEN/DISABLED
+                      selection_options=SettingsConstants.MONERO_LANGUAGE_NAMES,
+                      default_value=SettingsConstants.WORDLIST_LANGUAGE__ENGLISH),
+
+        SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
+                      attr_name=SettingsConstants.SETTING__POLYSEED_WORDLIST_LANGUAGE,
+                      abbreviated_name="ps_wl_lang",
+                      display_name="Polyseed language",
+                      type=SettingsConstants.TYPE__SELECT_1,
+                      visibility=SettingsConstants.VISIBILITY__HIDDEN,  # HIDDEN/DISABLED
+                      selection_options=SettingsConstants.POLYSEED_LANGUAGE_NAMES,
                       default_value=SettingsConstants.WORDLIST_LANGUAGE__ENGLISH),
 
         SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,

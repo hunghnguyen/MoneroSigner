@@ -169,7 +169,7 @@ class ToolsImageEntropyMnemonicLengthView(View):
         self.controller.image_entropy_preview_frames = None
         self.controller.image_entropy_final_image = None
         # Add the mnemonic as an in-memory Seed
-        seed = Seed(mnemonic, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE))  # TODO: expire 2024-07-01, see #todo in xmrsigner.helpers.mnemonic_generation, and fix language together...
+        seed = Seed(mnemonic, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__MONERO_WORDLIST_LANGUAGE))
         self.controller.jar.set_pending_seed(seed)
         # Cannot return BACK to this View
         return Destination(SeedWordsWarningView, view_args={"seed_num": None}, clear_history=True)
@@ -183,7 +183,7 @@ class ToolsImagePolyseedView(View):
         self.controller.image_entropy_preview_frames = None
         self.controller.image_entropy_final_image = None
         # Add the mnemonic as an in-memory Seed
-        seed = PolyseedSeed(mnemonic, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE))  # TODO: expire 2024-07-01, see #todo in xmrsigner.helpers.mnemonic_generation, and fix language together...
+        seed = PolyseedSeed(mnemonic, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__POLYSEED_WORDLIST_LANGUAGE))
         self.controller.jar.set_pending_seed(seed)
         # Cannot return BACK to this View
         return Destination(SeedWordsWarningView, view_args={"seed_num": None}, clear_history=True)
