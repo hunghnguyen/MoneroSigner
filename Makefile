@@ -70,6 +70,9 @@ image-buster:
 	@echo 'Build PiOS (buster) image with XmrSigner for Development...'
 	@tools/create_image_bookworm.sh
 
+unixtime:
+	date +unixtime:%s?tz=%Z | qr
+
 dev-device-ip:
 	$(eval DEV_DEVICE_IP := $(shell tools/find_dev_device.sh))
 	@if [ -z "$(DEV_DEVICE_IP)" ]; then \
@@ -82,3 +85,6 @@ dev-device-sync: dev-device-ip
 
 dev-device-shell: dev-device-ip
 	ssh -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_IP}
+
+dev-device-time-sync: dev-device-ip
+	date +'%s %Z' | ssh -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_IP} 'read -r ts tz; sudo date -s @${ts}; echo $tz | sudo tee /etc/timezone; sudo dpkg-reconfigure -f noninteractive tzdata'
