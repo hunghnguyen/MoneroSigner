@@ -1,7 +1,7 @@
 from json import load, dump, dumps
 from os import path, remove, fsync
 from platform import uname
-from typing import List, Tuple, Dict  # TODO: 2024-06-16 remove Any if not needed anymore
+from typing import List, Tuple, Dict
 
 from xmrsigner.models.settings_definition import SettingsConstants, SettingsDefinition
 from xmrsigner.models.singleton import Singleton
@@ -243,8 +243,6 @@ class Settings(Singleton):
                 entry.selection_options = SettingsConstants.OPTIONS__ENABLED_DISABLED
                 entry.help_text = SettingsConstants.PERSISTENT_SETTINGS__SD_INSERTED__HELP_TEXT
 
-                # TODO:SEEDSIGNER: Perhaps prompt the user if the current settings (not including persistent
-                # settings) should overwrite the settings on disk, if they differ:
                 # - Overwrite settings on the SD?
                 # - Load settings from SD?
                 # if Settings file exists (meaning persistent settings was previously enabled), write out current settings to disk

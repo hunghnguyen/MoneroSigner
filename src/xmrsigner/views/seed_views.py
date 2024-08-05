@@ -153,11 +153,10 @@ class SeedMnemonicEntryView(View):
             return Destination(MainMenuView)
         # ret will be our new mnemonic word
         self.controller.jar.update_pending_mnemonic(ret, self.cur_word_index)
-        if self.is_calc_final_word and self.cur_word_index == self.controller.jar.pending_mnemonic_length - 2:  # TODO: 2024-06-30, clean up, this code is now functional but uggly as fuck!
+        if self.is_calc_final_word and self.cur_word_index == self.controller.jar.pending_mnemonic_length - 2:
             # Time to calculate the last word. User must decide how they want to specify
             # the last bits of entropy for the final word.
             from xmrsigner.views.tools_views import ToolsCalcFinalWordShowFinalWordView
-            # return Destination(ToolsCalcFinalWordFinalizePromptView)  # TODO: expire 2024-06-30, lean it up
             return Destination(ToolsCalcFinalWordShowFinalWordView, view_args=dict(coin_flips="0" * 7))
         if self.is_calc_final_word and self.cur_word_index == self.controller.jar.pending_mnemonic_length - 1:
             # Time to calculate the last word. User must either select a final word to

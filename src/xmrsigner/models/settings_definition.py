@@ -246,7 +246,6 @@ class SettingsEntry:
         The tuple form is to provide a human-readable display_name. Probably all
         entries should shift to using the tuple form.
     """
-    # TODO:SEEDSIGNER: Handle multi-language `display_name` and `help_text`
     category: str
     attr_name: str
     display_name: str
@@ -365,13 +364,12 @@ class SettingsDefinition:
     settings_entries: List[SettingsEntry] = [
         # General options
 
-        # TODO:SEEDSIGNER: Full babel multilanguage support! Until then, type == HIDDEN
         SettingsEntry(category=SettingsConstants.CATEGORY__SYSTEM,
                       attr_name=SettingsConstants.SETTING__LANGUAGE,
                       abbreviated_name="lang",
                       display_name="Language",
                       type=SettingsConstants.TYPE__SELECT_1,
-                      visibility=SettingsConstants.VISIBILITY__HIDDEN,
+                      visibility=SettingsConstants.VISIBILITY__HIDDEN,  # HIDDEN/DISABLED
                       selection_options=SettingsConstants.ALL_LANGUAGES,
                       default_value=SettingsConstants.LANGUAGE__ENGLISH),
 
@@ -429,7 +427,7 @@ class SettingsDefinition:
                       attr_name=SettingsConstants.SETTING__MONERO_SEED_PASSPHRASE,
                       display_name="Monero seed passphrase",
                       type=SettingsConstants.TYPE__SELECT_1,
-                      visibility=SettingsConstants.VISIBILITY__HIDDEN,  # TODO: 2024-12-01, change to VISIBILITY__ADVANCED after implementing passwords for monero seeds, is hidden because this feature is posponed because of insane password derivation method in monero (CryptoNight, need to transpile to python, very propably other #rabbit-hole, be aware before starting!)
+                      visibility=SettingsConstants.VISIBILITY__HIDDEN,  # is hidden because this feature is posponed because of insane password derivation method in monero (CryptoNight, need to transpile to python, very propably other #rabbit-hole, be aware before starting!)
                       selection_options=SettingsConstants.OPTIONS__ENABLED_DISABLED_REQUIRED,
                       default_value=SettingsConstants.OPTION__DISABLED),
 

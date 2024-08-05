@@ -233,11 +233,11 @@ class ErrorView(View):
 
 @dataclass
 class NetworkMismatchErrorView(ErrorView):
+
     title: str = "Network Mismatch"
     show_back_button: bool = False
     button_text: str = "Change Setting"
     next_destination: Destination = None
-
 
     def __post_init__(self):
         super().__post_init__()
