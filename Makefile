@@ -1,6 +1,7 @@
 SSH_PRIVATE_KEY=${PWD}/xmrsigner_dev_ssh
 SRC_DIR=${PWD}/src
 DEV_DEVICE_IP=''
+DEV_DEVICE_WIFI_IP='192.168.4.1'
 
 default:
 	true
@@ -58,9 +59,16 @@ minor: .increment-minor checksums sign version
 major: .increment-major checksums sign version
 	@tools/tag_version.py
 
-image-clean:
-	@echo 'Remove folder devimage...'
+image-clean-bookworm:
+	@echo 'Remove folder devimage for bookworm...'
 	@rm -rf devimage
+
+image-clean-buster:
+	@echo 'Remove folder devimage for buster...'
+	@rm -rf devimage-buster
+
+image-clean: image-clean-buster image-clean-bookworm
+	@true
 
 image-bookworm:
 	@echo 'Build PiOS (bookworm) image with XmrSigner for Development...'
@@ -68,7 +76,7 @@ image-bookworm:
 
 image-buster:
 	@echo 'Build PiOS (buster) image with XmrSigner for Development...'
-	@tools/create_image_bookworm.sh
+	@tools/create_image_buster.sh
 
 unixtime:
 	date +unixtime:%s?tz=%Z | qr
@@ -85,6 +93,12 @@ dev-device-sync: dev-device-ip
 
 dev-device-shell: dev-device-ip
 	ssh -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_IP}
+
+dev-device-wifi-shell:
+	ssh -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_WIFI_IP}
+
+dev-device-wifi-shell-reatach:
+	ssh -t -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_WIFI_IP} 'screen -r'
 
 dev-device-time-sync: dev-device-ip
 	date +'%s %Z' | ssh -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_IP} 'read -r ts tz; sudo date -s @${ts}; echo $tz | sudo tee /etc/timezone; sudo dpkg-reconfigure -f noninteractive tzdata'

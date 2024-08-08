@@ -110,7 +110,7 @@ iface usb0 inet dhcp
 EOF
 
     echo 'Creating XmrSigner service...'
-    cat << EOF | sudo sh -c "cat > ${DEVIMAGE_MOUNT_ROOT/etc/systemd/system/xmrsigner.service"
+    cat << EOF | sudo sh -c "cat > ${DEVIMAGE_MOUNT_ROOT}/etc/systemd/system/xmrsigner.service"
 [Unit]
 Description=XmrSigner
 
