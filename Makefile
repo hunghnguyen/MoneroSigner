@@ -12,7 +12,7 @@ resources:
 
 clean:
 	@echo 'clean py cache files...'
-	@find src -name __pycache__ -exec rm -rf \{\} \; >&2
+	@find src -name __pycache__ -exec rm -rf \{\} \; >&2 || true
 
 version:
 	grep VERSION src/xmrsigner/controller.py | awk -F'"' '{ print $2 }'
