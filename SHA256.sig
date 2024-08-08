@@ -1,5 +1,5 @@
 untrusted comment: verify with xmrsigner.pub
-RWQIrxLVA6lZvDGVvUt/2LKUGFEhHuVUqdIwfqEmmnIBPws7z4ePz5kaWtPyO8xepwV/yUiGeXlrAWlCtVV+SnBjy+vjQh8WMwI=
+RWQIrxLVA6lZvJddSubpQMN86WSMhGA4DYHgoQEfiXpFscquZWgbg+urZyRnEfZfnbhJDzsYtGJcSQy1msvJ8pL9oX3CL5EL0gU=
 SHA256 (src/test/__init__.py) = 4121d7f83201e2faeb78eb371a2f4e699d75367899066cb832ca200d05807a6a
 SHA256 (src/test/__main__.py) = 344d07bf9c3991c6b2942586537481a43d1e87306faeeb9c5f2edbce5a8bda6c
 SHA256 (src/test/xmrsigner/wordlist.py) = 6114aac139cce80b0776ed5e55e93df309adcf3c1023c2d591c2b2f2d6754a1f
@@ -22,7 +22,7 @@ SHA256 (src/xmrsigner/views/view.py) = bb671252f9b53096a06fd049b72f0cba9ae802c8c
 SHA256 (src/xmrsigner/views/seed_views.py) = 1bd36e7fac126c0fbd84f4973443229d6a9b72dc6dcd81cf3b43119e4fa42290
 SHA256 (src/xmrsigner/views/monero_views.py) = 63f343f65dc48d4403334e52b465b4790d8fa9f052e2a05415919a7763ce96dc
 SHA256 (src/xmrsigner/views/settings_views.py) = 14aab23cfe77461816f9b07087e3c18bcfa65700217bc58aef14f4d9d263ece7
-SHA256 (src/xmrsigner/controller.py) = f4a6d9b4542c52b1de2ed2d9e3dafae42c90a5b79f977cd39e2f46f8cf8d9326
+SHA256 (src/xmrsigner/controller.py) = c071436566aad2d2746a54f38ca175a195cc5b7b5efabf35276c35fc16181fba
 SHA256 (src/xmrsigner/hardware/picamera/pivideostream.py) = 67c3232a6c951077f9390d9d073641d1f6500054f09fb74580698d0b6e828bd9
 SHA256 (src/xmrsigner/hardware/picamera/camera.py) = 4b1dd86c48045371dc63e413733eabff04401e6858534ed1f0cbfc9f191c382f
 SHA256 (src/xmrsigner/hardware/pivideostream.py) = 7e5c06da6331bee0da86fe12fc4e55a5b6ad0243e0431caa63a89c252f50ce7d
