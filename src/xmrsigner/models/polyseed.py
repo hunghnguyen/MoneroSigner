@@ -20,10 +20,10 @@ class PolyseedSeed(Seed):
                  passphrase: str = "",
                  wordlist_language_code: str = SettingsConstants.WORDLIST_LANGUAGE__ENGLISH,
                  network: str = NET_MAIN):
-        self.wordlist_language_code = wordlist_language_code
-        self.prefered_language = wordlist_language_code
-        self.network = network
-        self.height = 0
+        self.wordlist_language_code: str = wordlist_language_code
+        self.prefered_language: str = wordlist_language_code
+        self.network: str = network
+        self.height: int = 0
 
         if not mnemonic:
             raise Exception("Must initialize a Seed with a mnemonic List[str]")
@@ -40,7 +40,6 @@ class PolyseedSeed(Seed):
     def type(self) -> SeedType:
         return SeedType.Polyseed
 
-
     @staticmethod
     def get_wordlist(wordlist_language_code: str = SettingsConstants.WORDLIST_LANGUAGE__ENGLISH) -> List[str]:
         if wordlist_language_code == SettingsConstants.WORDLIST_LANGUAGE__ENGLISH:
@@ -51,7 +50,6 @@ class PolyseedSeed(Seed):
             except PolyseedLanguageNotFoundException:
                 pass
         raise Exception(f"Unrecognized wordlist_language_code {wordlist_language_code}")
-
 
     def _generate_seed(self) -> bool:
         try:
@@ -66,10 +64,8 @@ class PolyseedSeed(Seed):
             if self.passphrase:
                 ps.crypt(self.passphrase)
             self.seed_bytes = ps.keygen()
-            self.address = str(MoneroSeed(hexlify(self.seed_bytes).decode()).public_address())
-            net = Network.fromAddress(self.address).value
-            print(f'net: {net}')
-            self.height = MoneroTime(net).getBlockchainHeight(ps.get_birthday())
+            self.address = str(MoneroSeed(hexlify(self.seed_bytes).decode()).public_address(self.network))
+            self.height = MoneroTime(str(Network.ensure(self.network))).getBlockchainHeight(ps.get_birthday())
         except Exception as e:
             raise InvalidSeedException(repr(e))
     

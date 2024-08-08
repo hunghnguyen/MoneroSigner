@@ -337,8 +337,6 @@ class ButtonListScreen(BaseTopNavScreen):
         for i, button_data in enumerate(self.button_data):
             button_data = ButtonData.ensure(button_data)
             button_data.position = i
-
-            print(self.checked_buttons and i in self.checked_buttons)
             button_kwargs = button_data.button_kwargs(
                 button_list_y,
                 button_height,
@@ -350,7 +348,6 @@ class ButtonListScreen(BaseTopNavScreen):
                 self.button_selected_color,
                 self.checked_buttons and i in self.checked_buttons
             )
-            print(button_kwargs)
             button = self.Button_cls(**button_kwargs)
             self.buttons.append(button)
         

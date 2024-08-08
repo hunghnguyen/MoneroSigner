@@ -15,27 +15,31 @@ class Network(Enum):
         return [cls.MAIN, cls.TEST, cls.STAGE]
 
     @classmethod
+    def get_list(cls, selected: List[Union['Network', str]] = [], default: List['Network'] = [NET_MAIN]) -> List['Network']:
+        if len(selected) == 0:
+            return cls.get_list(default)
+        return [cls.ensure(net) for net in selected]
+
+    @classmethod
     def fromString(cls, net: str) -> 'Network':
-        if net == NET_MAIN:
+        if net in (NET_MAIN, 'M'):
             return cls.MAIN
-        elif net == NET_TEST:
+        if net in (NET_TEST, 'T'):
             return cls.TEST
-        elif net == NET_STAGE:
+        if net in (NET_STAGE, 'S'):
             return cls.STAGE
-        else:
-            raise ValueError("Invalid network type")
+        raise ValueError("Invalid network type")
 
     @classmethod
     def fromAddress(cls, address: Union[str, Address]) -> 'Network':
         net = (Address(address) if not isinstance(address, Address) else address).net
         if net == NET_MAIN:
             return cls.MAIN
-        elif net == NET_TEST:
+        if net == NET_TEST:
             return cls.TEST
-        elif net == NET_STAGE:
+        if net == NET_STAGE:
             return cls.STAGE
-        else:
-            raise ValueError("Invalid network type")
+        raise ValueError("Invalid network type")
 
     @classmethod
     def ensure(cls, net: Union[str, 'Network']) -> 'Network':

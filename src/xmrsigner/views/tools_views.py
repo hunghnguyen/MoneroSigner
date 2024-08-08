@@ -248,7 +248,7 @@ class ToolsDiceEntropyEntryView(View):
             return Destination(BackStackView)
         dice_seed_phrase = mnemonic_generation.generate_mnemonic_from_bytes(bytes(DiceEntropy(ret, 128 if self.total_rolls < 100 else 256)))
         # Add the mnemonic as an in-memory Seed
-        seed = Seed(dice_seed_phrase, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE))
+        seed = Seed(dice_seed_phrase, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__MONERO_WORDLIST_LANGUAGE))
         self.controller.jar.set_pending_seed(seed)
         # Cannot return BACK to this View
         return Destination(SeedWordsWarningView, view_args={"seed_num": None}, clear_history=True)
@@ -270,7 +270,7 @@ class ToolsDicePolyseedView(View):
         dice_seed_phrase = polyseed_mnemonic_generation.generate_mnemonic_from_bytes(bytes(DiceEntropy(ret)))
         print(f"""Mnemonic: "{dice_seed_phrase}" """)
         # Add the mnemonic as an in-memory Seed
-        seed = PolyseedSeed(dice_seed_phrase, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE))
+        seed = PolyseedSeed(dice_seed_phrase, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__POLYSEED_WORDLIST_LANGUAGE))
         self.controller.jar.set_pending_seed(seed)
         # Cannot return BACK to this View
         return Destination(SeedWordsWarningView, view_args={"seed_num": None}, clear_history=True)
@@ -348,7 +348,7 @@ class ToolsCalcFinalWordShowFinalWordView(View):  # TODO: 2024-06-04, rename, be
     def run(self):
         mnemonic = self.controller.jar.pending_mnemonic
         mnemonic_length = len(mnemonic)
-        wordlist_language_code = self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE)
+        wordlist_language_code = self.settings.get_value(SettingsConstants.SETTING__MONERO_WORDLIST_LANGUAGE)
         wordlist = Seed.get_wordlist(wordlist_language_code)
 
         final_mnemonic = MoneroSeed(MoneroSeed(' '.join(self.controller.jar.pending_mnemonic[:(mnemonic_length - 1)])).hex).phrase.split(' ')

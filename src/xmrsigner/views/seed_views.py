@@ -5,6 +5,7 @@ from binascii import hexlify
 from typing import List
 from math import ceil
 
+from xmrsigner.helpers.network import Network
 from xmrsigner.controller import Controller
 from xmrsigner.gui.components import (
     GUIConstants,
@@ -23,6 +24,7 @@ from xmrsigner.gui.screens.screen import (
     LargeIconStatusScreen,
     QRDisplayScreen
 )
+from xmrsigner.gui.screens.monero_screens import DateOrBlockHeightScreen
 from xmrsigner.models.decode_qr import DecodeQR
 from xmrsigner.models.seed_encoder import SeedQrEncoder, CompactSeedQrEncoder
 from xmrsigner.models.tx_parser import TxParser
@@ -144,7 +146,7 @@ class SeedMnemonicEntryView(View):
             seed_screens.SeedMnemonicEntryScreen,
             title=f'Seed Word #{self.cur_word_index + 1}',  # Human-readable 1-indexing!
             initial_letters=list(self.cur_word) if self.cur_word else ['a'],
-            wordlist=Seed.get_wordlist(wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE)),
+            wordlist=Seed.get_wordlist(wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__MONERO_WORDLIST_LANGUAGE)),
         )
         if ret == RET_CODE__BACK_BUTTON:
             if self.cur_word_index > 0:
@@ -189,7 +191,7 @@ class PolyseedMnemonicEntryView(SeedMnemonicEntryView):
             seed_screens.SeedMnemonicEntryScreen,
             title=f"Polyseed Word #{self.cur_word_index + 1}",  # Human-readable 1-indexing!
             initial_letters=list(self.cur_word) if self.cur_word else ["a"],
-            wordlist=PolyseedSeed.get_wordlist(wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE)),
+            wordlist=PolyseedSeed.get_wordlist(wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__POLYSEED_WORDLIST_LANGUAGE)),
         )
         if ret == RET_CODE__BACK_BUTTON:
             if self.cur_word_index > 0:
@@ -251,12 +253,30 @@ class SeedFinalizeView(View):
     def __init__(self):
         super().__init__()
         self.seed = self.controller.jar.get_pending_seed()
-        self.fingerprint = self.seed.fingerprint
         self.polyseed = isinstance(self.seed, PolyseedSeed)
 
     def run(self):
+        networks = Network.get_list(self.settings.get_value(SettingsConstants.SETTING__NETWORKS))
+        if len(networks) == 1 and self.seed.network != str(networks[0]):
+            self.seed.change_network(str(networks[0])) 
+        if len(networks) > 1:
+            ret = self.run_screen(
+                ButtonListScreen,
+                title='Choose Network',
+                button_data=[ButtonData(str(network).capitalize()) for network in networks]
+            )
+            if ret == RET_CODE__BACK_BUTTON:
+                return Destination(BackStackView)
+            network = networks[ret]
+            if self.seed.network != str(network):
+                self.seed.change_network(str(network)) 
+        if not self.polyseed:
+            ret = self.run_screen(DateOrBlockHeightScreen)
+            if ret == RET_CODE__BACK_BUTTON:
+                return Destination(BackStackView)
+            if type(ret) == str:
+                self.seed.height = int(ret)
         button_data = []
-
         button_data.append(self.FINALIZE)
         if (
                 not self.polyseed
@@ -268,7 +288,7 @@ class SeedFinalizeView(View):
             button_data.append(self.PASSPHRASE)
         selected_menu_num = self.run_screen(
             seed_screens.SeedFinalizeScreen,
-            fingerprint=self.fingerprint,
+            fingerprint=self.seed.fingerprint,
             polyseed=self.polyseed,
             button_data=button_data,
         )
@@ -854,7 +874,7 @@ class SeedTranscribeSeedQRConfirmScanView(View):
     def run(self):
         from xmrsigner.gui.screens.scan_screens import ScanScreen
         # Run the live preview and QR code capture process
-        wordlist_language_code = self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE)
+        wordlist_language_code = self.settings.get_value(SettingsConstants.SETTING__MONERO_WORDLIST_LANGUAGE if not isinstance(self.seed, PolyseedSeed) else SettingsConstants.SETTING__POLYSEED_WORDLIST_LANGUAGE)
         self.decoder = DecodeQR(wordlist_language_code=wordlist_language_code)
         ScanScreen(decoder=self.decoder, instructions_text="Scan your SeedQR").display()
         if self.decoder.is_complete:

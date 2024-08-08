@@ -47,10 +47,9 @@ class Seed:
 
         self.seed_bytes: bytes = None
         self.address: Optional[str] = None
-        self._generate_seed()
-
         self.network: str = network
         self.height = height
+        self._generate_seed()
 
     @staticmethod
     def get_wordlist(wordlist_language_code: str = SettingsConstants.WORDLIST_LANGUAGE__ENGLISH) -> List[str]:
@@ -65,9 +64,13 @@ class Seed:
         try:
             monero_seed = MoneroSeed(self.mnemonic_str, SettingsConstants.ALL_WORDLIST_LANGUAGE_ENGLISH__NAMES[self.wordlist_language_code])
             self.seed_bytes = unhexlify(monero_seed.hex)
-            self.address = str(monero_seed.public_address())
+            self.address = str(monero_seed.public_address(self.network))
         except Exception as e:
             raise InvalidSeedException(repr(e))
+
+    def change_network(self, network: str) -> None:
+        self.network = network
+        self._generate_seed
 
     @property
     def mnemonic_str(self) -> str:
