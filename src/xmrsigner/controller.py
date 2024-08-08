@@ -66,6 +66,8 @@ class Controller(Singleton):
     settings: Settings = None
     renderer: Renderer = None
 
+    block_height: Optional[int] = None  # helper var
+
     selected_seed: Optional[Seed] = None
     transaction: Optional[bytes] = None
     outputs: Optional[bytes] = None

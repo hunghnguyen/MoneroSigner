@@ -80,9 +80,9 @@ class ButtonData:
         font_name: str,
         font_size: int,
         selected_color: str,
-        is_checked: bool,
+        is_checked: Optional[bool] = None,
     ) -> Dict:
-        return {
+        out: Dict = {
             'text': self.label,
             'icon_name': self.icon_name,
             'icon_color': self.icon_color or GUIConstants.BUTTON_FONT_COLOR,
@@ -97,8 +97,11 @@ class ButtonData:
             'font_name': font_name,
             'font_size': font_size,
             'font_color': self.label_color or GUIConstants.BUTTON_FONT_COLOR,
-            'selected_color': selected_color
+            'selected_color': selected_color,
         }
+        if is_checked:
+            out['is_checked'] = is_checked
+        return out
 
     @classmethod
     @property

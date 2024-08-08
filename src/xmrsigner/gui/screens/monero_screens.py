@@ -1,16 +1,24 @@
 from dataclasses import dataclass
 from PIL import Image, ImageDraw, ImageFilter
 from xmrsigner.helpers.pillow import get_font_size
-from typing import List
+from typing import List, Optional
 from time import sleep
+from datetime import date
+from calendar import monthrange
 
+from xmrsigner.helpers.network import Network
+from xmrsigner.helpers.monero_time import MoneroTime
 from xmrsigner.gui.renderer import Renderer
 from xmrsigner.models.threads import BaseThread
 
-from .screen import ButtonListScreen, WarningScreen
-from ..components import (
+from xmrsigner.gui.screens.screen import RET_CODE__BACK_BUTTON
+from xmrsigner.hardware.buttons import HardwareButtonsConstants, HardwareButtons
+from xmrsigner.gui.screens.screen import ButtonListScreen, WarningScreen, BaseTopNavScreen
+from xmrsigner.gui.components import (
     XmrAmount,
+    BaseComponent,
     Button,
+    CheckboxButton,
     Icon,
     FontAwesomeIconConstants,
     IconTextLine,
@@ -674,6 +682,7 @@ class TxChangeDetailsScreen(ButtonListScreen):
 
 @dataclass
 class TxFinalizeScreen(ButtonListScreen):
+
     def __post_init__(self):
         # Customize defaults
         self.title = "Sign Tx"
@@ -686,10 +695,310 @@ class TxFinalizeScreen(ButtonListScreen):
             icon_size=GUIConstants.ICON_LARGE_BUTTON_SIZE,
             screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING
         )
-        icon.screen_x = int((self.canvas_width - icon.width)/2)
+        icon.screen_x = int((self.canvas_width - icon.width) / 2)
         self.components.append(icon)
 
         self.components.append(TextArea(
             text="Click to authorize this transaction",
             screen_y=icon.screen_y + icon.height + GUIConstants.COMPONENT_PADDING
         ))
+
+
+@dataclass
+class DateOrBlockHeightScreen(BaseTopNavScreen):
+
+    network: Network = Network.MAIN
+    is_block_height: bool = False
+    focus: Optional[BaseComponent] = None
+    focusable_elements: List[BaseComponent] = None
+    current_height: int = 0
+    current_date: date = date.today()
+    monero_time: Optional[MoneroTime] = None
+
+    def __post_init__(self):
+        self.title = 'Block Height'
+        self.monero_time = MoneroTime(str(self.network), 0)  # security_margin_days = 0, so whie switching btween the modes there are not huge jumps
+        if not self.is_block_height and self.current_height != 0:
+            self.current_date = self.monero_time.getDate(self.current_height)
+        if self.is_block_height and  self.current_date != date.today():
+            self.current_height = self.monero_time.getBlockchainHeight(self.current_date)
+        super().__post_init__()
+
+    def _render(self):
+        super()._render()
+        self.components = []
+        self.renderer.show_image()
+
+    def _run(self):
+        # Start the interactive update loop
+        KEYMAP = {
+            HardwareButtonsConstants.KEY1: self.key_btn_1,
+            HardwareButtonsConstants.KEY2: self.key_btn_2,
+            HardwareButtonsConstants.KEY3: self.key_btn_3,
+            HardwareButtonsConstants.KEY_PRESS: self.key_press,
+            HardwareButtonsConstants.KEY_UP: self.key_up,
+            HardwareButtonsConstants.KEY_DOWN: self.key_down,
+            HardwareButtonsConstants.KEY_LEFT: self.key_left,
+            HardwareButtonsConstants.KEY_RIGHT: self.key_right
+        }
+        self.create_common()
+        self.create_block_height()
+        self.create_date()
+        if self.is_block_height:
+            self.focus = self.btn_block_height[0]
+        else:
+            self.focus = self.year
+        while True:
+            self.calc_focusable_elements()
+            self.components.append(self.top_nav)
+            self.render_common()
+            if self.is_block_height:
+                self.render_block_height()
+            else:
+                self.render_date()
+            self._render()
+            input = self.hw_inputs.wait_for(
+                HardwareButtonsConstants.ALL_KEYS,
+                check_release=True
+                )
+            # Check possible exit conditions
+            if self.top_nav.is_selected and input == HardwareButtonsConstants.KEY_PRESS:
+                return RET_CODE__BACK_BUTTON
+            if input in KEYMAP:
+                ret: Optional[str] = KEYMAP[input]()
+                if ret:
+                    return ret
+                continue
+
+    def key_up(self) -> None:
+        if self.focus in self.btn_block_height or self.focus in [self.year, self.month, self.day]:
+            self.key_increase_or_decrease(True)
+            # self.focus = self.btn_height if not self.is_block_height else self.btn_date
+            return
+        if self.focus == self.btn_accept:
+            self.focus = self.btn_block_height[0] if self.is_block_height else self.year
+            return
+        if self.focus in [self.btn_height, self.btn_date]:
+            self.focus = None
+            self.top_nav.is_selected = True
+            return
+
+    def key_down(self) -> None:
+        if self.focus in self.btn_block_height or self.focus in [self.year, self.month, self.day]:
+            self.key_increase_or_decrease(True)
+            # self.focus = self.btn_accept
+            return
+        if self.focus in [self.btn_height, self.btn_date]:
+            self.focus = self.btn_block_height[0] if self.is_block_height else self.year
+            return
+        if self.top_nav.is_selected:
+            self.top_nav.is_selected = False
+            self.focus = self.btn_height if self.is_block_height else self.btn_date
+            return
+
+    def key_left(self) -> None:
+        if self.focus == self.btn_accept:
+            self.focus = self.btn_block_height[7] if self.is_block_height else self.day
+            return
+        if self.focus in self.btn_block_height:
+            pos = (self.btn_block_height.index(self.focus) - 1)
+            if pos < 0:
+                self.focus = self.btn_height
+                return
+            self.focus = self.btn_block_height[pos]
+            return
+        fields = [self.year, self.month, self.day]
+        if self.focus in fields:
+            pos = (fields.index(self.focus) - 1)
+            if pos < 0:
+                self.focus = self.btn_height
+                return
+            self.focus = fields[pos]
+            return
+        if self.focus == self.btn_height:
+            self.focus = self.btn_date
+            return
+        if self.focus == self.btn_date:
+            self.focus = None
+            self.top_nav.is_selected = True
+            return
+
+    def key_right(self) -> None:
+        if self.focus in self.btn_block_height:
+            pos = (self.btn_block_height.index(self.focus) + 1)
+            if pos > 7:
+                self.focus = self.btn_accept
+                return
+            self.focus = self.btn_block_height[pos]
+            return
+        fields = [self.year, self.month, self.day]
+        if self.focus in fields:
+            pos = (fields.index(self.focus) + 1)
+            if pos > 2:
+                self.focus = self.btn_accept
+                return
+            self.focus = fields[pos]
+            return
+        if self.focus == self.btn_height:
+            self.focus = self.btn_block_height[0] if self.is_block_height else self.year
+            return
+        if self.focus == self.btn_date:
+            self.focus = self.btn_height
+            return
+        if self.focus is None and self.top_nav.is_selected:
+            self.top_nav.is_selected = False
+            self.focus = self.btn_date
+
+    def key_press(self) -> Optional[str]:
+        if self.focus == self.btn_accept or self.focus in self.btn_block_height or self.focus in [self.year, self.month, self.day]:
+            if not self.is_block_height:
+                self.monero_time.security_margin_days = 30  # better safe then sorry!
+                self.current_height = self.monero_time.getBlockchainHeight(self.current_date)
+            return f'{self.current_height:08d}'
+        if self.focus in [self.btn_height, self.btn_date]:
+            self.set_block_height_selection(self.focus == self.btn_height)
+            return
+
+    def key_btn_1(self) -> None:  # increase
+        self.key_increase_or_decrease(True)
+
+    def key_btn_2(self) -> None:
+        self.set_block_height_selection(self.is_block_height ^ True)
+
+    def key_btn_3(self) -> None:  # decrease
+        self.key_increase_or_decrease(False)
+
+    def key_increase_or_decrease(self, increase: bool = True) -> None:
+        modifier: int = 1 if increase else -1
+        if self.focus in [self.year, self.month, self.day]:
+            self.current_date = date(
+                max((self.current_date.year + (modifier if self.year==self.focus else 0)) % 2300, 2014),
+                max((self.current_date.month + (modifier if self.month==self.focus else 0)) % 13, 1),
+                max((self.current_date.day + (modifier if self.day==self.focus else 0)) % (monthrange(self.current_date.year, self.current_date.month)[1] + 1), 1)
+            )
+            return
+        if self.focus in self.btn_block_height:
+            digits = list(f'{self.current_height:08d}')
+            pos = self.btn_block_height.index(self.focus)
+            digits[pos] = str((int(digits[pos]) + modifier) % 10)
+            self.current_height = int(''.join(digits))
+            return
+
+    def set_block_height_selection(self, block_height: bool) -> None:
+        self.is_block_height = block_height
+        if block_height:
+            self.current_height = self.monero_time.getBlockchainHeight(self.current_date)
+            self.focus = self.btn_block_height[0]
+        else:
+            self.current_date = self.monero_time.getDate(self.current_height)
+            self.focus = self.year
+
+    def create_common(self) -> None:
+        self.btn_date = Button(
+            text='Date',
+            screen_x=GUIConstants.EDGE_PADDING,
+            screen_y=self.top_nav.height + GUIConstants.EDGE_PADDING,
+            width=int(self.canvas_width // 2) - GUIConstants.EDGE_PADDING - GUIConstants.COMPONENT_PADDING,
+        )
+        self.btn_height = Button(
+            text='Height',
+            screen_x=int(self.canvas_width // 2) + (GUIConstants.COMPONENT_PADDING // 2),
+            screen_y=self.top_nav.height + GUIConstants.EDGE_PADDING,
+            width=int(self.canvas_width // 2) - GUIConstants.EDGE_PADDING - (GUIConstants.COMPONENT_PADDING // 2),
+        )
+        self.arrow_up = Icon(
+            icon_name=FontAwesomeIconConstants.CARET_UP,
+            icon_color=GUIConstants.ACCENT_COLOR,
+            icon_size=GUIConstants.ICON_FONT_SIZE,
+            screen_y=0
+        )
+        self.arrow_down = Icon(
+            icon_name=FontAwesomeIconConstants.CARET_DOWN,
+            icon_color=GUIConstants.ACCENT_COLOR,
+            icon_size=GUIConstants.ICON_FONT_SIZE,
+            screen_y=0,
+            screen_x=0
+        )
+        self.btn_accept = Button(
+            text='Accept',
+            screen_x=GUIConstants.EDGE_PADDING,
+            screen_y=0,
+            width=self.canvas_width - GUIConstants.EDGE_PADDING * 2
+        )
+        self.btn_accept.screen_y=self.canvas_height - GUIConstants.EDGE_PADDING - self.btn_accept.height
+
+    def create_block_height(self) -> None:
+        self.btn_block_height_width = int((self.canvas_width - GUIConstants.EDGE_PADDING * 2 - GUIConstants.COMPONENT_PADDING * 7) // 8)
+        self.btn_block_height: List[Button] = []
+        for pos in range(8):
+            self.btn_block_height.append(Button(
+                text='0',
+                screen_x=GUIConstants.EDGE_PADDING + pos * (self.btn_block_height_width + GUIConstants.COMPONENT_PADDING),
+                screen_y=int(self.canvas_height // 2),
+                width=self.btn_block_height_width
+            ))
+
+    def calc_focusable_elements(self) -> None:
+        self.focusable_elements = [self.btn_date, self.btn_height]
+        for btn in self.btn_block_height if self.is_block_height else [self.year, self.month, self.day]:
+            self.focusable_elements.append(btn)
+        self.focusable_elements.append(self.btn_accept)
+
+    def render_common(self) -> None:
+        self.btn_date.is_selected = self.focus == self.btn_date
+        self.btn_date.outline_color = GUIConstants.ACCENT_COLOR if not self.is_block_height else None
+        self.components.append(self.btn_date)
+        self.btn_height.is_selected = self.focus == self.btn_height
+        self.btn_height.outline_color = GUIConstants.ACCENT_COLOR if self.is_block_height else None
+        self.components.append(self.btn_height)
+        self.btn_accept.is_selected = self.focus == self.btn_accept
+        self.components.append(self.btn_accept)
+        if self.focus in self.btn_block_height or self.focus in [self.year, self.month, self.day]:
+            self.arrow_up.screen_y = self.focus.screen_y - self.arrow_up.height + GUIConstants.COMPONENT_PADDING // 4
+            self.arrow_up.screen_x = int(self.focus.screen_x + self.focus.width / 2 - self.arrow_up.width / 2 + 0.5)
+            self.components.append(self.arrow_up)
+            self.arrow_down.screen_y = self.focus.screen_y + self.focus.height + self.arrow_up.height - GUIConstants.COMPONENT_PADDING
+            self.arrow_down.screen_x = int(self.focus.screen_x + self.focus.width / 2 - self.arrow_down.width / 2 + 0.5)
+            self.components.append(self.arrow_down)
+
+    def render_block_height(self) -> None:
+        digits = f'{self.current_height:08d}'
+        for button in self.btn_block_height:
+            button.text = digits[self.btn_block_height.index(button)]
+            button.is_selected = (button == self.focus)
+            button.outline_color = GUIConstants.ACCENT_COLOR if button == self.focus else None
+            self.components.append(button)
+
+    def create_date(self) -> None:
+        self.year = Button(
+            text=f'{self.current_date.year:04d}',
+            screen_x=GUIConstants.EDGE_PADDING,
+            screen_y=int(self.canvas_height // 2),
+            width=(self.canvas_width - GUIConstants.EDGE_PADDING * 2 - GUIConstants.COMPONENT_PADDING * 2) // 2,
+        )
+        self.month = Button(
+            text=f'{self.current_date.month:02d}',
+            screen_x=GUIConstants.EDGE_PADDING + self.year.width + GUIConstants.COMPONENT_PADDING,
+            screen_y=int(self.canvas_height // 2),
+            width=(self.canvas_width - GUIConstants.EDGE_PADDING * 2 - GUIConstants.COMPONENT_PADDING * 2) // 4,
+        )
+        self.day = Button(
+            text=f'{self.current_date.day:02d}',
+            screen_x=GUIConstants.EDGE_PADDING + self.year.width + GUIConstants.COMPONENT_PADDING * 2 + self.month.width,
+            screen_y=int(self.canvas_height // 2),
+            width=self.month.width,
+        )
+
+    def render_date(self) -> None:
+        self.year.text = f'{self.current_date.year:04d}'
+        self.year.is_selected = (self.focus == self.year)
+        self.year.outline_color = GUIConstants.ACCENT_COLOR if self.focus == self.year else None
+        self.month.text = f'{self.current_date.month:02d}'
+        self.month.is_selected = (self.focus == self.month)
+        self.month.outline_color = GUIConstants.ACCENT_COLOR if self.focus == self.month else None
+        self.day.text = f'{self.current_date.day:02d}'
+        self.day.is_selected = (self.focus == self.day)
+        self.day.outline_color=GUIConstants.ACCENT_COLOR if self.focus == self.day else None
+        self.components.append(self.year)
+        self.components.append(self.month)
+        self.components.append(self.day)

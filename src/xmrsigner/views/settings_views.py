@@ -12,6 +12,7 @@ from xmrsigner.gui.screens import (
 from xmrsigner.models.settings import SettingsConstants, SettingsDefinition
 from xmrsigner.hardware.microsd import MicroSD
 from xmrsigner.views.wallet_views import WalletRpcView
+from xmrsigner.views.monero_views import DateOrBlockHeightView
 
 logger = getLogger(__name__)
 
@@ -49,14 +50,14 @@ class SettingsMenuView(View):
             button_data.append(("Advanced", None, None, None, IconConstants.CHEVRON_RIGHT))
             next_destination = Destination(SettingsMenuView, view_args={"visibility": SettingsConstants.VISIBILITY__ADVANCED})
  
-            button_data.append(self.IO_TEST)
             button_data.append(self.DONATE)
-            button_data.append(self.WALLET_RPC)
             button_data.append(self.ABOUT)
 
         elif self.visibility == SettingsConstants.VISIBILITY__ADVANCED:
             title = "Advanced"
             next_destination = None
+            button_data.append(self.IO_TEST)
+            button_data.append(self.WALLET_RPC)
 
         selected_menu_num = self.run_screen(
             ButtonListScreen,

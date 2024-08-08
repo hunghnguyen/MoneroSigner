@@ -338,6 +338,7 @@ class ButtonListScreen(BaseTopNavScreen):
             button_data = ButtonData.ensure(button_data)
             button_data.position = i
 
+            print(self.checked_buttons and i in self.checked_buttons)
             button_kwargs = button_data.button_kwargs(
                 button_list_y,
                 button_height,
@@ -349,6 +350,7 @@ class ButtonListScreen(BaseTopNavScreen):
                 self.button_selected_color,
                 self.checked_buttons and i in self.checked_buttons
             )
+            print(button_kwargs)
             button = self.Button_cls(**button_kwargs)
             self.buttons.append(button)
         
@@ -506,7 +508,7 @@ class ButtonListScreen(BaseTopNavScreen):
                             next_selected_button.screen_y - next_selected_button.scroll_y + next_selected_button.height > self.down_arrow_img_y
                         ):
                         # Selected a Button that's off the bottom of the screen
-                        frame_scroll = next_selected_button.screen_y - cur_selected_button.screen_y
+                        frame_scroll = next_selected_button.screen_y - cur_selected_button.screen_y or 0
                         for button in self.buttons:
                             button.scroll_y += frame_scroll
                         self._render_visible_buttons()
@@ -989,20 +991,19 @@ class ResetScreen(BaseTopNavScreen):
 @dataclass
 class KeyboardScreen(BaseTopNavScreen):
     """
-        Generalized Screen for a single Keyboard layout writing user input to a
-        TextEntryDisplay.
-        
-        Args:
-        * rows
-        * cols
-        * keyboard_font_name
-        * keyboard_font_size: Specify `None` to auto-size to Key height.
-        * key_height: Specify `None` to maximize key height to available space.
-        * keys_charset: Specify the chars displayed on the keys of the keyboard.
-        * keys_to_values: Optional mapping from key_charset to input value (e.g. dice icon to digit).
-        * return_after_n_chars: exits and returns the user's input after n characters.
-        * show_save_button: Render a KEY3 soft button for save & exit
-        * initial_value: initialize the TextEntryDisplay with an existing string
+    Generalized Screen for a single Keyboard layout writing user input to a
+    TextEntryDisplay.
+    Args:
+    * rows
+    * cols
+    * keyboard_font_name
+    * keyboard_font_size: Specify `None` to auto-size to Key height.
+    * key_height: Specify `None` to maximize key height to available space.
+    * keys_charset: Specify the chars displayed on the keys of the keyboard.
+    * keys_to_values: Optional mapping from key_charset to input value (e.g. dice icon to digit).
+    * return_after_n_chars: exits and returns the user's input after n characters.
+    * show_save_button: Render a KEY3 soft button for save & exit
+    * initial_value: initialize the TextEntryDisplay with an existing string
     """
     rows: int = None
     cols: int = None
@@ -1013,24 +1014,20 @@ class KeyboardScreen(BaseTopNavScreen):
     keys_to_values: dict = None
     return_after_n_chars: int = None
     show_save_button: bool = False
-    initial_value: str = ""
+    initial_value: str = ''
 
     def __post_init__(self):
         super().__post_init__()
-
         if self.initial_value:
             self.user_input = self.initial_value
         else:
             self.user_input = ""
-
         # Set up the keyboard params        
         if self.show_save_button:
             right_panel_buttons_width = 60
             hw_button_x = self.canvas_width - right_panel_buttons_width + GUIConstants.COMPONENT_PADDING
             hw_button_y = int(self.canvas_height - GUIConstants.BUTTON_HEIGHT) / 2 + 60
-            
             self.keyboard_width = self.canvas_width - (GUIConstants.EDGE_PADDING + GUIConstants.COMPONENT_PADDING + right_panel_buttons_width - GUIConstants.COMPONENT_PADDING)
-
             # Render the right button panel (only has a Key3 "Save" button)
             self.save_button = IconButton(
                 icon_name=IconConstants.CHECK,
@@ -1042,20 +1039,16 @@ class KeyboardScreen(BaseTopNavScreen):
             self.components.append(self.save_button)
         else:
             self.keyboard_width = self.canvas_width - 2*GUIConstants.EDGE_PADDING
-
         text_entry_display_y = self.top_nav.height
         text_entry_display_height = 30
-
         keyboard_start_y = text_entry_display_y + text_entry_display_height + GUIConstants.COMPONENT_PADDING
         if self.key_height is None:
             self.key_height = int((self.canvas_height - GUIConstants.EDGE_PADDING - text_entry_display_y - text_entry_display_height - GUIConstants.COMPONENT_PADDING - (self.rows - 1) * 2) / self.rows)
-
         if self.keyboard_font_size:
             font_size = self.keyboard_font_size
         else:
             # Scale with button height
             font_size = self.key_height - GUIConstants.COMPONENT_PADDING
-
         self.keyboard = Keyboard(
             draw=self.renderer.draw,
             charset=self.keys_charset,
@@ -1073,7 +1066,6 @@ class KeyboardScreen(BaseTopNavScreen):
             render_now=False
         )
         self.keyboard.set_selected_key(selected_letter=self.keys_charset[0])
-
         self.text_entry_display = TextEntryDisplay(
             canvas=self.renderer.canvas,
             rect=(
@@ -1087,19 +1079,14 @@ class KeyboardScreen(BaseTopNavScreen):
             cur_text=self.initial_value,
         )
 
-
     def _render(self):
         super()._render()
-
         self.keyboard.render_keys()
         self.text_entry_display.render()
-
         self.renderer.show_image()
-    
 
     def _run(self):
         self.cursor_position = len(self.user_input)
-
         # Start the interactive update loop
         while True:
             input = self.hw_inputs.wait_for(
@@ -1107,12 +1094,10 @@ class KeyboardScreen(BaseTopNavScreen):
                 check_release=True,
                 release_keys=[HardwareButtonsConstants.KEY_PRESS, HardwareButtonsConstants.KEY3]
             )
-    
             # Check possible exit conditions   
             if self.top_nav.is_selected and input == HardwareButtonsConstants.KEY_PRESS:
                 return RET_CODE__BACK_BUTTON
-            
-            elif self.show_save_button and input == HardwareButtonsConstants.KEY3:
+            if self.show_save_button and input == HardwareButtonsConstants.KEY3:
                 # Save!
                 if len(self.user_input) == 0:
                     # Don't try to submit zero input
@@ -1121,16 +1106,13 @@ class KeyboardScreen(BaseTopNavScreen):
                 self.save_button.is_selected = True
                 self.save_button.render()
                 self.renderer.show_image()
-
                 # Then return the input to the View
                 return self.user_input.strip()
-    
             # Process normal input
             if input in [HardwareButtonsConstants.KEY_UP, HardwareButtonsConstants.KEY_DOWN] and self.top_nav.is_selected:
                 # We're navigating off the previous button
                 self.top_nav.is_selected = False
                 self.top_nav.render_buttons()
-    
                 # Override the actual input w/an ENTER signal for the Keyboard
                 if input == HardwareButtonsConstants.KEY_DOWN:
                     input = Keyboard.ENTER_TOP
@@ -1139,20 +1121,16 @@ class KeyboardScreen(BaseTopNavScreen):
             elif input in [HardwareButtonsConstants.KEY_LEFT, HardwareButtonsConstants.KEY_RIGHT] and self.top_nav.is_selected:
                 # ignore
                 continue
-    
             ret_val = self.keyboard.update_from_input(input)
-    
             # Now process the result from the keyboard
             if ret_val in Keyboard.EXIT_DIRECTIONS:
                 self.top_nav.is_selected = True
                 self.top_nav.render_buttons()
-    
             elif ret_val in Keyboard.ADDITIONAL_KEYS and input == HardwareButtonsConstants.KEY_PRESS:
                 if ret_val == Keyboard.KEY_BACKSPACE["code"]:
                     if len(self.user_input) > 0:
                         self.user_input = self.user_input[:-1]
                         self.cursor_position -= 1
-    
             elif input == HardwareButtonsConstants.KEY_PRESS and ret_val not in Keyboard.ADDITIONAL_KEYS:
                 # User has locked in the current letter
                 if self.keys_to_values:
@@ -1160,10 +1138,8 @@ class KeyboardScreen(BaseTopNavScreen):
                     ret_val = self.keys_to_values[ret_val]
                 self.user_input += ret_val
                 self.cursor_position += 1
-
                 if self.cursor_position == self.return_after_n_chars:
                     return self.user_input
-
                 # Render a new TextArea over the TopNav title bar
                 if self.update_title():
                     TextArea(
@@ -1173,25 +1149,21 @@ class KeyboardScreen(BaseTopNavScreen):
                         height=self.top_nav.height,
                     ).render()
                     self.top_nav.render_buttons()
-    
             elif input in HardwareButtonsConstants.KEYS__LEFT_RIGHT_UP_DOWN:
                 # Live joystick movement; haven't locked this new letter in yet.
                 # Leave current spot blank for now. Only update the active keyboard keys
                 # when a selection has been locked in (KEY_PRESS) or removed ("del").
                 pass
-    
             # Render the text entry display and cursor block
             self.text_entry_display.render(self.user_input)
-    
             self.renderer.show_image()
-
 
     def update_title(self) -> bool:
         """
-            Optionally update the self.title after each completed key input.
-            
-            e.g. to increment the dice roll count:
-                self.title = f"Roll {self.cursor_position + 1}"
+        Optionally update the self.title after each completed key input.
+
+        e.g. to increment the dice roll count:
+            self.title = f"Roll {self.cursor_position + 1}"
         """
         return False
 

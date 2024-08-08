@@ -26,6 +26,7 @@ class GUIConstants:
     BLACK_FADED = '#2C2C2C'
     WHITE = '#FFFFFF'
     WHITE_FADED = '#FCFCFC'
+    WHITE_DARK = '#E8E8E8'
     YELLOW = '#FFD60A'
     RED = '#FF0000'
     RED_FADED = '#FF453A'
@@ -37,6 +38,10 @@ class GUIConstants:
     MONERO_ORANGE = '#ED5F00'
     MONERO_ORANGE_FADED = "#F06D36"
     GRAY = '#777777'
+    GRAY_DARKER = '#666666'
+    GRAY_LIGHT = '#909090'
+    GRAY_LIGHTER = '#C0C0C0'
+    GRAY_DARK = '#303030'
 
     BACKGROUND_COLOR = BLACK
     WARNING_COLOR = YELLOW
@@ -97,6 +102,17 @@ class GUIConstants:
     XMRSIGNER_DONATION_TEXT = 'XmrSigner is 100% free & open source, funded solely by the Monero community.\n\nDonate onchain at: xmrsigner.org/donate'
 
     XMRSIGNER_UPDATE_URL = f'{XMRSIGNER_DOMAIN}/download'
+
+    KEYBOARD_OUTLINE_COLOR = GRAY_DARK
+    KEYBOARD_HIGHLIGHT_COLOR = ACCENT_COLOR
+    KEYBOARD_KEY_BACKGROUND_COLOR = BUTTON_BACKGROUND_COLOR
+    KEYBOARD_KEY_BACKGROUND_COLOR_DEACTIVATED = BACKGROUND_COLOR
+    KEYBOARD_KEY_COLOR = BLACK
+    KEYBOARD_KEY_COLOR_DEACTIVATED = GRAY_DARK
+    KEYBOARD_ADDITONAL_KEY_COLOR = GRAY_LIGHT
+    KEYBOARD_OTHER_KEY_COLOR = WHITE_DARK
+    KEYBOARD_CURSOR_COLOR = GRAY_DARKER
+    KEYBOARD_CURSOR_BAR_COLOR = GRAY_LIGHTER
 
     @classmethod
     @property
@@ -937,7 +953,7 @@ class Button(BaseComponent):
     icon_name: Optional[str] = None   # Optional icon to accompany the text
     icon_size: int = GUIConstants.ICON_INLINE_FONT_SIZE
     icon_color: str = GUIConstants.BUTTON_FONT_COLOR
-    selected_icon_color: str = 'black'
+    selected_icon_color: str = GUIConstants.BLACK
     icon_y_offset: int = 0
     is_icon_inline: bool = True    # True = render next to text; False = render centered above text
     right_icon_name: Optional[str] = None    # Optional icon rendered right-justified

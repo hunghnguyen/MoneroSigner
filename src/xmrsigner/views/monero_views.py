@@ -14,7 +14,8 @@ from xmrsigner.gui.screens.monero_screens import (
     TxMathScreen,
     TxAddressDetailsScreen,
     TxChangeDetailsScreen,
-    TxFinalizeScreen
+    TxFinalizeScreen,
+    DateOrBlockHeightScreen
 )
 from xmrsigner.views.wallet_views import LoadWalletView
 from xmrsigner.gui.screens.screen import (
@@ -392,6 +393,15 @@ class SigningErrorView(View):
             # clear seed selected for psbt signing since it did not add a valid signature
             self.controller.selected_seed = None
             return Destination(SelectSeedView, clear_history=True)
-
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
+
+class DateOrBlockHeightView(View):
+
+    def run(self):
+        result: Union[str, int] = self.run_screen(
+            DateOrBlockHeightScreen
+        )
+        if result == RET_CODE__BACK_BUTTON:
+            return Destination(BackStackView)
+        self.controller.block_height = int(result)
