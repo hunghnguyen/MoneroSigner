@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.7.10",
     author="MoneroSigner",
     author_email="author@example.com",
-    description="Build an offline, airgapped Bitcoin signing device for less than $50!",
+    description="Build an offline, airgapped Monero signing device for less than $50!",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/DiosDelRayo/MoneroSigner",
