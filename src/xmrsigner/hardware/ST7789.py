@@ -147,7 +147,7 @@ class ST7789(object):
 
         self.command(0x2C)    
     
-    def ShowImage(self,image: Image,x_start,y_start):
+    def ShowImage(self,image: Image.Image,x_start,y_start):
         """Set buffer to value of Python Imaging Library image."""
         """Write display buffer to physical display"""
         imwidth, imheight = image.size

@@ -206,7 +206,7 @@ class WalletOptionsView(View):
         button_data.append(self.SCAN)
         button_data.append(self.EXPORT_KEY_IMAGES)
         button_data.append(self.VIEW_ONLY_WALLET)
-        button_data.append(self.PURGE_WALLET)
+        # button_data.append(self.PURGE_WALLET)  # TODO: 2024-08-09 implement
         selected_menu_num = self.run_screen(
             WalletOptionsScreen,
             button_data=button_data,

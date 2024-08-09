@@ -1,5 +1,4 @@
 from picamera2 import Picamera2, MappedArray
-from PIL import Image
 from threading import Thread
 from time import sleep
 from xmrsigner.hardware.interfaces import CameraInterface

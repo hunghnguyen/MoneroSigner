@@ -1,9 +1,11 @@
 from io import BytesIO
 from numpy import array as NumpyArray
 from picamera import PiCamera
-from PIL import Image
+from PIL.Image import Image
+from PIL.Image import fromarray as image_from_array
+from PIL.Image import open as image_open
 from xmrsigner.hardware.interfaces import CameraInterface
-from xmrsigner.hardware.pivideostream import PiVideoStream
+from xmrsigner.hardware.picamera.pivideostream import PiVideoStream
 from xmrsigner.models.settings import Settings, SettingsConstants
 from typing import Tuple, Union
 
@@ -23,11 +25,11 @@ class Camera(CameraInterface):
         return cls._instance
 
     def start_video_stream_mode(
-		self,
-		resolution Tuple[int, int] = (512, 384),
-		framerate: int = 12,
-		format: str = 'bgr'
-	) -> None:
+        self,
+        resolution: Tuple[int, int] = (512, 384),
+        framerate: int = 12,
+        format: str = 'bgr'
+    ) -> None:
         if self._video_stream is not None:
             self.stop_video_stream_mode()
         self._video_stream = PiVideoStream(resolution=resolution, framerate=framerate, format=format)
@@ -39,9 +41,9 @@ class Camera(CameraInterface):
         frame: NumpyArray = self._video_stream.read()
         if not as_image:
             return frame
-		if frame is None:
-			return None
-		return Image.fromarray(frame.astype('uint8'), 'RGB').rotate(90 + self._camera_rotation)
+        if frame is None:
+            return None
+        return image_from_array(frame.astype('uint8'), 'RGB').rotate(90 + self._camera_rotation)
 
     def stop_video_stream_mode(self) -> None:
         if self._video_stream is not None:
@@ -69,7 +71,7 @@ class Camera(CameraInterface):
         self._picamera.capture(stream, format='jpeg')
         # "Rewind" the stream to the beginning so we can read its content
         stream.seek(0)
-        return Image.open(stream).rotate(90 + self._camera_rotation)
+        return image_open(stream).rotate(90 + self._camera_rotation)
 
     def stop_single_frame_mode(self) -> None:
         if self._picamera is not None:

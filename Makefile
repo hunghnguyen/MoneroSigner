@@ -82,6 +82,7 @@ unixtime:
 	date +unixtime:%s?tz=%Z | qr
 
 dev-device-ip:
+	@echo 'Search IP of dev device via nmap...'
 	$(eval DEV_DEVICE_IP := $(shell tools/find_dev_device.sh))
 	@if [ -z "$(DEV_DEVICE_IP)" ]; then \
 		echo "DEV_DEVICE_IP is empty. Is the pi zero connected and up?"; \
@@ -89,10 +90,21 @@ dev-device-ip:
 	fi
 
 dev-device-sync: dev-device-ip
-	scp -r -i ${SSH_PRIVATE_KEY} ${SRC_DIR}/xmrsigner xmrsigner@${DEV_DEVICE_IP}:/opt/xmrsigner/src/
+	@echo 'Sync via scp...'
+	@scp -r -i ${SSH_PRIVATE_KEY} ${SRC_DIR}/xmrsigner xmrsigner@${DEV_DEVICE_IP}:/opt/xmrsigner/
+
+dev-device-rsync: dev-device-ip
+	@echo 'Sync via rsync...'
+	@rsync -az --info=progress2 -e "ssh -i ${SSH_PRIVATE_KEY}" ${SRC_DIR}/xmrsigner xmrsigner@${DEV_DEVICE_IP}:/opt/xmrsigner/
 
 dev-device-shell: dev-device-ip
 	ssh -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_IP}
+
+dev-device-shutdown: dev-device-ip
+	@ssh -t -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_IP} 'sudo halt'
+
+dev-device-reboot: dev-device-ip
+	@ssh -t -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_IP} 'sudo reboot'
 
 dev-device-wifi-shell:
 	ssh -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_WIFI_IP}
@@ -101,4 +113,4 @@ dev-device-wifi-shell-reatach:
 	ssh -t -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_WIFI_IP} 'screen -r'
 
 dev-device-time-sync: dev-device-ip
-	date +'%s %Z' | ssh -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_IP} 'read -r ts tz; sudo date -s @${ts}; echo $tz | sudo tee /etc/timezone; sudo dpkg-reconfigure -f noninteractive tzdata'
+	date +'%s %Z' | ssh -t -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_IP} 'read -r ts tz; sudo date -s @${ts}; echo $tz | sudo tee /etc/timezone; sudo dpkg-reconfigure -f noninteractive tzdata'

@@ -439,7 +439,8 @@ class SeedOptionsView(View):
         if self.controller.get_wallet_seed(self.seed.network) != self.seed:
             button_data.append(self.LOAD_WALLET)
         else:
-            button_data.append(self.PURGE_WALLET)
+            # button_data.append(self.PURGE_WALLET) # TODO: 2024-08-09, implement
+            pass
         button_data.append(self.BACKUP)
         if isinstance(self.seed, PolyseedSeed):
             button_data.append(self.CONVERT_POOLYSEED)

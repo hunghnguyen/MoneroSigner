@@ -2,6 +2,7 @@ from picamera.array import PiRGBArray
 from picamera import PiCamera
 from threading import Thread
 from time import sleep
+from typing import Tuple
 
 from xmrsigner.hardware.interfaces import PiVideoStreamInterface
 

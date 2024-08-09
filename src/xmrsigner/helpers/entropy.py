@@ -1,7 +1,8 @@
 from typing import List, Optional, Union
 from hashlib import sha256
+from os import popen
 from time import time
-from PIL import Image
+from PIL.Image import Image
 
 class Entropy:
 

@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL.Image import Image
 from numpy import array as NumpyArray
 from typing import Tuple, Union
 

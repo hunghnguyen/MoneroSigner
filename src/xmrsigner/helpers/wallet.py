@@ -164,6 +164,7 @@ class MoneroWalletRPCManager:
             self.stop_daemon(network)
 
     def get_version_string(self) -> Optional[str]:
+        print(f'monero-wallet-rpc: {self.daemon_path}')
         try:
             result = run([self.daemon_path, '--version'], capture_output=True, text=True, timeout=10)
             version_string = result.stdout.strip()
@@ -310,6 +311,8 @@ class MoneroWalletRPCManager:
 
     def get_fingerprint(self, network: Union[str, Network]) -> Optional[str]:
         network = Network.ensure(network)
+        port = WALLET_PORT.forNetwork(network)
+        print(f'wallet-rpc port for network {str(network)} is {port}')
         try:
             wallet = jsonrpc.JSONRPCWallet(host='127.0.0.1', port=WALLET_PORT.forNetwork(network))
             response = wallet.raw_request('get_address', {'account_index': 0})

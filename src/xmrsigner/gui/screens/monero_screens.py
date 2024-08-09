@@ -785,7 +785,7 @@ class DateOrBlockHeightScreen(BaseTopNavScreen):
 
     def key_down(self) -> None:
         if self.focus in self.btn_block_height or self.focus in [self.year, self.month, self.day]:
-            self.key_increase_or_decrease(True)
+            self.key_increase_or_decrease(False)
             # self.focus = self.btn_accept
             return
         if self.focus in [self.btn_height, self.btn_date]:

@@ -1,5 +1,5 @@
 from picamera2 import Picamera2
-from PIL import Image
+from PIL.Image import Image
 from typing import Tuple, Union
 from numpy import array as NumpyArray
 from xmrsigner.hardware.interfaces import CameraInterface

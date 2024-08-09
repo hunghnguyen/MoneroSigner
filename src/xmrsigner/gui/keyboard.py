@@ -462,7 +462,7 @@ class TextEntryDisplayConstants:
 
 @dataclass
 class TextEntryDisplay(TextEntryDisplayConstants):
-    canvas: Image
+    canvas: Image.Image
     rect: Tuple[int,int,int,int]
     font_name: str = GUIConstants.FIXED_WIDTH_EMPHASIS_FONT_NAME
     font_size: int = 24

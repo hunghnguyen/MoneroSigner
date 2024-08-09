@@ -304,7 +304,7 @@ class BaseComponent:
     def set_image_draw(self, image_draw: ImageDraw):
         self.image_draw = image_draw
 
-    def set_canvas(self, canvas: Image):
+    def set_canvas(self, canvas: Image.Image):
         self.canvas = canvas
 
     def render(self):

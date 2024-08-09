@@ -11,6 +11,7 @@ from xmrsigner.models.settings_definition import SettingsConstants
 
 # TODO: This early code is now outdated vis-a-vis Screen vs View distinctions
 class LogoScreen(BaseScreen):
+
     def __init__(self):
         super().__init__()
         self.logo = load_image('logo_black_240.png')

@@ -1,5 +1,5 @@
 from numpy import array as NumpyArray
-from PIL import Image
+from PIL.Image import Image
 from xmrsigner.hardware.interfaces import CameraInterface
 from typing import Tuple, Union
 try:
