@@ -59,7 +59,7 @@ class Controller(Singleton):
         rather than at the top in order avoid circular imports.
     """
 
-    VERSION = "0.8.0"
+    VERSION = "0.9.0"
 
     buttons: HardwareButtons = None
     jar: SeedJar = None

@@ -1,5 +1,5 @@
 untrusted comment: verify with xmrsigner.pub
-RWQIrxLVA6lZvAF0ckAVqjC9Qjg8AkjSaT1BmW485mjYiaCg1AHy7g1VO5RfBYczI6+JCUoxYyGEypgs3v3pskYlim2s053CVAk=
+RWQIrxLVA6lZvGzcQlS/3KNfnevj4HCUcaXfdTIvQ9+ZIeWOK37nhuPLk9NaBXYq7Iixq6+KUZT/S9jzt0FPQkLkypbo2dbbhgo=
 SHA256 (src/test/__init__.py) = 4121d7f83201e2faeb78eb371a2f4e699d75367899066cb832ca200d05807a6a
 SHA256 (src/test/__main__.py) = 344d07bf9c3991c6b2942586537481a43d1e87306faeeb9c5f2edbce5a8bda6c
 SHA256 (src/test/xmrsigner/wordlist.py) = 6114aac139cce80b0776ed5e55e93df309adcf3c1023c2d591c2b2f2d6754a1f
@@ -22,7 +22,7 @@ SHA256 (src/xmrsigner/views/view.py) = bb671252f9b53096a06fd049b72f0cba9ae802c8c
 SHA256 (src/xmrsigner/views/seed_views.py) = 7956f25e314c486e766202a3a1cbd65960681593e69a36d3e7b8a1561bfe464e
 SHA256 (src/xmrsigner/views/monero_views.py) = 63f343f65dc48d4403334e52b465b4790d8fa9f052e2a05415919a7763ce96dc
 SHA256 (src/xmrsigner/views/settings_views.py) = 14aab23cfe77461816f9b07087e3c18bcfa65700217bc58aef14f4d9d263ece7
-SHA256 (src/xmrsigner/controller.py) = a0017dde542e7789a0b99e4ce09006c3caf864ee6909a3c0c0808f4022e717cb
+SHA256 (src/xmrsigner/controller.py) = 2010011fa64a3fc798f26a10dddf465a1c9c11dabeb2e10df632a4cf4b1bdfce
 SHA256 (src/xmrsigner/hardware/picamera/pivideostream.py) = 67c3232a6c951077f9390d9d073641d1f6500054f09fb74580698d0b6e828bd9
 SHA256 (src/xmrsigner/hardware/picamera/camera.py) = 4b1dd86c48045371dc63e413733eabff04401e6858534ed1f0cbfc9f191c382f
 SHA256 (src/xmrsigner/hardware/pivideostream.py) = 7e5c06da6331bee0da86fe12fc4e55a5b6ad0243e0431caa63a89c252f50ce7d
@@ -192,8 +192,8 @@ SHA256 (docs/img/dice_entr.png) = a5065a13851fb1436e6d10bed0a27f84544e62ef604357
 SHA256 (docs/img/Open_Pill_Star.JPG) = 14e36f046d398d51628a69076ebaa8c90c4394755acac91ccb20bd1d7c76fe86
 SHA256 (docs/developer_tips.md) = 66b65ba7e2e55ccc1406665495e673fb02b5810a81eec99e9bd4b33eefbc8d72
 SHA256 (docs/recovery.md) = 17cee66eadd1b24e7f06d0acd0ed0edd2f2c60a9326976006564ba051c07c18e
-SHA256 (requirements.txt) = 45a92e744b174a7eb6b9d16a5f52402060d5e98fab80c35af6ca10bca5848c93
-SHA256 (setup.py) = 8e02c3c72dac28caa4b92fc0cc387189689be40ede033935552406f792c870d8
+SHA256 (requirements.txt) = a2976de24260b4566e5d2ab1ae677e3553ed1ff6bca717a4891ca42d7a739e29
+SHA256 (setup.py) = ca44bfb45b19e32954fb9b240e44d45272fa0582ef91a7a478944cdef7ce0a62
 SHA256 (Makefile) = 13240f7b150b20e3c698e099a124013d0b70150acdcbe45fbb47fffb654e490b
 SHA256 (README.md) = a9531c687081e2a70c03d307a154c200c653c4d82f4162e4a2b3513a6ff782a7
 SHA256 (LICENSE.md) = 1258a5daf0928bc18bfaa2047b8eaa34cae2a70b2f97feb0d024bc52f5ca09f5
