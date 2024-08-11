@@ -64,7 +64,13 @@ class TxOverviewScreen(ButtonListScreen):
         else:
             spend_amount = self.spend_amount
 
-        self.components.append(XmrAmount(total_atomic_units=spend_amount, screen_y=icon_text_lines_y,))
+        self.components.append(
+            XmrAmount(
+                total_atomic_units=spend_amount,
+                screen_y=icon_text_lines_y,
+                font_size=20
+            )
+        )
 
         # Prep the transaction flow chart
         self.chart_x = 0
@@ -610,6 +616,7 @@ class TxAddressDetailsScreen(ButtonListScreen):
             canvas=center_img,
             total_atomic_units=self.amount,
             screen_y=int(GUIConstants.COMPONENT_PADDING/2),
+            font_size=20
         )
 
         formatted_address = FormattedAddress(
@@ -654,6 +661,7 @@ class TxChangeDetailsScreen(ButtonListScreen):
         self.components.append(XmrAmount(
             total_atomic_units=self.amount,
             screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING,
+            font_size=20
         ))
         self.components.append(FormattedAddress(
             screen_y=self.components[-1].screen_y + self.components[-1].height + GUIConstants.COMPONENT_PADDING,
