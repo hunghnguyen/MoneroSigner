@@ -100,6 +100,9 @@ dev-device-rsync: dev-device-ip
 dev-device-shell: dev-device-ip
 	ssh -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_IP}
 
+dev-device-log: dev-device-ip
+	ssh -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_IP} 'tail -f /var/log/xmrsigner.log'
+
 dev-device-shutdown: dev-device-ip
 	@ssh -t -i ${SSH_PRIVATE_KEY} xmrsigner@${DEV_DEVICE_IP} 'sudo halt'
 

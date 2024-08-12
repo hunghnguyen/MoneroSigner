@@ -40,7 +40,7 @@ class VersionUpdater:
     def update_setup_py_version(self, file_path: str) -> None:
         with open(file_path, 'r') as file:
             file_data = file.read()
-        updated_data = sub(r'version=[\'"]\d\.\d\.\d[\'"]', f'version="{self.current_version}"', file_data)
+        updated_data = sub(r"version=['\"]\d+\.\d+\.\d+['\"]", f"version='{self.current_version}'", file_data)
         with open(file_path, 'w') as file:
             file.write(updated_data)
 
