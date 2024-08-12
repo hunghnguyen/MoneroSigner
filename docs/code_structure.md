@@ -1,6 +1,6 @@
 # Code Structure
 
-SeedSigner roughly follows a Model-View-Controller approach. Like in a typical web app (e.g. Flask) the `View`s can be called as needed like individual web urls. After completing display and interaction with the user, the `View` then decides where to route the user next, analogous to a web app returning a `response.redirect(url)`.
+XmrSigner roughly follows a Model-View-Controller approach. Like in a typical web app (e.g. Flask) the `View`s can be called as needed like individual web urls. After completing display and interaction with the user, the `View` then decides where to route the user next, analogous to a web app returning a `response.redirect(url)`.
 
 The `Controller` then ends up being quite stripped down. For example, there's no need for a web app's `urls.py` since there are no mappings from url to `View` to maintain since we're not actually using a url/http routing approach.
 
@@ -17,5 +17,10 @@ The `Controller` then ends up being quite stripped down. For example, there's no
 In an typical webserver context the `View` would send data to an html template (e.g. Jinja) which would then dynamically populate the page with html elements like `<input>`, `<button>`, `<img>`, etc. This is analgous to our `gui.screens` constructing a UI renderer by piecing together various `gui.components` as needed.
 
 
-
 `Controller` is a global singleton that any `View` can access and update as needed.
+
+---
+
+There is some mess up between views and screens and I don't see it very practical, IMO views and screens should be merged together.
+But there a so many things, that scream for a complete new implementation to the differences between BTC and XMR, that there is a
+serious question on how to transform the code or not reimplemtent from ground up.

@@ -44,11 +44,11 @@ How Monero is not a direct decendent from Bitcoin a lot of things are different.
 - [x] Sign transactions
 - [x] Live preview during photo-to-seed and QR scanning UX
 - [x] Optimized seed word entry interface
-- [W] Support for Monero Mainnet, Stagenet & Testnet
+- [x] Support for Monero Mainnet, Stagenet & Testnet
 - [x] User-configurable QR code display density (__check: UR documentation about viability__)
 
 ### Considerations:
-* Built for compatibility using  [UR](https://www.blockchaincommons.com/specifications/Blockchain-Commons-URs-Support-Airgapped-PSBTs/) with Feather Waller, etc (__check__), and adapt oficial [Monero GUI](https://www.getmonero.org/downloads/#gui).
+* Built for compatibility using  [UR](https://www.blockchaincommons.com/specifications/Blockchain-Commons-URs-Support-Airgapped-PSBTs/) with Feather Waller, etc, and adapt oficial [Monero GUI](https://www.getmonero.org/downloads/#gui).
 * Device takes up to 60 seconds to boot before menu appears (be patient!)
 * Always test your setup before transfering larger amounts of bitcoin (try testnet first!)
 * Slightly rotating the screen clockwise or counter-clockwise should resolve lighting/glare issues
@@ -109,11 +109,11 @@ How Monero is not a direct decendent from Bitcoin a lot of things are different.
 
 
 3. Cleanup and production ready (45 days from now)
-    - [ ] Tools
-    - [ ] Scripts
-    - [ ] Documentation final version
-    - [ ] Final cleanup XmrSigner
-    - [ ] Final cleanup companion Application
+    - [x] Tools
+    - [x] Scripts
+    - [x] Documentation final version
+    - [x] Final cleanup XmrSigner
+    - [x] Final cleanup companion Application
 
 
 4. Monero-GUI integration (60 days from now from, until PR)
@@ -125,32 +125,7 @@ P: posponed
 W: WIP
 ?: Not decided yet
 
----------------
-# Timeline
-```
- /------------------------------------------------------------- 2024-05-25 Proposal and project start
- |
- |   /--------------------------------------------------------- 2024-05-29 Ordered missing hardware (Display hat + pi cam)
- |   |
- |   |   /----------------------------------------------------- 2024-05-02 missing hardware arrived
- |   |   |
- |   |   | /--------------------------------------------------- 2024-06-04 Milestone 1, estimated arrival of hardware
- |   |   | |
- |   |   | |              /------------------------------------ 2024-06-19 Milestone 2
- |   |   | |              |
- |   |   | |              |                   /---------------- 2024-07-09 Milestone 3
- |   |   | |              |                   |
- |   |   | |              |                   |              /- 2024-07-24 Milestone 4
- |   |   | |              |                   |              |
- |   |   | |              |                   |              |   /- 2024-07-28 Milestone 2, somehow finished, with a delay of 39 days *sight*
- |   |   | |              |                   |              |   |
-(S)==|===|(1)============(2)=================(3)============(4)=====>
-                                                                 A
-                                                                 |
-                                                                 \------ Today: 2024-07-28
-
-```
-XmrSigner development faced numerous technical challenges, including issues with monero-python, complexities in the Monero codebase, and difficulties building monero-wallet-rpc for ARMv6 devices. Despite these setbacks, progress has been made on Milestone 2. Future plans include refining XmrSigner, integrating with Monero GUI, and potentially reimplementing key components for improved efficiency.
+XmrSigner development faced numerous technical challenges, including issues with monero-python, complexities in the Monero codebase, and difficulties building monero-wallet-rpc for ARMv6 devices.
 
 ## Rabbit holes
 Pretty much rabbit holes everywhere, somebody please remember me the next time to at least 3x the estimated time to unforeseen clusterfuck.
@@ -187,7 +162,26 @@ Notes:
 
 # Software Installation
 
-This section is comming soon
+At the moment there is only a development image based on Raspberries Pi OS (buster, pretty old),
+with bookworm there is stil an issue with picamera2 although I adapted the code to run on both.
+After running in similar issues with buster, it could be that it is only a wrong setting in config.txt.
+
+But honestly, this development image was meant that there is at least something running and the
+ability to thinker with it, or check things out. But main focus should be to get it on XmrSigner OS
+running. Here is the issue to compile monero-wallet-rpc without to bring even more dependencies, which
+are by they way all unnecessary becauae absolutely unneeded for the use case, into buidroot.
+
+I will need how to go further and in which direction, monero-wallet-rpc was a temporary solution to
+move "quick" after figuring out at monero-python is mostly only a wrapper around monero-wallet-rpc,
+but implementing thing like password or key images import/export base on ch_hash_slow (CryptoNight),
+there would be a lot to transpile. So the better approach in my opinion and beneficial for all comming
+monero developers would be to take monero souce appart modularize it, minimze dependencies and allow
+to compile only what you need. And after that reimplement it without monero-wallet-rpc.
+
+Further I think for the XmrSigner itself there are also too much dependencies, and also completely
+unnecessary. Essentially XmrSigner doesn't need an OS, it should run bare metal on the Raspberry Pi or
+it should be on something like the i.MX from NXP/Freescale. That all let's so many questions open in which
+direction to go from here. Input welcome!
 
 ---------------
 
@@ -202,12 +196,6 @@ Comming soon
 * [PS4 Seedsigner](https://www.thingiverse.com/thing:5363525) by @Silexperience
 * [OpenPill Faceplate](https://www.printables.com/en/model/179924-seedsigner-open-pill-cover-plates-digital-cross-jo) by @Revetuzo 
 * [Waveshare CoverPlate](https://cults3d.com/en/3d-model/various/seedsigner-coverplate-for-waveshare-1-3-inch-lcd-hat-with-240x240-pixel-display) by @Adathome1
-
----------------
-
-# SeedQR Printable Templates
-
-Comming soon.
 
 ---------------
 
