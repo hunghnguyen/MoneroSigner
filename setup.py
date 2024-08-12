@@ -4,9 +4,9 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="MoneroSigner",
-    version="0.7.10",
-    author="MoneroSigner",
+    name="XmrSigner",
+    version='0.9.2',
+    author="XmrSigner",
     author_email="author@example.com",
     description="Build an offline, airgapped Monero signing device for less than $50!",
     long_description=long_description,
