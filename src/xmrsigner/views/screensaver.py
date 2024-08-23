@@ -50,7 +50,7 @@ class OpeningSplashScreen(LogoScreen):
             self.renderer.canvas.paste(Image.alpha_composite(background, self.logo), (0, logo_offset_y))
             self.renderer.show_image()
 
-        # Display version num below SeedSigner logo
+        # Display version num below XmrSigner logo
         font = Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.TOP_NAV_TITLE_FONT_SIZE)
         version = f"v{controller.VERSION}"
         (left, top, version_tw, version_th) = font.getbbox(version, anchor="lt")
