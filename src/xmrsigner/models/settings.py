@@ -222,7 +222,7 @@ class Settings(Singleton):
                 # - Overwrite settings on the SD?
                 # - Load settings from SD?
                 # if Settings file exists (meaning persistent settings was previously enabled), write out current settings to disk
-                if os.path.exists(Settings.SETTINGS_FILENAME):
+                if path.exists(Settings.SETTINGS_FILENAME):
                     # enable persistent settings first, then save
                     Settings.get_instance()._data[SettingsConstants.SETTING__PERSISTENT_SETTINGS] = SettingsConstants.OPTION__ENABLED
                     Settings.get_instance().save()
