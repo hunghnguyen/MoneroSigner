@@ -20,6 +20,8 @@ languages = {
     'es': 'Spanish',
 }
 
+def generate_mnemonic(language_code: str = 'en') -> List[str]:
+    return MoneroSeed("", languages[language_code]).phrase.split()
 
 def generate_mnemonic_from_bytes(entropy_bytes: bytes, language_code: str = 'en') -> List[str]:
     return MoneroSeed(hexlify(entropy_bytes).decode(), languages[language_code]).phrase.split()

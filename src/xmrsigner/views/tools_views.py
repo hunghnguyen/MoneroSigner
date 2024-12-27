@@ -52,13 +52,14 @@ class ToolsMenuView(View):
     def run(self):
         IMAGE = ButtonData('New seed').with_icon(FontAwesomeIconConstants.CAMERA)
         DICE = ButtonData('New seed').with_icon(FontAwesomeIconConstants.DICE)
+        RANDOM = ButtonData('Random seed').with_icon(FontAwesomeIconConstants.DICE)
         KEYBOARD = ButtonData('Pick own words').with_icon(FontAwesomeIconConstants.KEYBOARD)
         EXPLORER = ButtonData('Address Explorer')
         ADDRESS = ButtonData('Verify address')
         if self.secure_only or self.settings.get_value(SettingsConstants.SETTING__LOW_SECURITY) == SettingsConstants.OPTION__DISABLED:
-            button_data = [IMAGE, DICE]  # , EXPLORER, ADDRESS]  # TODO: 2024-06-17, activate when it works
+            button_data = [IMAGE, DICE, RANDOM]  # , EXPLORER, ADDRESS]  # TODO: 2024-06-17, activate when it works
         else:
-            button_data = [IMAGE, DICE, KEYBOARD]  # , EXPLORER, ADDRESS]  # TODO: 2024-06-17, activate when it works
+            button_data = [IMAGE, DICE, RANDOM, KEYBOARD]  # , EXPLORER, ADDRESS]  # TODO: 2024-06-17, activate when it works
         selected_menu_num = self.run_screen(
             ButtonListScreen,
             title="Tools",
@@ -71,6 +72,8 @@ class ToolsMenuView(View):
             return Destination(ToolsImageEntropyLivePreviewView)
         if button_data[selected_menu_num] == DICE:
             return Destination(ToolsDiceSeedTypeView)
+        if button_data[selected_menu_num] == RANDOM:
+            return Destination(ToolsDiceRandomSeedTypeView)
         if button_data[selected_menu_num] == KEYBOARD:
             return Destination(ToolsCalcFinalWordWarningView)
         if button_data[selected_menu_num] == self.EXPLORER:
@@ -210,7 +213,38 @@ class ToolsDiceSeedTypeView(View):
         else:
             return Destination(ToolsDicePolyseedView)
 
+class ToolsDiceRandomSeedTypeView(View):
 
+    def run(self):
+        MONERO_SEED = 'Monero Seed'
+        POLYSEED = 'Polyseed'
+        button_data = [MONERO_SEED, POLYSEED]
+
+        selected_menu_num = ButtonListScreen(
+            title="Seed type?",
+            button_data=button_data,
+        ).display()
+
+        if selected_menu_num == RET_CODE__BACK_BUTTON:
+            return Destination(BackStackView)
+        
+        if button_data[selected_menu_num] == MONERO_SEED:
+            dice_seed_phrase = mnemonic_generation.generate_mnemonic()
+            print(f"""Mnemonic: "{dice_seed_phrase}" """)
+            # Add the mnemonic as an in-memory Seed
+            seed = Seed(dice_seed_phrase, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__MONERO_WORDLIST_LANGUAGE))
+            self.controller.jar.set_pending_seed(seed)
+            # Cannot return BACK to this View
+            return Destination(SeedWordsWarningView, view_args={"seed_num": None}, clear_history=True)
+        else:
+            dice_seed_phrase = polyseed_mnemonic_generation.generate_mnemonic()
+            print(f"""Mnemonic: "{dice_seed_phrase}" """)
+            # Add the mnemonic as an in-memory Seed
+            seed = PolyseedSeed(dice_seed_phrase, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__POLYSEED_WORDLIST_LANGUAGE))
+            self.controller.jar.set_pending_seed(seed)
+            # Cannot return BACK to this View
+            return Destination(SeedWordsWarningView, view_args={"seed_num": None}, clear_history=True)
+        
 class ToolsDiceEntropyMnemonicLengthView(View):
     def run(self):
         if self.settings.get_value(SettingsConstants.SETTING__LOW_SECURITY) != SettingsConstants.OPTION__ENABLED:

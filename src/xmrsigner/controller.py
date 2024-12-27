@@ -1,7 +1,7 @@
 import logging
 import traceback
 
-from PIL.Image import Image
+from PIL import Image
 from typing import List, Optional, Dict, Union
 from time import sleep
 from sys import exit
